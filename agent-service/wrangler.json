@@ -54,7 +54,7 @@
   "vars": {
     "CLERK_AUTH_ENABLED": "true",
     "CLERK_ISSUER": "https://clerk.kuchi.kalarislabs.com",
-    "CLERK_PUBLISHABLE_KEY": "REPLACE_WITH_KUCHI_CLERK_PUBLISHABLE_KEY"
+    "CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsua3VjaGkua2FsYXJpc2xhYnMuY29tJA=="
   },
   "observability": {
     "enabled": true,

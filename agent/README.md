@@ -6,18 +6,18 @@ Use Quick connect on the website, or send this to an agent that can configure MC
 Connect to Kuchi MCP at https://kuchi.kalarislabs.com/mcp.
 ```
 
-For Claude chat, the copied prompt asks for one [Connect Kuchi](https://kuchi.kalarislabs.com/agent/connect/claude) link when setup is needed. This opens the prefilled connector flow after a click; it does not automatically register a connector or approve OAuth.
+For Claude chat, the copied prompt asks for one [Connect Kuchi](https://kuchi.kalarislabs.com/agent/connect/claude) link when setup is needed. This opens the prefilled connector flow after a click; it does not automatically register a connector.
 
 Chat apps may require you to add a connector in settings. Reading a setup guide or saving a skill does not install an MCP connection.
 
-Remote MCP endpoint: **https://kuchi.kalarislabs.com/mcp**. Streamable HTTP and read-only, with Clerk OAuth sign-in. Sign in and approve access in your client’s browser flow; never paste credentials into chat. The gallery and videos remain public.
+Remote MCP endpoint: **https://kuchi.kalarislabs.com/mcp**. Streamable HTTP, read-only and open: no account, sign-in or token.
 
 | Client | Setup |
 | --- | --- |
 | Codex CLI | `codex mcp add kuchi --url https://kuchi.kalarislabs.com/mcp` |
 | Claude Code | Quick connect opens the desktop app's Code composer with the setup prompt prefilled. Review and send it, then complete MCP setup and browser authorization. |
-| Claude Desktop | Quick connect opens a desktop chat with the setup prompt prefilled. For the web connector dialog, use More → Claude web. Adding the connector and approving OAuth remain separate user actions. |
-| ChatGPT | Plugins → + → Add custom MCP server. Enter the endpoint above, choose OAuth, create and install the plugin, then complete sign-in. Account and workspace policies apply. |
+| Claude Desktop | Quick connect opens a desktop chat with the setup prompt prefilled. For the web connector dialog, use More → Claude web. Adding the connector remains a separate user action. |
+| ChatGPT | Plugins → + → Add custom MCP server. Enter the endpoint above, choose No authentication, then create and install the plugin. Account and workspace policies apply. |
 | Cursor | Add the JSON below to `.cursor/mcp.json`, preserving other servers. |
 | Grok | Manual setup: sign in at https://grok.com/connectors → New Connector → Custom → enter the endpoint above and authorize. Organization admins may need to enable it. No publicly documented prefilled-install link was found in the official connector guide (checked November 10, 2026); this is not a Quick connect option. |
 | Gemini CLI | Add `{"mcpServers":{"kuchi":{"httpUrl":"https://kuchi.kalarislabs.com/mcp"}}}` to Gemini settings, preserving existing settings. |
@@ -30,7 +30,7 @@ Remote MCP endpoint: **https://kuchi.kalarislabs.com/mcp**. Streamable HTTP and 
 
 The same service has three read-only reference tools: `get_launch_context`, `search_launch_videos`, and `get_launch_video`, plus optional non-destructive `report_launch_task` for creation outcomes and explicit feedback. Call `get_launch_context` before each task. Every tool fetches the current catalog and workflow, returns their content version, and discovers styles dynamically. Search uses keywords, not a semantic embedding model. Equal keyword matches sort by record ID; browsing does not rank by popularity. Reference results include descriptive notes but omit exposure, engagement and legacy scores. Public gallery statistics remain unchanged.
 
-Official use requires an authenticated MCP connection. If MCP is disconnected or unsupported, stop and guide setup; do not read public mirrors as a substitute. HTTP manifest, catalog and workflow routes require the same OAuth access token and scopes as MCP. Public SKILL.md only guides connection. The gallery and public repository remain browsable; authentication does not make already-public content private.
+Prefer the MCP connection. If MCP is unavailable, read https://kuchi.kalarislabs.com/agent/catalog.json and https://kuchi.kalarislabs.com/agent/workflow.md, which are open too.
 
 ## Updating the library
 
@@ -77,7 +77,7 @@ npm run dev
 npm run verify:live # checks the deployed service with modern and legacy SDK clients
 ```
 
-`npm run deploy` deploys the Cloudflare Worker. Fixed public source locations, bounded source reads and result limits keep this a read-only catalog service. Clerk stores account identity and verified email for authenticated MCP access. Login does not subscribe users to email updates. There is no paid gate or daily quota. See [Privacy](https://kuchi.kalarislabs.com/privacy.html) and [auth rollout status](../agent-service/AUTH.md).
+`npm run deploy` deploys the Cloudflare Worker. Fixed public source locations, bounded source reads and result limits keep this a read-only catalog service. There are no accounts, no paid gate and no daily quota; a per-IP rate limit protects the service. See [Privacy](https://kuchi.kalarislabs.com/privacy.html).
 
 The agent service applies a shared short-term abuse throttle of approximately 600 HTTP requests per IP per 60 seconds across MCP and `/agent/*`, including preflight and unsuccessful requests. It uses Cloudflare's trusted `CF-Connecting-IP`, not user-supplied forwarding headers. Exceeding the limit returns JSON with HTTP `429` and `Retry-After: 60`; clients should back off rather than immediately retry. MCP POST bodies are capped at 64 KiB, including streamed bodies without a Content-Length. The website and video assets are served by a separate Worker and are outside this throttle. There is no daily allowance or paid quota. Cloudflare's native counters are approximate per edge location, so this is not a strict global quota, distributed-bot defense or billing cap. Shared proxy IPs also share this allowance until verified user identities are available. If the rate-limit binding is missing or fails, the service returns a retryable `503` instead of silently disabling protection.
 
@@ -106,9 +106,9 @@ The landing page shares the canonical site header at `/shared/site-header.js` an
 
 Existing client aliases such as `launch-archive` continue to work; do not add a duplicate server or reconnect solely to rename a local alias. New setup examples use `kuchi`.
 
-## OAuth migration
+## Access
 
-Existing unauthenticated installations must update to the OAuth plugin release and reconnect once. Approve the profile and email scopes in the browser. Future video, metadata and workflow updates still require no reinstall. A 401 means sign in or refresh authorization; a 403 means reconnect with the required scopes. Do not bypass these through the public HTTP catalog.
+No sign-in is needed. Installations that were set up with OAuth can reconnect without authentication. Future video, metadata and workflow updates require no reinstall. A 429 means the per-IP rate limit was hit; wait a minute.
 
 ## Daily collection totals
 

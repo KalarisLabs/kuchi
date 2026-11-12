@@ -1,5 +1,0 @@
-/consent.html
-  Cache-Control: no-store
-  Referrer-Policy: strict-origin-when-cross-origin
-  X-Frame-Options: DENY
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://clerk.kuchi.kalarislabs.com; connect-src 'self' https://clerk.kuchi.kalarislabs.com https://accounts.kuchi.kalarislabs.com https://us.i.posthog.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' data:; frame-src https://clerk.kuchi.kalarislabs.com https://accounts.kuchi.kalarislabs.com; frame-ancestors 'none'; base-uri 'none'; object-src 'none'

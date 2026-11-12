@@ -6,7 +6,7 @@ name: Publish to kuchi.kalarislabs.com
 #
 # Repository secrets:
 #   CLOUDFLARE_API_TOKEN            Workers Scripts:Edit, Workers Routes:Edit,
-#                                   R2:Edit, D1:Edit, Account Settings:Read
+#                                   R2:Edit, Account Settings:Read
 #   CLOUDFLARE_ACCOUNT_ID           d59494a6afb6b5913ff800704c98e8e0
 
 on:
@@ -53,9 +53,6 @@ jobs:
       # catalog video is missing from R2.
       - name: Upload posters, check videos in R2
         run: python scripts/sync_media_r2.py
-
-      - name: Apply D1 migrations
-        run: npx -y wrangler@4 d1 migrations apply kuchi-conversations --remote --config agent-service/wrangler.json
 
       - name: Deploy MCP Worker
         run: |

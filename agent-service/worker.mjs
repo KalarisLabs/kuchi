@@ -2,11 +2,8 @@ import {McpServer} from '@modelcontextprotocol/server';
 import {createMcpHandler} from 'agents/mcp/server';
 import {z} from 'zod';
 import {loadArchive, context, publicManifest, search, record, findVideo} from './catalog.mjs';
-import {guardRequest,guardAccount} from './request-guard.mjs';
-import {authorizeMcp, protectedResourceMetadata, RESOURCE_METADATA_PATH} from './mcp-auth.mjs';
-import {captureEvent,captureMcpEvent,describeMcpRequest,observeMcpReplies,reportLaunchTask,measureMcpRequest,taskIdSchema} from './analytics.mjs';
-import {recordingRoutes,cleanupDeletedRecordings} from './recording.mjs';
-import {communityRoutes,cleanupCommunity,uploadSchema,createCommunityUpload,publishCommunityVideo} from './community.mjs';
+import {guardRequest} from './request-guard.mjs';
+import {measureMcpRequest,taskIdSchema} from './analytics.mjs';
 
 const BASE = '';
 export const VERSION = '0.2.0';
@@ -17,7 +14,7 @@ export const LIST_CACHE_HINTS = Object.freeze({
 });
 const annotations = {readOnlyHint:true, destructiveHint:false, idempotentHint:true, openWorldHint:true};
 const result = value => ({content:[{type:'text',text:JSON.stringify(value)}], structuredContent:value});
-const task_id = taskIdSchema.optional().describe('For a creation task, reuse the ID returned by report_launch_task. Omit for browsing.');
+const task_id = taskIdSchema.optional().describe('Optional client-chosen UUID to group calls for one task. Omit for browsing.');
 const guarded = (load, fn, tool, observe) => async args => {
   const started = Date.now();
   const completed = properties => {
@@ -35,7 +32,7 @@ const guarded = (load, fn, tool, observe) => async args => {
   }
 };
 
-export function createServer(load = loadArchive, observe, report, community = {}) {
+export function createServer(load = loadArchive, observe) {
   const server = new McpServer({name:'launch-archive', title:'Kuchi', version:VERSION}, {
     instructions:'Before each launch-video task, call get_launch_context and follow the workflow it returns.',
     // Without hints the SDK stamps ttlMs:0 ("immediately stale") on 2026-era
@@ -61,35 +58,6 @@ export function createServer(load = loadArchive, observe, report, community = {}
     const video = findVideo(archive,reference);
     return {...context(archive), found:!!video, video:video ? record(video,true,archive.sourceRevision) : null};
   },'get_launch_video',observe));
-  server.registerTool('report_launch_task', {
-    title:'Report video task outcome or explicit feedback',
-    description:'Record a video-creation task start, completion or failure, or feedback the user explicitly gave. Returns a task ID at start; reuse it for the outcome. Completion is agent-reported, not a server render verification. No prompts, emails, output URLs or private content.',
-    inputSchema:z.object({status:z.enum(['started','completed','failed','feedback']),task_id:z.uuid().optional(),reference_ids:z.array(z.number().int().positive()).max(3).optional(),checks:z.object({html:z.boolean(),source:z.boolean(),mp4:z.boolean(),music:z.boolean(),playback:z.boolean(),download:z.boolean()}).optional(),rating:z.enum(['helpful','not_helpful']).optional(),reason:z.enum(['poor_fit','motion_quality','playback','download','other']).optional()}),
-    annotations:{title:'Report video task outcome or explicit feedback',readOnlyHint:false,destructiveHint:false,idempotentHint:false,openWorldHint:true}
-  }, async args => {
-    if (!report) return result({recorded:false,reason:'Reporting unavailable'});
-    if (args.reference_ids?.length) {
-      const archive=await load();
-      if (args.reference_ids.some(id=>!archive.videos.some(video=>video.id===id))) return {...result({recorded:false,reason:'Unknown reference ID'}),isError:true};
-    }
-    const value=await report(args);
-    if(args.status==='completed'&&args.checks?.mp4)value.community_offer={question:'Would you like to upload the final video to Kuchi Community for extra exposure?',when:'Ask once after the final version, including any requested revisions. Upload only after the user explicitly agrees.',tool:'create_community_upload'};
-    return {...result(value),...(!value.recorded ? {isError:true} : {})};
-  });
-  const publishTool=(fn)=>async args=>{
-    try{if(!fn)return {...result({error:'Community publishing unavailable'}),isError:true};return result(await fn(args));}
-    catch(error){return {...result({error:error.status?error.message:'Community is temporarily unavailable. Try again.'}),isError:true};}
-  };
-  server.registerTool('create_community_upload',{
-    title:'Upload a final video to Kuchi Community',
-    description:'Only after the user explicitly agrees to public Community posting, create upload links for their final MP4 and optional JPEG/PNG cover (use a clear frame for the gallery). Return the task_id from report_launch_task to prevent duplicate posts. PUT actual file bytes to the returned URLs, then call publish_community_video. No draft or preview approval step. Never claim upload without sending the file.',
-    inputSchema:uploadSchema,annotations:{title:'Upload a final video to Kuchi Community',readOnlyHint:false,destructiveHint:false,idempotentHint:false,openWorldHint:true}
-  },publishTool(community.create));
-  server.registerTool('publish_community_video',{
-    title:'Publish the uploaded final video',
-    description:'Finish the already-consented Community post after uploading actual MP4 and cover bytes. Returns the public share URL. Do not ask the user for a second approval. Authors can edit, replace or delete their upload on the Community tab.',
-    inputSchema:z.object({upload_id:z.uuid()}),annotations:{title:'Publish the uploaded final video',readOnlyHint:false,destructiveHint:false,idempotentHint:true,openWorldHint:true}
-  },publishTool(community.publish));
   return server;
 }
 
@@ -102,9 +70,9 @@ description: Find real video references for product launches, demos, teasers and
 
 Search the Kuchi video collection and share playable Kuchi links. Before each relevant task, call get_launch_context and follow its live workflow; keep creative decisions with the agent.
 
-Use the existing MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, browser OAuth). Never request credentials or tokens in chat or package a downloadable skill. If setup is needed, offer one connect link: for Claude, [Connect Kuchi](https://kuchi.kalarislabs.com/agent/connect/claude); otherwise the client's shortest setup path. Confirm connection only after initialize, tools/list and get_launch_context succeed.
+Use the existing MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, open: no sign-in, no tokens). Never request credentials in chat or package a downloadable skill. If setup is needed, offer one connect link: for Claude, [Connect Kuchi](https://kuchi.kalarislabs.com/agent/connect/claude); otherwise the client's shortest setup path. Confirm connection only after initialize, tools/list and get_launch_context succeed.
 
-If MCP is disconnected, unsupported, or returns 401/403, stop and guide connection or reauthorization. No anonymous fallback through public files, website metadata or GitHub mirrors. Keep the catalog and workflow live rather than embedding them in permanent instructions.
+If MCP is unavailable, the same live catalog is at https://kuchi.kalarislabs.com/agent/catalog.json and the workflow at https://kuchi.kalarislabs.com/agent/workflow.md. Keep the catalog and workflow live rather than embedding them in permanent instructions.
 `;
 
 function skillResponse(request) {
@@ -134,7 +102,6 @@ function response(body, type = 'application/json', status = 200) {
 
 const MCP_OPTIONS = {route:`${BASE}/mcp`,legacy:'stateless',allowedHostnames:['kuchi.kalarislabs.com','localhost','127.0.0.1'],allowedOriginHostnames:'*'};
 export default {
-  async scheduled(_controller,env,ctx) { ctx.waitUntil(Promise.all([cleanupDeletedRecordings(env),cleanupCommunity(env)])); },
   async fetch(request,env,ctx) {
     // Public, unauthenticated liveness probe (WHITELABEL.md section 8).
     if(new URL(request.url).pathname===`${BASE}/mcp/health`){
@@ -148,51 +115,16 @@ export default {
   }
 };
 
-async function handleRequest(request,env,ctx,observeIdentity=()=>{}) {
+// Kuchi's MCP server and agent routes are open: no accounts, no OAuth.
+// Abuse protection is the per-IP throttle in guardRequest.
+async function handleRequest(request,env,ctx,observeRequest=()=>{}) {
     const guarded = await guardRequest(request, env);
     if (guarded.response) return guarded.response;
     request = guarded.request;
     const path = new URL(request.url).pathname;
-    const community = await communityRoutes(request,env,ctx);
-    if (community) return community;
-    const recording = await recordingRoutes(request,env,ctx);
-    if (recording) return recording;
-    if (path === RESOURCE_METADATA_PATH && ['GET','HEAD'].includes(request.method)) {
-      const metadata = protectedResourceMetadata(env);
-      return request.method === 'HEAD' ? new Response(null, metadata) : metadata;
-    }
     if (path === `${BASE}/mcp`) {
-      let identity;
-      if (request.method !== 'OPTIONS') {
-        const auth = await authorizeMcp(request, env);
-        if (auth.response) return auth.response;
-        identity = auth.identity;
-        const limited = await guardAccount(identity, env);
-        if (limited) return limited;
-      }
-      const rpc = await describeMcpRequest(request,!!identity && !!env.POSTHOG_PROJECT_TOKEN);
-      observeIdentity(identity,rpc);
-      const isTest = request.headers.get('X-Kuchi-Analytics-Test') === '1';
-      const started = Date.now();
-      // The SDK already creates a fresh stateless server per request. Capture
-      // verified identity in this request's closure, never in shared state.
-      const mcp = createMcpHandler(() => {
-        const server = createServer(loadArchive,event => {
-          if (identity) ctx.waitUntil(captureMcpEvent(env,identity,{...event,rpc_request_id:rpc.traceId},undefined,{isTest}));
-        },args => reportLaunchTask(env,identity,args,undefined,{isTest,rpcRequestId:rpc.traceId}),{
-          create:async args=>{
-            if(args.reference_ids.length){const archive=await loadArchive();if(args.reference_ids.some(id=>!archive.videos.some(v=>v.id===id)))throw Object.assign(Error('Unknown reference ID'),{status:400});}
-            return createCommunityUpload(env,identity,args);
-          },
-          publish:async args=>{const published=await publishCommunityVideo(env,identity,args.upload_id);ctx.waitUntil(captureEvent(env,identity,published.replaced?'community_video_replaced':'community_post_published',{post_id:published.post.id,kind:published.post.kind,task_id:published.task_id,reference_ids:published.post.reference_ids.join(',')},undefined,{isTest,uuid:args.upload_id}));return published;}
-        });
-        if (!rpc.traceId) return server;
-        return observeMcpReplies(server,rpc,event => {
-          ctx.waitUntil(captureEvent(env,identity,'mcp_rpc_completed',{
-            ...event,duration_ms:Math.max(0,Date.now()-started)
-          },undefined,{isTest}));
-        });
-      },MCP_OPTIONS);
+      observeRequest(undefined);
+      const mcp = createMcpHandler(() => createServer(loadArchive),MCP_OPTIONS);
       return mcp(request,env,ctx);
     }
     if (request.method === 'OPTIONS') return new Response(null,{status:204,headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, HEAD, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
@@ -202,10 +134,6 @@ async function handleRequest(request,env,ctx,observeIdentity=()=>{}) {
     if (path === `${BASE}/agent/SKILL.md`) return skillResponse(request);
     const endpoints = [`${BASE}/agent/manifest.json`,`${BASE}/agent/catalog.json`,`${BASE}/agent/workflow.md`];
     if (!endpoints.includes(path)) return response({error:'Not found'},'application/json',404);
-    const auth = await authorizeMcp(request, env);
-    if (auth.response) return auth.response;
-    const limited = await guardAccount(auth.identity, env);
-    if (limited) return limited;
     try {
       const archive = await loadArchive();
       let data;

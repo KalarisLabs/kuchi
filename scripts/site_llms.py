@@ -16,7 +16,7 @@ def render_llms(videos):
         '',
         '## Connect your agent',
         '',
-        f'- MCP server (Streamable HTTP, OAuth sign-in): `{GALLERY}mcp`',
+        f'- MCP server (Streamable HTTP, open, no sign-in): `{GALLERY}mcp`',
         f'- [Setup and usage (SKILL.md)]({GALLERY}agent/SKILL.md)',
         f'- [Video catalog (JSON)]({GALLERY}videos.json)',
         f'- [Gallery]({GALLERY})',

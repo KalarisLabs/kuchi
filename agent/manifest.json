@@ -8,7 +8,7 @@
   "skillUrl": "https://kuchi.kalarislabs.com/agent/SKILL.md",
   "sourceRepository": "https://github.com/kalarislabs/kuchi",
   "accessPolicy": {
-    "authentication": "oauth2",
+    "authentication": "none",
     "dailyQuota": "none",
     "shortTermThrottle": {
       "requests": 600,
@@ -25,15 +25,9 @@
       "fallbackBypassesLimit": false
     },
     "websiteAndVideoPlayback": "Public and outside the agent-service throttle.",
-    "authorizationServer": "https://clerk.kuchi.kalarislabs.com",
-    "requiredScopes": [
-      "profile",
-      "email"
-    ],
     "privacyUrl": "https://kuchi.kalarislabs.com/privacy.html",
-    "newsletterSubscription": "Separate opt-in; never implied by login.",
-    "agentService": "OAuth required for MCP and HTTP manifest/catalog/workflow routes. No anonymous fallback.",
-    "publicBootstrap": "SKILL.md, connection links and OAuth discovery remain public."
+    "agentService": "Open: MCP and HTTP manifest/catalog/workflow routes need no account, OAuth or token.",
+    "publicBootstrap": "SKILL.md and connection links are public."
   },
   "formats": [
     {
@@ -75,24 +69,10 @@
     "additiveManifestFields": "Exposed in MCP manifest and at the root of the HTTP manifest.",
     "breakingChanges": "Renamed core fields or a new major schema need a server adapter. Changed tool names, endpoint URLs or permissions may require client refresh or reconnect.",
     "website": "Website layout and media assets use their publishing pipeline; the agent reads the published catalog and workflow.",
-    "authenticationMigration": "Existing unauthenticated installations must reconnect once for OAuth. Future catalog and workflow updates keep the same connection."
+    "authenticationMigration": "None needed: the server is open. Future catalog and workflow updates keep the same connection."
   },
   "statisticsUrl": "https://kuchi.kalarislabs.com/daily-stats.json",
   "setupLinks": {
     "claude": "https://kuchi.kalarislabs.com/agent/connect/claude"
-  },
-  "community": {
-    "url": "https://kuchi.kalarislabs.com/?tab=community",
-    "publication": "Ask once after final delivery. Public posting requires explicit user agreement. Upload final file bytes and publish immediately; no draft or second approval.",
-    "tools": [
-      "create_community_upload",
-      "publish_community_video"
-    ],
-    "maxVideoBytes": 100000000,
-    "authorControls": [
-      "edit",
-      "replace",
-      "delete"
-    ]
   }
 }

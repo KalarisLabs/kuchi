@@ -70,6 +70,8 @@ for video in json.loads((ROOT / 'data/videos.json').read_text(encoding='utf-8'))
     if not source.is_relative_to((ROOT / 'videos').resolve()) or source.suffix != '.mp4':
         raise ValueError('Invalid source media path')
     target = MEDIA_DIR / unquote(url.path[1:])
+    if not source.exists():
+        continue  # MP4s are git-ignored; the media is served from R2
     target.parent.mkdir(parents=True, exist_ok=True)
     same_file = target.exists() and target.stat().st_ino == source.stat().st_ino and target.stat().st_dev == source.stat().st_dev
     if not same_file:

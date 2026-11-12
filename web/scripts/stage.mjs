@@ -16,6 +16,7 @@ const env = {
   KUCHI_MEDIA_URL: process.env.KUCHI_MEDIA_URL ?? 'https://kuchi-media.kalarislabs.com',
 };
 const python = process.env.PYTHON ?? (process.platform === 'win32' ? 'python' : 'python3');
+rmSync(generated, { recursive: true, force: true });
 execFileSync(python, ['scripts/build_site.py', '--output', generated, '--media-dir', path.join(root, 'site-public')],
   { cwd: root, env, stdio: 'inherit' });
 rmSync(path.join(web, 'public'), { recursive: true, force: true });

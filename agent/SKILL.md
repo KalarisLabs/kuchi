@@ -7,6 +7,6 @@ description: Find real video references for product launches, demos, teasers and
 
 Search the Kuchi video collection and share playable Kuchi links. Before each relevant task, call get_launch_context and follow its live workflow; keep creative decisions with the agent.
 
-Use the existing MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, browser OAuth). Never request credentials or tokens in chat or package a downloadable skill. If setup is needed, offer one connect link: for Claude, [Connect Kuchi](https://kuchi.kalarislabs.com/agent/connect/claude); otherwise the client's shortest setup path. Confirm connection only after initialize, tools/list and get_launch_context succeed.
+Use the existing MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, open: no sign-in, no tokens). Never request credentials in chat or package a downloadable skill. If setup is needed, offer one connect link: for Claude, [Connect Kuchi](https://kuchi.kalarislabs.com/agent/connect/claude); otherwise the client's shortest setup path. Confirm connection only after initialize, tools/list and get_launch_context succeed.
 
-If MCP is disconnected, unsupported, or returns 401/403, stop and guide connection or reauthorization. No anonymous fallback through public files, website metadata or GitHub mirrors. Keep the catalog and workflow live rather than embedding them in permanent instructions.
+If MCP is unavailable, the same live catalog is at https://kuchi.kalarislabs.com/agent/catalog.json and the workflow at https://kuchi.kalarislabs.com/agent/workflow.md. Keep the catalog and workflow live rather than embedding them in permanent instructions.

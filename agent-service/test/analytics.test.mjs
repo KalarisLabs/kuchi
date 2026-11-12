@@ -102,23 +102,6 @@ test('task reports separate completion and checks, deduplicate retries, and requ
 });
 
 
-test('reporting MCP tool returns an accepted task ID and rejects private fields',async()=>{
-  const {reportLaunchTask}=await import('../analytics.mjs');
-  const archive={videos:[{id:1}],manifest:{},workflow:'Live workflow'};
-  const payloads=[];
-  const server=createServer(async()=>archive,undefined,args=>reportLaunchTask({POSTHOG_PROJECT_TOKEN:'phc_test'},{userId:'user_fixture'},args,async(url,options)=>{payloads.push(JSON.parse(options.body));return new Response('{}');}));
-  const client=new Client({name:'report-test',version:'1.0.0'});
-  const [a,b]=InMemoryTransport.createLinkedPair();await server.connect(a);await client.connect(b);
-  try {
-    const tools=await client.listTools();assert.equal(tools.tools.find(t=>t.name==='report_launch_task').annotations.readOnlyHint,false);
-    const start=await client.callTool({name:'report_launch_task',arguments:{status:'started',reference_ids:[1]}});
-    assert.equal(start.structuredContent.recorded,true);
-    const done=await client.callTool({name:'report_launch_task',arguments:{status:'completed',task_id:start.structuredContent.task_id,checks:{html:true,source:true,mp4:true,music:true,playback:true,download:true}}});
-    assert.equal(done.structuredContent.checks_passed,true);
-    assert.equal(payloads[1].event,'launch_task_completed');
-    const missing=await client.callTool({name:'report_launch_task',arguments:{status:'completed'}});assert.equal(missing.isError,true);
-  } finally {await client.close();await server.close();}
-});
 test('recording events keep client attribution and opaque task/session joins without original text',async()=>{
  const {captureEvent}=await import('../analytics.mjs');let payload;
  await captureEvent({POSTHOG_PROJECT_TOKEN:'phc_test'},{userId:'user_fixture'},'conversation_started',{client:'claude-code',session_id:crypto.randomUUID(),task_id:crypto.randomUUID(),text:'PRIVATE'},async(_url,options)=>{payload=JSON.parse(options.body);return new Response('{}');});
@@ -153,79 +136,6 @@ test('HTTP observation failure never changes a successful MCP response',async()=
  assert.equal(await response.text(),'ok');await Promise.all(pending);
 });
 
-test('HTTP MCP diagnostics join requests and replies across a creation task',async()=>{
- const {createMcpHandler}=await import('agents/mcp/server');
- const {Client:Modern,StreamableHTTPClientTransport:ModernHTTP}=await import('@modelcontextprotocol/client');
- const {StreamableHTTPClientTransport:LegacyHTTP}=await import('@modelcontextprotocol/sdk/client/streamableHttp.js');
- const {captureEvent,describeMcpRequest,measureMcpRequest,observeMcpReplies,reportLaunchTask}=await import('../analytics.mjs');
- const endpoint=new URL('https://kuchi.kalarislabs.com/mcp');
- const env={POSTHOG_PROJECT_TOKEN:'phc_test'};
- const account={userId:'user_fixture',clientId:'https://claude.ai/client'};
- const archive={videos:[],manifest:{},workflow:'Live workflow'};
-
- for(const [Agent,Transport] of [[Modern,ModernHTTP],[Client,LegacyHTTP]]) {
-  const events=[],pending=[];
-  const capture=async(_url,options)=>{events.push(JSON.parse(options.body));return new Response('{}');};
-  const ctx={waitUntil:promise=>pending.push(promise)};
-  const dispatch=(url,options)=>{
-   const request=new Request(url,options);
-   request.headers.set('Host',endpoint.hostname);
-   return measureMcpRequest(request,env,ctx,async observe=>{
-    const rpc=await describeMcpRequest(request,true);
-    observe(account,rpc);
-    const handler=createMcpHandler(()=>{
-     const server=createServer(async()=>archive,event=>{
-      ctx.waitUntil(captureMcpEvent(env,account,{...event,rpc_request_id:rpc.traceId},capture,{isTest:true}));
-     },args=>reportLaunchTask(env,account,args,capture,{isTest:true,rpcRequestId:rpc.traceId}));
-     if(!rpc.traceId)return server;
-     return observeMcpReplies(server,rpc,event=>ctx.waitUntil(captureEvent(env,account,'mcp_rpc_completed',event,capture,{isTest:true})));
-    },{route:endpoint.pathname,allowedHostnames:[endpoint.hostname]});
-    return handler(request,env,ctx);
-   },capture);
-  };
-  const client=new Agent({name:'rpc-observation-test',version:'1.0.0'});
-  const transport=new Transport(endpoint,{fetch:dispatch,requestInit:{headers:{'X-Kuchi-Analytics-Test':'1'}}});
-  try {
-   await client.connect(transport);
-   assert.equal((await client.listTools()).tools.length,6);
-   const start=await client.callTool({name:'report_launch_task',arguments:{status:'started'}});
-   const taskId=start.structuredContent.task_id;
-   assert.equal(start.structuredContent.recorded,true);
-   assert.ok(!(await client.callTool({name:'get_launch_context',arguments:{task_id:taskId}})).isError);
-   assert.ok((await client.callTool({name:'get_launch_video',arguments:{reference:42,task_id:taskId}})).isError);
-   assert.ok((await client.callTool({name:'get_launch_video',arguments:{reference:'1',task_id:'private product idea'}})).isError);
-   await assert.rejects(client.callTool({name:'private-unregistered-tool',arguments:{task_id:taskId}}));
-   const completed=await client.callTool({name:'report_launch_task',arguments:{status:'completed',task_id:taskId,
-    checks:{html:true,source:true,mp4:true,music:true,playback:true,download:true}}});
-   assert.equal(completed.structuredContent.checks_passed,true);
-   await Promise.all(pending);
-   const replies=events.filter(event=>event.event==='mcp_rpc_completed').map(event=>event.properties);
-   assert.deepEqual(replies.map(({rpc_method,tool,outcome,error_kind})=>[rpc_method,tool,outcome,error_kind]),[
-    ['tools/list',undefined,'success',undefined],
-    ['tools/call','report_launch_task','success',undefined],
-    ['tools/call','get_launch_context','success',undefined],
-    ['tools/call','get_launch_video','tool_error',undefined],
-    ['tools/call','get_launch_video','tool_error',undefined],
-    ['tools/call','other','protocol_error','invalid_params'],
-    ['tools/call','report_launch_task','success',undefined]
-   ]);
-   assert.deepEqual(replies.map(reply=>reply.task_id),[undefined,taskId,taskId,taskId,undefined,undefined,taskId]);
-   for(const reply of replies) {
-    const http=events.find(event=>event.event==='mcp_request_completed'&&event.properties.rpc_request_id===reply.rpc_request_id);
-    assert.equal(http?.properties.rpc_method,reply.rpc_method);
-    assert.equal(http?.properties.status_code,200);
-   }
-   for(const name of ['launch_task_started','mcp_tool_completed','launch_task_completed']) {
-    const event=events.find(event=>event.event===name);
-    assert.equal(event.properties.task_id,taskId);
-    assert.ok(replies.some(reply=>reply.task_id===taskId&&reply.rpc_request_id===event.properties.rpc_request_id));
-   }
-   assert.ok(events.every(event=>event.properties.is_test));
-   assert.doesNotMatch(JSON.stringify(events),/private-unregistered-tool|private product idea/);
-  } finally {await client.close();}
- }
-});
-
 test('stateless clients\' listen and resource calls are named instead of counted as other', async () => {
   const {describeMcpRequest}=await import('../analytics.mjs');
   for (const method of ['server/discover','subscriptions/listen','resources/read','prompts/get']) {
@@ -236,17 +146,3 @@ test('stateless clients\' listen and resource calls are named instead of counted
   assert.equal((await describeMcpRequest(unknown,false)).method,'other');
 });
 
-test('final MP4 completion offers public posting, schema blocks unconsented upload and failure never fabricates publication',async()=>{
- const archive={videos:[],manifest:{},workflow:'Live workflow'};let creates=0;
- const server=createServer(async()=>archive,undefined,async args=>({recorded:true,task_id:args.task_id??crypto.randomUUID()}),{create:async()=>{creates++;return {upload_id:crypto.randomUUID()};},publish:async()=>{throw Error('storage unavailable');}});
- const client=new Client({name:'community-offer-test',version:'1.0.0'}),[a,b]=InMemoryTransport.createLinkedPair();await server.connect(a);await client.connect(b);
- try{
-  const task_id=crypto.randomUUID(),checks={html:true,source:true,mp4:true,music:true,playback:true,download:true};
-  const done=await client.callTool({name:'report_launch_task',arguments:{status:'completed',task_id,checks}});
-  assert.match(done.structuredContent.community_offer.question,/extra exposure/);assert.match(done.structuredContent.community_offer.when,/Ask once/);assert.equal(creates,0);
-  const noVideo=await client.callTool({name:'report_launch_task',arguments:{status:'completed',task_id,checks:{...checks,mp4:false}}});assert.equal(noVideo.structuredContent.community_offer,undefined);
-  const denied=await client.callTool({name:'create_community_upload',arguments:{title:'Test',video_bytes:12,user_confirmed:false}});assert.equal(denied.isError,true);assert.equal(creates,0);
-  const accepted=await client.callTool({name:'create_community_upload',arguments:{title:'Test',video_bytes:12,user_confirmed:true,task_id}});assert.equal(accepted.isError,undefined);assert.equal(creates,1);
-  const failed=await client.callTool({name:'publish_community_video',arguments:{upload_id:accepted.structuredContent.upload_id}});assert.equal(failed.isError,true);assert.equal(failed.structuredContent.published,undefined);
- }finally{await client.close();await server.close();}
-});

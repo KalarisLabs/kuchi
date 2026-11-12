@@ -72,8 +72,6 @@ For founders, designers, and builders making their next product launch. Browse a
 
 **Every entry includes an inline video player, the video file, a remake prompt, and credit to the original creator.** The [live site](https://kuchi.kalarislabs.com/) plays all {len(VIDEOS)} videos directly in the cards. Video files are not stored in this repository; they are served from the site's media domain.
 
-Inspired by the visual + copyable-prompt format of [Awesome NotebookLM Templates](https://github.com/serenakeyitan/awesome-notebookLM-prompts).
-
 ## Use with your agent
 
 Each video is an inspiration template: your agent borrows its pacing, transitions and layout, and fills it with your own product, assets and copy. Add the MCP server `https://kuchi.kalarislabs.com/mcp` (no sign-in), or paste this into your agent:

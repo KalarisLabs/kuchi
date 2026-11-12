@@ -2,7 +2,7 @@
   "name": "@kalarislabs/kuchi",
   "version": "0.1.0",
   "private": true,
-  "description": "Open reference corpus + MCP for AI-clonable launch videos",
+  "description": "Real product-launch videos as inspiration templates, with an open MCP server",
   "homepage": "https://kuchi.kalarislabs.com",
   "repository": {
     "type": "git",
@@ -11,8 +11,6 @@
   "license": "MIT",
   "author": "Kalaris Labs",
   "scripts": {
-    "rebrand": "python scripts/rebrand.py",
-    "audit": "python scripts/audit.py",
     "build:site": "python scripts/build_site.py",
     "test:agent": "npm --prefix agent-service test",
     "test:site": "node --test site-worker/worker.test.mjs",

@@ -106,6 +106,6 @@ Open an issue first for larger changes, so we can agree on the approach.
 
 ## Rights and removal
 
-Every video stays credited to, and owned by, its creator. The MIT license covers the curation, prompts and code, not the videos, previews, logos or product UI. If you created a video in this collection and want it removed, [open an issue](https://github.com/kalarislabs/kuchi/issues/new) or contact [@serenakeyitan](https://github.com/serenakeyitan), and it will be taken down promptly.
+Every video stays credited to, and owned by, its creator. The MIT license covers the curation, prompts and code, not the videos, previews, logos or product UI. If you created a video in this collection and want it removed, [open an issue](https://github.com/kalarislabs/kuchi/issues/new) or email [support@kalarislabs.com](mailto:support@kalarislabs.com), and it will be taken down promptly.
 
 By contributing, you agree that your curation, notes and code are released under the [MIT License](LICENSE).

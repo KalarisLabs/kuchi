@@ -10,11 +10,11 @@
       "interface": {
         "capabilities": [],
         "category": "Creativity",
-        "composerIcon": "./assets/serena-popcorn.png",
+        "composerIcon": "./assets/kuchi-icon.png",
         "defaultPrompt": "Find launch-video inspiration for my product and plan a remake with my assets.",
         "developerName": "Kalaris Labs",
         "displayName": "Kuchi",
-        "logo": "./assets/serena-popcorn.png",
+        "logo": "./assets/kuchi-icon.png",
         "longDescription": "Kuchi is a library of real launch videos, product demos and teasers. Search by product type, motion style, format or aspect ratio, watch each reference, then plan a remake: Kuchi lists what to borrow (pacing, transitions, layout) and which of your own assets it needs (logo, screenshots, features, call to action). No sign-in. Build the video with your own tools.",
         "shortDescription": "Launch-video inspiration templates"
       }

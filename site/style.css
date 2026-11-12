@@ -29,7 +29,7 @@ h1 { font-size: clamp(32px, 4.1vw, 48px); line-height: 1.12; letter-spacing: -.0
 .intro-copy .summary { margin-top: 28px; }
 .intro-aside { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .intro-mascot { position: relative; align-self: end; justify-self: end; width: 210px; height: 180px; overflow: hidden; pointer-events: none; user-select: none; }
-.intro-mascot img { position: absolute; right: -5px; bottom: -18px; width: 220px; height: 220px; max-width: none; transform: scaleX(-1) rotate(-6deg); transform-origin: 50% 90%; }
+.intro-mascot img { position: absolute; right: 8px; bottom: 8px; width: 150px; height: 150px; max-width: none; transform: rotate(-6deg); transform-origin: 50% 90%; }
 .solid-link, .solid-button, .client-buttons > a, .client-buttons > button, .copy-config, .dialog-header button {
   display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   background: var(--button); color: var(--ink); border: 1px solid var(--line);
@@ -199,7 +199,7 @@ dialog::backdrop { background: rgba(0,0,0,.3); }
 @media (max-width: 900px) {
   .intro { grid-template-columns: minmax(0, 1fr) 170px; gap: 24px; }
   .intro-mascot { width: 170px; height: 160px; }
-  .intro-mascot img { width: 190px; height: 190px; }
+  .intro-mascot img { width: 130px; height: 130px; }
   .video-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .filter-bar { grid-template-columns: repeat(3, minmax(0, 1fr)) 42px; }
   .search-label { grid-column: 1/-1; }
@@ -216,7 +216,7 @@ dialog::backdrop { background: rgba(0,0,0,.3); }
   .intro-tagline { grid-column: 1 / -1; grid-row: 2; }
   .intro-copy .summary { grid-column: 1; grid-row: 3; margin-top: 0; }
   .intro-mascot { grid-column: 2; grid-row: 3; align-self: end; width: 112px; height: 100px; }
-  .intro-mascot img { right: -3px; bottom: -10px; width: 128px; height: 128px; }
+  .intro-mascot img { right: 4px; bottom: 4px; width: 88px; height: 88px; }
   h1 { font-size: 34px; line-height: 1.15; }
   .intro-aside .solid-link { grid-column: 1 / -1; grid-row: 4; justify-self: start; flex-wrap: wrap; justify-content: flex-start; white-space: normal; }
   .intro-tagline { font-size: 14px; }

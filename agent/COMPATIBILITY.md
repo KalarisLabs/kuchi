@@ -43,7 +43,7 @@ Also run `npm run verify:live` after every deploy. CI's smoke test only checks h
 
 ## Phase 3: listings
 
-1. **Anthropic connector directory.** Needs a public privacy policy (done), support contact (done), accurate tool annotations (done) and a review case list. Update `directory-submission/claude/` for the new tools before submitting. The old drafts there describe the earlier Serena build.
+1. **Anthropic connector directory.** Needs a public privacy policy (done), support contact (done), accurate tool annotations (done) and a review case list. The listing copy is ready in [`directory-submission/`](../directory-submission/README.md).
 2. **OpenAI app directory.** Submit through the OpenAI platform with the same endpoint. Consider an Apps SDK widget (a `ui://` resource template) that renders video cards with an inline player in ChatGPT; this is the biggest UX gain there.
 3. **MCP Registry.** Publish a `server.json` for `https://kuchi.kalarislabs.com/mcp` so clients that browse the registry can find it.
 4. **Claude skill upload.** Package `agent/SKILL.md` as a zip for people who add skills in Claude's settings rather than through a plugin.

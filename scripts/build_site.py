@@ -12,7 +12,7 @@ from verify_site import verify_site, verify_runtime_assets
 from site_llms import render_llms
 
 ROOT = Path(__file__).resolve().parent.parent
-# All public URLs derive from these (see WHITELABEL.md section 6).
+# All public URLs derive from these.
 BASE_URL = os.environ.get('KUCHI_BASE_URL', 'https://kuchi.kalarislabs.com').rstrip('/')
 REPO = os.environ.get('KUCHI_REPO', 'kalarislabs/kuchi')
 # Optional media origin, e.g. https://kuchi-media.kalarislabs.com (the kuchi-bucket

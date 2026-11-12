@@ -1,40 +1,23 @@
-name: Publish to kuchi.kalarislabs.com
+name: Checks
 
-# Every push to main (for example a curator commit, see agent/CURATOR.md)
-# checks media in the kuchi-bucket R2 bucket and deploys the gallery and MCP
-# Workers.
-#
-# Repository secrets:
-#   CLOUDFLARE_API_TOKEN            Workers Scripts:Edit, Workers Routes:Edit,
-#                                   R2:Edit, Account Settings:Read
-#   CLOUDFLARE_ACCOUNT_ID           d59494a6afb6b5913ff800704c98e8e0
+# Cloudflare Workers Builds deploys on every push to main, using the repository
+# connection in the Cloudflare dashboard (no secrets in GitHub):
+#   kuchi-site   root web/,           build "npm ci && npm run build"
+#   kuchi-agent  root agent-service/, build "npm ci"
+# This workflow only runs tests and checks that every catalog video is in R2.
 
 on:
   push:
     branches: [main]
-    paths:
-      - 'data/**'
-      - 'previews/**'
-      - 'site/**'
-      - 'web/**'
-      - 'scripts/**'
-      - 'agent-service/**'
-      - '.github/workflows/deploy.yml'
+  pull_request:
   workflow_dispatch:
 
-concurrency:
-  group: publish
-  cancel-in-progress: false
-
 jobs:
-  publish:
+  checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 20
     env:
-      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      KUCHI_BASE_URL: https://kuchi.kalarislabs.com
-      KUCHI_MEDIA_URL: https://kuchi-media.kalarislabs.com
+      PYTHONUTF8: '1'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,27 +31,18 @@ jobs:
         with:
           node-version: '24'
 
-      # MP4s are not in git: the curator uploads them before committing
-      # (agent/CURATOR.md). This uploads new posters and fails if any
-      # catalog video is missing from R2.
-      - name: Upload posters, check videos in R2
-        run: python scripts/sync_media_r2.py
-
-      - name: Deploy MCP Worker
+      - name: MCP server tests
         run: |
           npm ci --prefix agent-service
-          npx -y wrangler@4 deploy --config agent-service/wrangler.json
+          npm --prefix agent-service test
 
-      - name: Build and deploy gallery
-        working-directory: web
+      - name: Site tests
         run: |
-          npm ci
-          npm run build
-          npx wrangler deploy
+          python scripts/test_site_media.py
+          python scripts/test_site_summary.py
+          python scripts/test_site_llms.py
 
-      - name: Smoke test
-        run: |
-          curl -fsS https://kuchi.kalarislabs.com/ -o /dev/null
-          curl -fsS https://kuchi.kalarislabs.com/mcp/health
-          curl -fsSI https://kuchi-media.kalarislabs.com/assets/34.mp4 | grep -i '^content-type: video/mp4'
-          npm --prefix agent-service run verify:live
+      # Read-only: fails if a catalog video is missing from R2. The curator
+      # uploads media before committing (agent/CURATOR.md).
+      - name: Media is live
+        run: python scripts/sync_media_r2.py --dry-run

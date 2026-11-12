@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "kuchi": {"type": "http", "url": "https://kuchi.kalarislabs.com/mcp"}
+  }
+}

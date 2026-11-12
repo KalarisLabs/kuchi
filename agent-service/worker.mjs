@@ -1,146 +1,68 @@
-import {McpServer} from '@modelcontextprotocol/server';
 import {createMcpHandler} from 'agents/mcp/server';
-import {z} from 'zod';
-import {loadArchive, context, publicManifest, search, record, findVideo} from './catalog.mjs';
+import {loadArchive, cachedLoader, record, filters, SITE_URL} from './catalog.mjs';
+import {createServer, VERSION} from './server.mjs';
 import {guardRequest} from './request-guard.mjs';
-import {measureMcpRequest,taskIdSchema} from './analytics.mjs';
 
-const BASE = '';
-export const VERSION = '0.2.0';
-const CLAUDE_CONNECT_URL = 'https://claude.ai/customize/connectors?' + new URLSearchParams({modal:'add-custom-connector',connectorName:'Kuchi',connectorUrl:'https://kuchi.kalarislabs.com/mcp'});
-export const LIST_CACHE_HINTS = Object.freeze({
-  'server/discover':{ttlMs:60*60*1000, cacheScope:'private'},
-  'tools/list':{ttlMs:60*60*1000, cacheScope:'private'}
-});
-const annotations = {readOnlyHint:true, destructiveHint:false, idempotentHint:true, openWorldHint:true};
-const result = value => ({content:[{type:'text',text:JSON.stringify(value)}], structuredContent:value});
-const task_id = taskIdSchema.optional().describe('Optional client-chosen UUID to group calls for one task. Omit for browsing.');
-const guarded = (load, fn, tool, observe) => async args => {
-  const started = Date.now();
-  const completed = properties => {
-    try { observe?.({tool,task_id:args.task_id,duration_ms:Math.max(0,Date.now()-started),...properties}); }
-    catch { console.warn(JSON.stringify({event:'analytics_capture_failed'})); }
-  };
-  try {
-    const value = await fn(await load(),args);
-    completed({outcome:'success',...(tool === 'get_launch_video' ? {reference_found:value.found,reference_id:value.video?.id} : {}),...(tool === 'search_launch_videos' ? {query_length:args.query?.length ?? 0,result_count:value.totalMatches,category:args.category,style:args.style} : {})});
-    return result(value);
-  } catch (error) {
-    completed({outcome:'error'});
-    console.error(JSON.stringify({event:'archive_source_unavailable',message:error.message}));
-    return {isError:true,content:[{type:'text',text:'The current published archive is unavailable. Retry later; no cached catalog was returned.'}]};
-  }
-};
+export {VERSION};
+// One catalog cache per isolate, shared by every request.
+const load = cachedLoader(() => loadArchive());
+const CLAUDE_CONNECT_URL = 'https://claude.ai/customize/connectors?' + new URLSearchParams({modal:'add-custom-connector', connectorName:'Kuchi', connectorUrl:`${SITE_URL}/mcp`});
+const MCP_OPTIONS = {route:'/mcp', legacy:'stateless', allowedHostnames:['kuchi.kalarislabs.com', 'localhost', '127.0.0.1'], allowedOriginHostnames:'*'};
 
-export function createServer(load = loadArchive, observe) {
-  const server = new McpServer({name:'launch-archive', title:'Kuchi', version:VERSION}, {
-    instructions:'Before each launch-video task, call get_launch_context and follow the workflow it returns.',
-    // Without hints the SDK stamps ttlMs:0 ("immediately stale") on 2026-era
-    // discover and tools/list results, so clients such as claude.ai re-run
-    // server/discover + tools/list before every use. Both only change on deploy.
-    cacheHints:LIST_CACHE_HINTS
-  });
-  server.registerTool('get_launch_context', {
-    title:'Browse current launch-video collection',
-    description:'Start here for product launch, demo, teaser or feature-announcement videos and motion-design inspiration. Get the live collection, workflow and searchable styles.',
-    inputSchema:z.object({task_id}), annotations:{...annotations,title:'Browse current launch-video collection'}
-  }, guarded(load, archive => context(archive),'get_launch_context',observe));
-  server.registerTool('search_launch_videos', {
-    title:'Search launch-video references',
-    description:'Find real launch, demo and teaser references by brand, product, pacing, transitions or animation style. Returns playable videos, Kuchi preview links and notes. Keyword order is not a product-fit recommendation; no popularity ranking or metrics.',
-    inputSchema:z.object({query:z.string().max(300).optional(), style:z.string().max(100).optional(), category:z.string().max(100).optional(), ratio:z.string().max(30).optional(), sort:z.enum(['relevance','newest']).optional(), limit:z.number().int().min(1).max(12).optional(), task_id}), annotations:{...annotations,title:'Search launch-video references'}
-  }, guarded(load, (archive,args) => ({...context(archive), ...search(archive,args)}),'search_launch_videos',observe));
-  server.registerTool('get_launch_video', {
-    title:'Get launch-video reference details',
-    description:'Get a reference by ID, slug or X/Twitter URL: MP4, descriptive metadata, notes and clone prompt. Catalog references only; no popularity metrics or legacy scores.',
-    inputSchema:z.object({reference:z.string().min(1).max(500), task_id}), annotations:{...annotations,title:'Get launch-video reference details'}
-  }, guarded(load, (archive,{reference}) => {
-    const video = findVideo(archive,reference);
-    return {...context(archive), found:!!video, video:video ? record(video,true,archive.sourceRevision) : null};
-  },'get_launch_video',observe));
-  return server;
-}
-
-const bootstrap = `---
+// The setup skill people install in their agent. The full workflow stays live
+// on the server, so this file rarely needs to change.
+export const SKILL = `---
 name: kuchi
-description: Find real video references for product launches, demos, teasers and feature announcements, or inspiration for pacing, transitions, motion design and vibe. Use when planning or making these videos, even if the user does not name Kuchi.
+description: Find real product-launch videos to use as inspiration templates, then plan a remake for the user's own product with their own assets. Use when the user is planning or making a launch video, product demo, teaser or feature announcement, even if they don't name Kuchi.
 ---
 
 # Kuchi
 
-Search the Kuchi video collection and share playable Kuchi links. Before each relevant task, call get_launch_context and follow its live workflow; keep creative decisions with the agent.
+Kuchi is a library of real launch videos. Each one is an inspiration template: borrow its pacing, transitions, layout and motion, never its brand, footage, music or copy.
 
-Use the existing MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, open: no sign-in, no tokens). Never request credentials in chat or package a downloadable skill. If setup is needed, offer one connect link: for Claude, [Connect Kuchi](https://kuchi.kalarislabs.com/agent/connect/claude); otherwise the client's shortest setup path. Confirm connection only after initialize, tools/list and get_launch_context succeed.
+Connect the Kuchi MCP server: ${SITE_URL}/mcp (Streamable HTTP, no sign-in). In Claude, add it as a custom connector (or open ${SITE_URL}/agent/connect/claude). In ChatGPT, add it as a custom MCP app with no authentication. Never ask the user for credentials.
 
-If MCP is unavailable, the same live catalog is at https://kuchi.kalarislabs.com/agent/catalog.json and the workflow at https://kuchi.kalarislabs.com/agent/workflow.md. Keep the catalog and workflow live rather than embedding them in permanent instructions.
+1. Find references with kuchi_search_videos and show the user each poster and Kuchi link. Choose by fit, not popularity.
+2. Call kuchi_plan_remake with the user's product name, details and assets. Ask for anything in missing_inputs (logo, screenshots or recordings, features, call to action) before building.
+3. Build with your own tools, using only the user's assets and claims. Compare with the reference before delivering.
+
+Without MCP, read ${SITE_URL}/agent/catalog.json and ${SITE_URL}/agent/workflow.md.
 `;
 
-function skillResponse(request) {
-  const acceptsHtml = (request.headers.get('accept') ?? '').split(',').some(value =>
-    value.trim().split(';')[0].toLowerCase() === 'text/html' && !/;\s*q=0(?:\.0*)?(?:\s*;|\s*$)/i.test(value));
-  const html = acceptsHtml && new URL(request.url).searchParams.get('raw') !== '1';
-  const escaped = html ? bootstrap.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])) : '';
-  const body = html ? `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kuchi — Setup guide</title>
-<link rel="icon" href="/favicon-32.png?v=popcorn-1" type="image/png" sizes="32x32">
-<link rel="icon" type="image/svg+xml" href="/favicon.svg?v=popcorn-1">
-<link rel="alternate" type="text/markdown" title="Raw Markdown" href="?raw=1">
-<link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/shared/site-header.css">
-<script src="/shared/site-header.js" defer></script>
-<style>.skill-document{padding-top:32px;padding-bottom:64px}.skill-document h1{font-size:26px;margin:0}.skill-source{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.8 var(--mono);margin:24px 0 0}</style></head>
-<body><header class="masthead site-header" data-site-header data-site-page="launch-videos"><div class="brand"><a class="logo" href="/">Kalaris Labs</a></div><nav class="meta" aria-label="Page navigation"><a href="/">Collection ↗</a></nav></header>
-<main class="document skill-document"><div class="section-heading"><h1>Agent setup</h1><a href="?raw=1">Raw Markdown ↗</a></div><pre class="skill-source">${escaped}</pre></main></body></html>` : bootstrap;
-  const result = response(request.method === 'HEAD' ? '' : body, html ? 'text/html' : 'text/markdown');
-  result.headers.set('Vary','Accept');
-  return result;
-}
-
+const HEADERS = {'Cache-Control':'no-store, max-age=0', 'Access-Control-Allow-Origin':'*', 'X-Content-Type-Options':'nosniff'};
 function response(body, type = 'application/json', status = 200) {
-  return new Response(typeof body === 'string' ? body : JSON.stringify(body), {status,headers:{'Content-Type':`${type}; charset=utf-8`, 'Cache-Control':'no-store, max-age=0', 'Access-Control-Allow-Origin':'*', 'X-Content-Type-Options':'nosniff'}});
+  return new Response(typeof body === 'string' ? body : JSON.stringify(body), {status, headers:{...HEADERS, 'Content-Type':`${type}; charset=utf-8`}});
 }
 
-const MCP_OPTIONS = {route:`${BASE}/mcp`,legacy:'stateless',allowedHostnames:['kuchi.kalarislabs.com','localhost','127.0.0.1'],allowedOriginHostnames:'*'};
 export default {
-  async fetch(request,env,ctx) {
-    // Public, unauthenticated liveness probe (WHITELABEL.md section 8).
-    if(new URL(request.url).pathname===`${BASE}/mcp/health`){
-      if(!['GET','HEAD'].includes(request.method)) return response({error:'Method not allowed'},'application/json',405);
-      const health=response({status:'ok',product:'Kuchi',version:VERSION});
-      return request.method==='HEAD'?new Response(null,{status:200,headers:health.headers}):health;
+  async fetch(request, env, ctx) {
+    const path = new URL(request.url).pathname;
+    // Liveness probe, outside the rate limit.
+    if (path === '/mcp/health') {
+      if (!['GET', 'HEAD'].includes(request.method)) return response({error:'Method not allowed'}, 'application/json', 405);
+      const health = response({status:'ok', product:'Kuchi', version:VERSION});
+      return request.method === 'HEAD' ? new Response(null, {status:200, headers:health.headers}) : health;
     }
-    if(new URL(request.url).pathname===`${BASE}/mcp`)
-      return measureMcpRequest(request,env,ctx,observe=>handleRequest(request,env,ctx,observe));
-    return handleRequest(request,env,ctx);
-  }
-};
-
-// Kuchi's MCP server and agent routes are open: no accounts, no OAuth.
-// Abuse protection is the per-IP throttle in guardRequest.
-async function handleRequest(request,env,ctx,observeRequest=()=>{}) {
     const guarded = await guardRequest(request, env);
     if (guarded.response) return guarded.response;
     request = guarded.request;
-    const path = new URL(request.url).pathname;
-    if (path === `${BASE}/mcp`) {
-      observeRequest(undefined);
-      const mcp = createMcpHandler(() => createServer(loadArchive),MCP_OPTIONS);
-      return mcp(request,env,ctx);
-    }
-    if (request.method === 'OPTIONS') return new Response(null,{status:204,headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'GET, HEAD, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type'}});
-    if (!['GET','HEAD'].includes(request.method)) return response({error:'Method not allowed'},'application/json',405);
-    if (path === `${BASE}/agent/connect/claude`) return new Response(null,{status:302,headers:{Location:CLAUDE_CONNECT_URL,'Cache-Control':'no-store','Access-Control-Allow-Origin':'*'}});
-    if (path === `${BASE}/agent` || path === `${BASE}/agent/`) return Response.redirect('https://kuchi.kalarislabs.com/#connect',302);
-    if (path === `${BASE}/agent/SKILL.md`) return skillResponse(request);
-    const endpoints = [`${BASE}/agent/manifest.json`,`${BASE}/agent/catalog.json`,`${BASE}/agent/workflow.md`];
-    if (!endpoints.includes(path)) return response({error:'Not found'},'application/json',404);
+
+    if (path === '/mcp') return createMcpHandler(() => createServer(load), MCP_OPTIONS)(request, env, ctx);
+    if (request.method === 'OPTIONS') return new Response(null, {status:204, headers:{'Access-Control-Allow-Origin':'*', 'Access-Control-Allow-Methods':'GET, HEAD, OPTIONS', 'Access-Control-Allow-Headers':'Content-Type'}});
+    if (!['GET', 'HEAD'].includes(request.method)) return response({error:'Method not allowed'}, 'application/json', 405);
+    if (path === '/agent/connect/claude') return new Response(null, {status:302, headers:{...HEADERS, Location:CLAUDE_CONNECT_URL}});
+    if (path === '/agent' || path === '/agent/') return Response.redirect(`${SITE_URL}/#connect`, 302);
+    if (path === '/agent/SKILL.md') return response(request.method === 'HEAD' ? '' : SKILL, 'text/markdown');
+    if (!['/agent/manifest.json', '/agent/catalog.json', '/agent/workflow.md'].includes(path)) return response({error:'Not found'}, 'application/json', 404);
     try {
-      const archive = await loadArchive();
-      let data;
-      if (path.endsWith('/workflow.md')) data = response(archive.workflow,'text/markdown');
-      else if (path.endsWith('/catalog.json')) data = response({...context(archive), videos:archive.videos.map(v => record(v,true,archive.sourceRevision))});
-      else data = response(publicManifest(archive));
-      data.headers.set('X-Launch-Archive-Version',archive.version);
-      return request.method === 'HEAD' ? new Response(null,data) : data;
-    } catch (error) { console.error(JSON.stringify({event:'archive_source_unavailable',message:error.message})); return response({error:'Current published archive unavailable. No cached catalog returned.'},'application/json',503); }
-}
+      const archive = await load();
+      const data = path.endsWith('workflow.md') ? response(archive.workflow, 'text/markdown')
+        : path.endsWith('catalog.json') ? response({source_revision:archive.sourceRevision, fetched_at:archive.fetchedAt, ...filters(archive), videos:archive.videos.map(v => record(archive, v))})
+        : response({...archive.manifest, version:VERSION, source_revision:archive.sourceRevision});
+      return request.method === 'HEAD' ? new Response(null, {status:200, headers:data.headers}) : data;
+    } catch (error) {
+      console.error(JSON.stringify({event:'catalog_unavailable', path, message:error.message}));
+      return response({error:"Kuchi's catalog is temporarily unavailable. Retry in a minute."}, 'application/json', 503);
+    }
+  }
+};

@@ -70,19 +70,27 @@ An awesome collection of AI-clonable launch videos.
 
 For founders, designers, and builders making their next product launch. Browse a style, watch a reference, then copy the prompt and make it yours.
 
-**Every entry includes an inline video player, the video file, a remake prompt, and credit to the original creator.** The [live site](https://kuchi.kalarislabs.com/) plays videos directly in the cards; all {len(VIDEOS)} high-resolution reference files are also included in [videos/](videos/).
+**Every entry includes an inline video player, the video file, a remake prompt, and credit to the original creator.** The [live site](https://kuchi.kalarislabs.com/) plays all {len(VIDEOS)} videos directly in the cards. Video files are not stored in this repository; they are served from the site's media domain.
 
 Inspired by the visual + copyable-prompt format of [Awesome NotebookLM Templates](https://github.com/serenakeyitan/awesome-notebookLM-prompts).
 
 ## Use with your agent
 
+Each video is an inspiration template: your agent borrows its pacing, transitions and layout, and fills it with your own product, assets and copy. Add the MCP server `https://kuchi.kalarislabs.com/mcp` (no sign-in), or paste this into your agent:
+
 ```text
-Connect to Kuchi MCP at https://kuchi.kalarislabs.com/mcp.
+Connect the Kuchi MCP server at https://kuchi.kalarislabs.com/mcp (Streamable HTTP, no sign-in) and confirm it works by listing its tools.
 ```
 
-[Connect Claude, ChatGPT, Codex, Cursor, Grok & more](agent/README.md) · [Setup guide](https://kuchi.kalarislabs.com/agent/SKILL.md) · [Plugin package](plugin/launch-archive)
+In Claude Code, install the plugin (MCP server + skill):
 
-The connector reads the current published library and workflow on every call. New videos and formats reach existing connections without reinstalling.
+```text
+/plugin install kuchi --marketplace KalarisLabs/kuchi
+```
+
+[Setup for Claude, ChatGPT, Codex, Cursor & more](agent/README.md) · [Skill file](agent/SKILL.md) · [Plugin](plugin/launch-archive)
+
+New videos reach connected agents within a minute, with no reinstall.
 
 ## Table of Contents
 ''']
@@ -106,7 +114,7 @@ for key, title, description in GROUPS:
 
 **{included} · {v['ratio']} · {compact(v['impressions'])} impressions · {compact(v['views'])} plays**
 
-[▶ Watch video]({v['watchUrl']}) · [MP4 file]({v['video']}) · [Browse with stats]({v['detailUrl']})
+[▶ Watch video]({v['watchUrl']}) · [MP4 file]({v['watchUrl']}) · [Browse with stats]({v['detailUrl']})
 
 {' '.join(v['notes'])}
 
@@ -184,11 +192,11 @@ Original curation, prompts, and repository code are [MIT licensed](LICENSE). Thi
 
 assert VIDEOS and len(VIDEOS) == len({v['slug'] for v in VIDEOS})
 assert len([v for key, _, _ in GROUPS for v in VIDEOS if v['readmeCategory'] == key]) == len(VIDEOS)
+# MP4s are git-ignored and served from R2, so only posters are checked here.
 for video in VIDEOS:
-    assert (ROOT / video['video']).is_file(), video['video']
     assert (ROOT / video['poster']).is_file(), video['poster']
-(ROOT / 'README.md').write_text('\n'.join(parts))
-(ROOT / 'data/videos.json').write_text(json.dumps(VIDEOS, ensure_ascii=False, indent=2) + '\n')
-print(f'Built README with {len(VIDEOS)} previews, prompts, local MP4 links, source credits, and metadata tables.')
+(ROOT / 'README.md').write_bytes('\n'.join(parts).encode('utf-8'))
+(ROOT / 'data/videos.json').write_bytes((json.dumps(VIDEOS, ensure_ascii=False, indent=2) + '\n').encode('utf-8'))
+print(f'Built README with {len(VIDEOS)} previews, prompts, MP4 links, source credits, and metadata tables.')
 
 update_daily_stats()

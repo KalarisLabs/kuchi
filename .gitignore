@@ -15,3 +15,8 @@ site-public/
 
 # Videos are third-party; they live in R2 (kuchi-bucket), not in git.
 videos/*.mp4
+
+# Local agent skills installed with `npx skills`
+.agents/
+.claude/skills/
+skills-lock.json

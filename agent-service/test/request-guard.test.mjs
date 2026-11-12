@@ -48,7 +48,7 @@ test('normal requests, MCP preflights and copied setup remain available', async 
   assert.equal((await worker.fetch(request(undefined,{method:'OPTIONS'}),allow,{})).status,200);
   const bootstrap=await worker.fetch(request('/agent/SKILL.md'),allow,{});
   assert.equal(bootstrap.status,200);
-  assert.match(await bootstrap.text(),/Before each relevant task, call get_launch_context and follow its live workflow/);
+  assert.match(await bootstrap.text(),/Call kuchi_plan_remake with the user.s product name/);
 });
 
 test('oversized bodies are rejected by both declared length and actual streamed bytes', async () => {
@@ -74,7 +74,13 @@ test('a broken or missing protection binding fails closed with a retryable respo
 test('deployment config binds the intended per-IP short-term allowance', async () => {
   const config=JSON.parse(await readFile(new URL('../wrangler.json',import.meta.url),'utf8'));
   const binding=config.ratelimits.find(b=>b.name==='ARCHIVE_REQUEST_LIMITER');
-  assert.deepEqual(binding.simple,{limit:600,period:60});
+  assert.deepEqual(binding.simple,{limit:120,period:60});
   assert.equal(config.name,'kuchi-agent');
   assert.equal(config.vars,undefined); // open server: no auth settings
+});
+
+test('the published SKILL.md copies match the skill the Worker serves', async () => {
+  const {SKILL} = await import('../worker.mjs');
+  for (const path of ['../../agent/SKILL.md', '../../plugin/launch-archive/skills/kuchi/SKILL.md'])
+    assert.equal(await readFile(new URL(path, import.meta.url), 'utf8'), SKILL, path);
 });

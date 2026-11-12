@@ -1,0 +1,10 @@
+{
+  "name": "kuchi",
+  "version": "1.0.0",
+  "description": "Real product-launch videos to use as inspiration templates. Find a reference, then plan a remake for your own product with your own assets.",
+  "author": {"name": "Kalaris Labs", "email": "support@kalarislabs.com"},
+  "homepage": "https://kuchi.kalarislabs.com/",
+  "repository": "https://github.com/kalarislabs/kuchi",
+  "license": "MIT",
+  "keywords": ["product-launch", "launch-video", "motion-design", "video-reference"]
+}

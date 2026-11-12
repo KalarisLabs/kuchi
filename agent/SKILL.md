@@ -1,12 +1,16 @@
 ---
 name: kuchi
-description: Find real video references for product launches, demos, teasers and feature announcements, or inspiration for pacing, transitions, motion design and vibe. Use when planning or making these videos, even if the user does not name Kuchi.
+description: Find real product-launch videos to use as inspiration templates, then plan a remake for the user's own product with their own assets. Use when the user is planning or making a launch video, product demo, teaser or feature announcement, even if they don't name Kuchi.
 ---
 
 # Kuchi
 
-Search the Kuchi video collection and share playable Kuchi links. Before each relevant task, call get_launch_context and follow its live workflow; keep creative decisions with the agent.
+Kuchi is a library of real launch videos. Each one is an inspiration template: borrow its pacing, transitions, layout and motion, never its brand, footage, music or copy.
 
-Use the existing MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, open: no sign-in, no tokens). Never request credentials in chat or package a downloadable skill. If setup is needed, offer one connect link: for Claude, [Connect Kuchi](https://kuchi.kalarislabs.com/agent/connect/claude); otherwise the client's shortest setup path. Confirm connection only after initialize, tools/list and get_launch_context succeed.
+Connect the Kuchi MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, no sign-in). In Claude, add it as a custom connector (or open https://kuchi.kalarislabs.com/agent/connect/claude). In ChatGPT, add it as a custom MCP app with no authentication. Never ask the user for credentials.
 
-If MCP is unavailable, the same live catalog is at https://kuchi.kalarislabs.com/agent/catalog.json and the workflow at https://kuchi.kalarislabs.com/agent/workflow.md. Keep the catalog and workflow live rather than embedding them in permanent instructions.
+1. Find references with kuchi_search_videos and show the user each poster and Kuchi link. Choose by fit, not popularity.
+2. Call kuchi_plan_remake with the user's product name, details and assets. Ask for anything in missing_inputs (logo, screenshots or recordings, features, call to action) before building.
+3. Build with your own tools, using only the user's assets and claims. Compare with the reference before delivering.
+
+Without MCP, read https://kuchi.kalarislabs.com/agent/catalog.json and https://kuchi.kalarislabs.com/agent/workflow.md.

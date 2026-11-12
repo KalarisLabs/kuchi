@@ -71,3 +71,4 @@ jobs:
           curl -fsS https://kuchi.kalarislabs.com/ -o /dev/null
           curl -fsS https://kuchi.kalarislabs.com/mcp/health
           curl -fsSI https://kuchi-media.kalarislabs.com/assets/34.mp4 | grep -i '^content-type: video/mp4'
+          npm --prefix agent-service run verify:live

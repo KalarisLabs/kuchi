@@ -4,19 +4,19 @@
     "email": "support@kalarislabs.com",
     "name": "Kalaris Labs"
   },
-  "description": "Find playable references for product launches, demos, teasers and motion design from the Kuchi video collection.",
+  "description": "Real product-launch videos to use as inspiration templates. Find a reference, then plan a remake for your own product with your own assets.",
   "extensions": {
     "com.openai": {
       "interface": {
         "capabilities": [],
         "category": "Creativity",
         "composerIcon": "./assets/serena-popcorn.png",
-        "defaultPrompt": "Find launch-video references for my product and help me remake one.",
+        "defaultPrompt": "Find launch-video inspiration for my product and plan a remake with my assets.",
         "developerName": "Kalaris Labs",
         "displayName": "Kuchi",
         "logo": "./assets/serena-popcorn.png",
-        "longDescription": "Find real launch videos, product demos and teasers for your next release. Explore the Kuchi collection by brand, product, style or aspect ratio, watch playable references and borrow pacing, transitions and vibe for your own product. Creation uses your existing tools; optional task reports and explicit feedback help improve the collection.",
-        "shortDescription": "Launch & motion references"
+        "longDescription": "Kuchi is a library of real launch videos, product demos and teasers. Search by product type, motion style, format or aspect ratio, watch each reference, then plan a remake: Kuchi lists what to borrow (pacing, transitions, layout) and which of your own assets it needs (logo, screenshots, features, call to action). No sign-in. Build the video with your own tools.",
+        "shortDescription": "Launch-video inspiration templates"
       }
     }
   },
@@ -31,7 +31,7 @@
     "video-reference"
   ],
   "license": "MIT",
-  "name": "launch-archive",
+  "name": "kuchi",
   "repository": "https://github.com/kalarislabs/kuchi",
-  "version": "0.1.7"
+  "version": "1.0.0"
 }

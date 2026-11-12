@@ -14,19 +14,27 @@ An awesome collection of AI-clonable launch videos.
 
 For founders, designers, and builders making their next product launch. Browse a style, watch a reference, then copy the prompt and make it yours.
 
-**Every entry includes an inline video player, the video file, a remake prompt, and credit to the original creator.** The [live site](https://kuchi.kalarislabs.com/) plays videos directly in the cards; all 83 high-resolution reference files are also included in [videos/](videos/).
+**Every entry includes an inline video player, the video file, a remake prompt, and credit to the original creator.** The [live site](https://kuchi.kalarislabs.com/) plays all 83 videos directly in the cards. Video files are not stored in this repository; they are served from the site's media domain.
 
 Inspired by the visual + copyable-prompt format of [Awesome NotebookLM Templates](https://github.com/serenakeyitan/awesome-notebookLM-prompts).
 
 ## Use with your agent
 
+Each video is an inspiration template: your agent borrows its pacing, transitions and layout, and fills it with your own product, assets and copy. Add the MCP server `https://kuchi.kalarislabs.com/mcp` (no sign-in), or paste this into your agent:
+
 ```text
-Connect to Kuchi MCP at https://kuchi.kalarislabs.com/mcp.
+Connect the Kuchi MCP server at https://kuchi.kalarislabs.com/mcp (Streamable HTTP, no sign-in) and confirm it works by listing its tools.
 ```
 
-[Connect Claude, ChatGPT, Codex, Cursor, Grok & more](agent/README.md) · [Setup guide](https://kuchi.kalarislabs.com/agent/SKILL.md) · [Plugin package](plugin/launch-archive)
+In Claude Code, install the plugin (MCP server + skill):
 
-The connector reads the current published library and workflow on every call. New videos and formats reach existing connections without reinstalling.
+```text
+/plugin install kuchi --marketplace KalarisLabs/kuchi
+```
+
+[Setup for Claude, ChatGPT, Codex, Cursor & more](agent/README.md) · [Skill file](agent/SKILL.md) · [Plugin](plugin/launch-archive)
+
+New videos reach connected agents within a minute, with no reinstall.
 
 ## Table of Contents
 
@@ -147,7 +155,7 @@ https://github.com/user-attachments/assets/ce0db070-1f97-4cc7-acfe-5368dfc60a0f
 
 **0:11 · 16:9 · 10.01M impressions · 710.7K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/34.mp4) · [MP4 file](videos/grok-bot-online-shopping.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-34)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/34.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/34.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-34)
 
 A black circular mascot and one green payment-card graphic sit on a white canvas. Large captions tell one shopping feature in about eleven seconds using flat 2D shapes.
 
@@ -192,7 +200,7 @@ https://github.com/user-attachments/assets/688c0575-1c63-425e-81c2-1519321980b6
 
 **0:12 · 16:9 · 5.92M impressions · 1.64M plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/35.mp4) · [MP4 file](videos/grok-bot-search-read-monitor-x.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-35)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/35.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/35.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-35)
 
 A blue question bubble opens into three tweet cards arranged as a fan. An answer bubble and an orange keyword highlight complete a compact search-and-summary story.
 
@@ -237,7 +245,7 @@ https://github.com/user-attachments/assets/30c62885-c5f6-4aae-9ac9-0f953f134569
 
 **0:43 · 4:3 · 5.04M impressions · 563.0K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/32.mp4) · [MP4 file](videos/poke-imessage-ai-assistant.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-32)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/32.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/32.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-32)
 
 Pan and zoom through an iMessage inbox, chat bubbles, maps and calendar cards. Memoji, rising feature cards and a closing app-icon grid create a product story without live-action scenes.
 
@@ -282,7 +290,7 @@ https://github.com/user-attachments/assets/fe3b8890-58c6-418f-9a66-1c5bc7ca4a2e
 
 **0:13 · 16:9 · 2.85M impressions · 904.9K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/27.mp4) · [MP4 file](videos/grok-bot-action-button.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-27)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/27.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/27.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-27)
 
 A cursor selects an app icon on a stylized iPhone; the icon flies into the Action Button with a ripple. Camera pans and an expanding Dynamic Island turn device interactions into a story, followed by kinetic type and a logo reveal.
 
@@ -327,7 +335,7 @@ https://github.com/user-attachments/assets/12a5ee41-2262-4752-abca-d4bc264a5667
 
 **0:19 · 16:9 · 2.14M impressions · 687.3K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/36.mp4) · [MP4 file](videos/grok-bot-vault.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-36)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/36.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/36.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-36)
 
 Login forms, password fields and a vault settings screen become clean UI cards. Orange and green full-screen gradients separate the scenes and keep the hierarchy clear.
 
@@ -372,7 +380,7 @@ https://github.com/user-attachments/assets/d6e2176f-c344-4b5c-a651-9c76b5363a3a
 
 **0:21 · 16:9 · 412.2K impressions · 164.7K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/30.mp4) · [MP4 file](videos/cursor-computer-use.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-30)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/30.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/30.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-30)
 
 White title frames introduce computer use, followed by an orange-gradient product scene. A Cursor window and iPhone simulator sit side by side as the cursor demonstrates the workflow, ending on the cube logo.
 
@@ -417,7 +425,7 @@ https://github.com/user-attachments/assets/6e15a51f-38d6-4b3d-86d8-6291d7cbadf6
 
 **0:20 · 16:9 · 172.4K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/48.mp4) · [MP4 file](videos/allo-grok-bot-gets-a-phone.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-48)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/48.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/48.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-48)
 
 A black circular mascot gains a green headset, then moves into an iPhone call interface on a pale background. Large captions connect answering calls, preparing callbacks and chat bubbles, before a dark green Allo logo and integration reveal.
 
@@ -462,7 +470,7 @@ https://github.com/user-attachments/assets/d9116a27-f0de-4678-90ca-ebcd6f6c39be
 
 **0:09 · 1.54:1 · 123.4K impressions · 48.2K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/33.mp4) · [MP4 file](videos/notion-iphone-duo.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-33)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/33.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/33.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-33)
 
 A folding phone opens into a wider display while the interface rearranges to match. Keep the short film focused on one device transformation, then add scrolling and keyboard interactions.
 
@@ -507,7 +515,7 @@ https://github.com/user-attachments/assets/af1f74ec-3526-4f8d-8aa5-4f7b94423bc0
 
 **0:35 excerpt of 1:00 · 16:9 · 70.1K impressions · 15.3K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/28.mp4) · [MP4 file](videos/readwise-2-0.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-28)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/28.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/28.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-28)
 
 Floating, tilted phones on white alternate with full-screen orange gradients. Camera pans and close-ups connect reading, chat and highlighting interfaces; large captions punctuate the sequence.
 
@@ -552,7 +560,7 @@ https://github.com/user-attachments/assets/d25f9e6b-9ec4-4ccb-ab51-e7d3794f2a6b
 
 **0:10 · 1:1 · 41.3K impressions · 273 plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/29.mp4) · [MP4 file](videos/go-lo-live-scores.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-29)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/29.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/29.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-29)
 
 Move from an app screen to its home-screen icon, then down to a lock-screen live-score card. Device perspective and camera motion carry a single feature; the rendered phone may need more than flat UI animation to match.
 
@@ -597,7 +605,7 @@ https://github.com/user-attachments/assets/e59e2197-20c9-4be0-99d3-5427f3741a8e
 
 **0:19 · 16:9 · 32.4K impressions · 11.8K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/31.mp4) · [MP4 file](videos/manus-websites-to-desktop-apps.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-31)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/31.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/31.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-31)
 
 Click Install in a floating macOS window, then transform the window into a Dock icon. Spotlight, app switching and multiple windows make each click produce a visible system response.
 
@@ -642,7 +650,7 @@ https://github.com/user-attachments/assets/e179917f-89af-4519-ae1d-810cad3aa8f3
 
 **0:43 · 16:9 · 14.1K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/52.mp4) · [MP4 file](videos/ghosthand-grok-bot-real-iphone.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-52)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/52.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/52.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-52)
 
 A floating iPhone and Grok Bot mascot introduce the product, then purple chat commands drive a real-phone TikTok publishing demo. Dark task cards expand into a grid of phone-number, app and account workflows before a gradient logo and URL end frame.
 
@@ -687,7 +695,7 @@ https://github.com/user-attachments/assets/7bea875b-0f05-468e-83d7-8e85fe079023
 
 **0:21 · 4:5 · 20.5K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/54.mp4) · [MP4 file](videos/grok-bot-text-messages-on-mac.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-54)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/54.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/54.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-54)
 
 Four numbered steps pair bold headings with simplified iPhone settings, a MacBook and the Grok Bot mascot on a pale background. Cursor clicks, message bubbles, dotted connectors and green confirmation checks visualize each setup step, ending on an explicit send confirmation.
 
@@ -732,7 +740,7 @@ https://github.com/user-attachments/assets/357f2a1d-3d53-4442-b9b6-38c8cef14ff3
 
 **0:15 · 16:9 · 123.9K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/55.mp4) · [MP4 file](videos/notion-calendar-ios.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-55)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/55.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/55.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-55)
 
 A close-up iPhone dock opens into pastel calendar blocks, with bold feature captions on an off-white background. Calendar details and event edits lead to a family of phone, tablet and desktop mockups, then return to the app icon.
 
@@ -777,7 +785,7 @@ https://github.com/user-attachments/assets/1c443874-7dfe-4807-9e69-720b37042fec
 
 **0:53 · 16:9 · 24.9K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/59.mp4) · [MP4 file](videos/native-cook.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-59)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/59.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/59.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-59)
 
 On a dark canvas, large white type introduces a library of mobile UI blocks before colorful phone mockups show animated screens. The demo moves from a block preview to copying a Swift prompt, running code and viewing the result in an iOS simulator, with yellow text highlights and short caption pills.
 
@@ -822,7 +830,7 @@ https://github.com/user-attachments/assets/8bbf9f95-922e-464a-bf58-1a911f9ace5c
 
 **0:59 · 16:9 · 95.7K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/61.mp4) · [MP4 file](videos/mcp-for-iphone.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-61)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/61.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/61.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-61)
 
 A black device-service mark on a pale canvas leads into connecting an MCP endpoint, sending a chat prompt and operating a real iPhone interface. Phone screens, social-post panels, a weekly planner and a grid of devices demonstrate the workflow with short explanatory headlines.
 
@@ -867,7 +875,7 @@ https://github.com/user-attachments/assets/b2cf2d6c-fc43-4cd9-b98c-e9b2acea36f5
 
 **0:18 · 16:9 · 149.5K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/66.mp4) · [MP4 file](videos/pen-dev-agentic-canvas.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-66)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/66.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/66.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-66)
 
 Large metallic pen-nib and ChatGPT-style marks move across a pale background before the canvas interface appears. A typed import prompt brings a dashboard onto the canvas; bright metric cards, pixel-like numerals and cursor movements lead to the pen.dev closing mark.
 
@@ -912,7 +920,7 @@ https://github.com/user-attachments/assets/75e4fdc6-ddf2-4140-b83d-8da1705b9c84
 
 **0:21 · 16:9 · 16.1K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/78.mp4) · [MP4 file](videos/opptics-payments-motion-study.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-78)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/78.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/78.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-78)
 
 Bright perspective cards combine payment notices, a piggy bank, gears, stars and colorful radial ribbons. Large typography about payout timing, fees and approvals alternates with stylized payment UI before the Opptics end card.
 
@@ -957,7 +965,7 @@ https://github.com/user-attachments/assets/0ce7dfa3-8abd-4057-b6a0-c016f7342fb4
 
 **0:42 · 16:9 · 1.67M impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/87.mp4) · [MP4 file](videos/danieltian-photon-imessage-agent.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-87)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/87.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/87.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-87)
 
 White iPhone frame hosts iMessage bubbles with an 'Agent >' typing indicator, then sends animated app cards: a Mail draft, Uber Eats restaurant menu with food photography, and a Today's Health ring. Mid section transitions to an isometric Jump Jump mini-game rendered in light 3D, before closing on a 'mini apps' type card and the Photon wordmark.
 
@@ -1008,7 +1016,7 @@ https://github.com/user-attachments/assets/c9aba1cb-2a58-43d4-a50a-fc9d9d0da781
 
 **0:17 · 16:9 · 212.5K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/50.mp4) · [MP4 file](videos/grok-bot-new-shopping-experience.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-50)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/50.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/50.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-50)
 
 A minimal chat request expands into a carousel of product cards, followed by a detailed shopping view on white. An oversized cursor selects a shoe size and clicks Buy now, then a receipt message resolves into the Grok Bot logo.
 
@@ -1053,7 +1061,7 @@ https://github.com/user-attachments/assets/aebd26f9-1b86-45f5-97df-a0b83820d18b
 
 **0:35 excerpt of 0:51 · 16:9 · 181.0K impressions · 61.6K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/41.mp4) · [MP4 file](videos/notion-ai-agents-more.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-41)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/41.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/41.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-41)
 
 Muted peach and cream scenes give each feature its own full-screen color. Large titles, scrolling model names and cursor clicks create a compact sequence of AI updates.
 
@@ -1098,7 +1106,7 @@ https://github.com/user-attachments/assets/72edc146-63f8-4239-80eb-c2491f6b927b
 
 **0:20 · 16:9 · 141.6K impressions · 54.1K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/44.mp4) · [MP4 file](videos/cursor-sdk-run-steer.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-44)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/44.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/44.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-44)
 
 Type code into a white snippet card and highlight individual lines. A short, restrained sequence uses typography and code motion to explain the SDK method.
 
@@ -1143,7 +1151,7 @@ https://github.com/user-attachments/assets/a069a1c4-91e1-4691-9185-3934a3b31c77
 
 **0:12 · 16:9 · 136.9K impressions · 49.1K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/40.mp4) · [MP4 file](videos/vercel-run-your-backend.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-40)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/40.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/40.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-40)
 
 White wireframe triangles and cubes animate on a black canvas. Small frontend/backend labels keep the twelve-second geometric story precise and restrained.
 
@@ -1188,7 +1196,7 @@ https://github.com/user-attachments/assets/a42fafb1-0880-4e9f-9038-b97b6ecba7cd
 
 **0:24 · 16:9 · 101.7K impressions · 31.5K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/42.mp4) · [MP4 file](videos/bell-personal-assistant-stack.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-42)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/42.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/42.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-42)
 
 A white canvas and orange accents connect search, phone UI, two-dot eyes and a thinking state. Logo blocks spring into a stack, making the personal-assistant toolkit visible as a simple metaphor.
 
@@ -1233,7 +1241,7 @@ https://github.com/user-attachments/assets/ced7aef3-9bac-4929-9cf0-93cdd6975a25
 
 **0:30 · 16:9 · 96.7K impressions · 12.6K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/37.mp4) · [MP4 file](videos/coinbase-over-under.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-37)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/37.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/37.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-37)
 
 A blue logo frame gives way to green/red probability pills, a moving point on a chart and a countdown. Limit each scene to one focal element, then reveal a phone chart and return to the blue logo frame.
 
@@ -1278,7 +1286,7 @@ https://github.com/user-attachments/assets/3c9db2e9-af82-4198-adf3-6efe141a0230
 
 **0:27 · 16:9 · 83.3K impressions · 28.9K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/43.mp4) · [MP4 file](videos/cursor-visualize.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-43)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/43.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/43.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-43)
 
 Type /visualize into a minimal off-white chat interface. Draw a line chart, show hover/filter interactions, then turn a follow-up question into a growing bar chart.
 
@@ -1323,7 +1331,7 @@ https://github.com/user-attachments/assets/ad8c8b75-de9a-48d3-824f-99b0ba33b9be
 
 **0:26 · 16:9 · 82.3K impressions · 7.8K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/38.mp4) · [MP4 file](videos/coinbase-crypto-paychecks.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-38)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/38.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/38.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-38)
 
 Blue concentric circles become a row of colored dots, then a ring and an asset-allocation pie chart. Simple geometric morphs connect the story before the chart resolves inside a phone interface.
 
@@ -1368,7 +1376,7 @@ https://github.com/user-attachments/assets/7459dba7-a19b-42aa-bd34-5c6183bcdf6a
 
 **0:23 · 16:9 · 56.1K impressions · 14.7K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/39.mp4) · [MP4 file](videos/shipper-build-bots-with-ai.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-39)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/39.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/39.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-39)
 
 Brand icons float above white UI cards with soft shadows. Large title frames and straightforward 2D transitions introduce bot-building across messaging platforms.
 
@@ -1413,7 +1421,7 @@ https://github.com/user-attachments/assets/d1cee917-3816-416c-970f-363a41987474
 
 **0:42 · 16:9 · 1.41M impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/53.mp4) · [MP4 file](videos/grok-bot-phone-calls.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-53)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/53.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/53.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-53)
 
 A minimal white chat shows an expiring internet contract, then turns a phone-call button into an animated call timer and live transcript. Orange reply bubbles, sparse intertitles and a compact call panel lead to a cancellation confirmation and a simple Grok Bot logo close.
 
@@ -1458,7 +1466,7 @@ https://github.com/user-attachments/assets/9fa5ec1c-2d09-4802-8a2e-cc60a318c006
 
 **0:36 · 16:9 · 1.44M impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/56.mp4) · [MP4 file](videos/notion-shared-brain.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-56)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/56.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/56.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-56)
 
 Large black headlines introduce shared memory, followed by floating terminal windows and a Notion memories database. A phone conversation and the database appear side by side, connected by a hand-drawn arrow before a simple Notion logo close.
 
@@ -1503,7 +1511,7 @@ https://github.com/user-attachments/assets/aec5765d-3501-4817-8829-67d42c0d4fd9
 
 **0:58 · 16:9 · 1.04M impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/58.mp4) · [MP4 file](videos/claude-managed-agents-dynamic-workflows.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-58)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/58.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/58.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-58)
 
 An orange agent dot, document stacks and thin black diagrams explain how a large task splits into parallel phases and recombines. Workflow rows turn into branching lines, a result counter, a phase timeline and a budget bar on a warm off-white canvas, ending on the Claude mark.
 
@@ -1548,7 +1556,7 @@ https://github.com/user-attachments/assets/8fb93e0f-22c0-4e85-bc8d-33533a8e4e1e
 
 **0:45 · 16:9 · 827.9K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/60.mp4) · [MP4 file](videos/terminus-notes.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-60)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/60.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/60.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-60)
 
 An off-white opening combines serif type, broken Notion-style letter blocks and a blue horse icon before moving into a clean notes workspace. A launch checklist and Paris travel page demonstrate editing, an AI chat panel and an embedded map with changing styles, ending with free and open-source messaging and the Terminus Notes title.
 
@@ -1593,7 +1601,7 @@ https://github.com/user-attachments/assets/8343e405-b9f4-4f0b-bf9e-4771d2a1abe0
 
 **0:18 · 16:9 · 8.7K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/65.mp4) · [MP4 file](videos/google-gemini-motion-study.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-65)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/65.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/65.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-65)
 
 The Google mark connects to document, map, mail and video-call icons through thin branching lines. Blue text selections, a glowing prompt box, the Gemini mark and simplified document-sharing UI tell the story on a white canvas.
 
@@ -1638,7 +1646,7 @@ https://github.com/user-attachments/assets/aa40f6f4-597f-4363-b8d1-35fb56c4ca23
 
 **0:35 · 16:9 · 31.0K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/70.mp4) · [MP4 file](videos/design-to-code.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-70)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/70.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/70.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-70)
 
 A faint grid, light-blue text selections and pixel-block transitions introduce turning design references into code. Website comparisons, a terminal checklist and a chain from the agent to the design-to-code skill lead to the install-command end card.
 
@@ -1683,7 +1691,7 @@ https://github.com/user-attachments/assets/932d6d86-7140-4de9-a23b-d23f0cdf8285
 
 **0:51 · 16:9 · 3.6K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/72.mp4) · [MP4 file](videos/commas-highlevel.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-72)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/72.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/72.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-72)
 
 Blue glass-like buttons, a pointer and a payment panel introduce a billing workflow on a white background. Failed-subscription copy gives way to recovery messaging, a revenue line chart and the Commas × HighLevel closing card.
 
@@ -1728,7 +1736,7 @@ https://github.com/user-attachments/assets/a7866910-d6ee-496d-a1c8-269fa8e4d750
 
 **0:54 · 16:9 · 130.8K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/75.mp4) · [MP4 file](videos/treg-social-api.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-75)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/75.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/75.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-75)
 
 A central terminal prompt is surrounded by social-platform icons, then moves through a decoded video, mention boards and creator data. Headphones imagery, relationship diagrams, audience bars and dashboard cards lead to the Jev and Treg end card.
 
@@ -1773,7 +1781,7 @@ https://github.com/user-attachments/assets/34a114e9-fb84-44de-ae04-97f5b3c41ef9
 
 **0:29 · 16:9 · 25.5K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/79.mp4) · [MP4 file](videos/reason-coding-agent.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-79)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/79.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/79.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-79)
 
 Usage bars and a short out-of-usage headline introduce Reason on a warm off-white canvas. Side-by-side coding interfaces and benchmark-style bars compare the advertised workflow before a free-trial closing card; the claims are presented as source-video content.
 
@@ -1818,7 +1826,7 @@ https://github.com/user-attachments/assets/23b184a6-491e-49c1-b12a-c801d37d06dd
 
 **0:35 · 16:9 · 15.1K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/82.mp4) · [MP4 file](videos/athrix-design-to-code-skill.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-82)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/82.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/82.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-82)
 
 A white dotted grid hosts split-screen design-vs-code comparisons with a bright blue scanning line. Pixel-dissolve wipe transitions connect screenshots, Figma inputs, and terminal commands for a design-to-code workflow.
 
@@ -1863,7 +1871,7 @@ https://github.com/user-attachments/assets/687c23c8-626b-4d79-aeb3-84514389b3cf
 
 **0:58 · 16:9 · 3.10M impressions · 1.06M plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/89.mp4) · [MP4 file](videos/claudeai-whiteboards-sheets-data.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-89)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/89.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/89.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-89)
 
 Warm off-white paper-like look with large serif type, showcasing real product UI with push-in and pull-out camera moves. Demonstrates Claude Whiteboards, Sheets and Data features with smooth UI transitions, similar visual vibe to Notion Agents.
 
@@ -1914,7 +1922,7 @@ https://github.com/user-attachments/assets/54b478bc-597d-43d5-9db8-3a42a203426c
 
 **0:45 · 16:9 · 5.15M impressions · 2.18M plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/02.mp4) · [MP4 file](videos/lovart-voice-mode.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-2)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/02.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/02.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-2)
 
 Alternate black and white title frames with a clean voice-input interface. AI-generated image collages expand into a visual demonstration of voice edits.
 
@@ -1959,7 +1967,7 @@ https://github.com/user-attachments/assets/bfa4ba44-9d9a-4d0b-81e2-c4df05da9446
 
 **0:31 · 1:1 · 4.70M impressions · 766.9K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/03.mp4) · [MP4 file](videos/sidehoe.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-3)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/03.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/03.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-3)
 
 Pink-purple gradients frame iMessage inboxes, chat bubbles, Memoji and floating app icons. An oversized cursor introduces a new feature every three to four seconds.
 
@@ -2004,7 +2012,7 @@ https://github.com/user-attachments/assets/5b3f4a89-cf72-4684-8fbd-a42eb1e55279
 
 **0:35 · 16:9 · 1.33M impressions · 103.5K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/09.mp4) · [MP4 file](videos/krea-3.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-9)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/09.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/09.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-9)
 
 White and pale-gray scenes, a giant blue cursor and floating image cards. Pair “4x faster” charts and an Arena ranking with a precise-editing demonstration.
 
@@ -2049,7 +2057,7 @@ https://github.com/user-attachments/assets/9265c072-cbcf-4bde-867b-d3b1d679ae91
 
 **0:35 excerpt of 1:30 · 16:9 · 1.22M impressions · 172.3K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/11.mp4) · [MP4 file](videos/strawberry-1-0.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-11)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/11.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/11.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-11)
 
 Cartoon characters and large kinetic titles lead into LinkedIn, calendar and meeting UI. Frequent zooms and quick scene changes create a dense product-story rhythm; the included file is a 35-second excerpt.
 
@@ -2094,7 +2102,7 @@ https://github.com/user-attachments/assets/9b68d56f-5ceb-4979-844f-0ea31161aa62
 
 **0:38 · 16:9 · 377.5K impressions · 1.2K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/19.mp4) · [MP4 file](videos/actify-ai.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-19)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/19.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/19.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-19)
 
 Pale gray and purple full-screen frames introduce the job-search problem. Small type and an input UI carry a restrained demo, ending on the Actify logo.
 
@@ -2139,7 +2147,7 @@ https://github.com/user-attachments/assets/ee4cf7a6-d741-4fc2-8562-48c70245bd57
 
 **0:58 · 16:9 · 361.1K impressions · 68.6K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/20.mp4) · [MP4 file](videos/crowdreply-citation-outreach.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-20)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/20.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/20.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-20)
 
 White UI with app icons, an “Opportunity Missed!” alert, tables and an oversized cursor. Conversational title frames lead into a workflow diagram and a soft-gradient close.
 
@@ -2184,7 +2192,7 @@ https://github.com/user-attachments/assets/1b912b46-54f0-430b-9235-e7cf33d1adf0
 
 **0:33 · 16:9 · 279.2K impressions · 61.7K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/21.mp4) · [MP4 file](videos/replit-ai-sdr.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-21)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/21.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/21.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-21)
 
 Cream canvas and big red type introduce “Your next 100 customers are waiting.” Strike through manual, tedious and expensive; reveal tables and counters, then a logo close.
 
@@ -2229,7 +2237,7 @@ https://github.com/user-attachments/assets/b8d44ce6-96ec-4156-8aa7-f0ac878099d6
 
 **0:45 excerpt of 1:05 · 16:9 · 164.6K impressions · 27.6K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/26.mp4) · [MP4 file](videos/tavus-pal.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-26)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/26.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/26.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-26)
 
 Cream and pink-orange gradients with slow-moving titles, calendar UI and meeting windows. Expanding rings link “Google Meet” to “Your PAL,” ending on Tavus branding.
 
@@ -2274,7 +2282,7 @@ https://github.com/user-attachments/assets/4c9d62a2-a17e-449a-98bd-23069fea34f7
 
 **0:30 · 4:3 · 18.8K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/57.mp4) · [MP4 file](videos/oh-wait-context-comparison.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-57)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/57.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/57.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-57)
 
 Two iPhone mockups compare a pink checklist interface with an editorial fashion and packing experience throughout the clip. Rapid screen changes combine cut-out product and fashion photography, serif headlines, checklist rows and bottom navigation.
 
@@ -2319,7 +2327,7 @@ https://github.com/user-attachments/assets/a2d37684-8609-4d0c-87b7-d29b969226b7
 
 **0:30 · 16:9 · 27.0K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/64.mp4) · [MP4 file](videos/ai-workspace-motion-study.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-64)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/64.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/64.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-64)
 
 Thermal-colored imagery and soft gradients introduce an AI workspace, followed by oversized lettering against a sky of clouds. A prompt field, image-generation progress steps and fashion-photo collages use floating panels and changing scale on a light canvas.
 
@@ -2364,7 +2372,7 @@ https://github.com/user-attachments/assets/e1749ebc-a913-408f-a8f5-ef3097ce637b
 
 **0:38 · 16:9 · 3.3K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/83.mp4) · [MP4 file](videos/proto-calendar-ui-demo.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-83)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/83.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/83.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-83)
 
 Saturated solid-color backgrounds alternate with oversized cursors clicking through a calendar UI. Multiplayer cursors, AI text prompts, and 3D geometric shapes frame a sleek state-map and layout-exploration demo.
 
@@ -2415,7 +2423,7 @@ https://github.com/user-attachments/assets/ba4ac478-1c84-48c9-8acc-6b2e084f34c8
 
 **0:33 · 16:9 · 1.07M impressions · 42.5K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/12.mp4) · [MP4 file](videos/aisc-out-of-stealth.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-12)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/12.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/12.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-12)
 
 Cream and dark frames alternate around a “Stop burning your budget” hook. Counters, social-post UI, comment bubbles and an icon grid build toward the logo.
 
@@ -2460,7 +2468,7 @@ https://github.com/user-attachments/assets/0453c796-297e-480a-b39d-565846afc871
 
 **0:50 excerpt of 1:04 · 16:9 · 571.8K impressions · 163.4K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/14.mp4) · [MP4 file](videos/tasteskill-v2.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-14)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/14.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/14.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-14)
 
 Minimal white frames with “Give your agent taste” and editorial image accents. Typography drives the story, closing on a black installation-command frame.
 
@@ -2505,7 +2513,7 @@ https://github.com/user-attachments/assets/06d390e1-39b6-49ed-931c-43de48cb24f4
 
 **0:47 · 1:1 · 546.6K impressions · 75.8K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/15.mp4) · [MP4 file](videos/hermes-profile-builder.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-15)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/15.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/15.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-15)
 
 Black canvas with rough, glowing outlines and hand-drawn-looking cards. Identity → model provider → skills → MCPs → review, in a square composition.
 
@@ -2550,7 +2558,7 @@ https://github.com/user-attachments/assets/2fef8eb6-2738-4a1e-bdbb-aaad64f08eeb
 
 **0:45 excerpt of 1:11 · 16:9 · 223.1K impressions · 74.4K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/23.mp4) · [MP4 file](videos/eleven-realtime.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-23)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/23.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/23.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-23)
 
 Minimal black, white and gray; spheres, rings, waveforms and dialogue captions. Abstract motion and model-tier labels carry a voice-product story.
 
@@ -2595,7 +2603,7 @@ https://github.com/user-attachments/assets/c2d2719e-aaae-4e86-b9b0-3fd73adf3f19
 
 **1:08 · 16:9 · 8.7K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/68.mp4) · [MP4 file](videos/agent-budgets-isometric-film.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-68)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/68.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/68.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-68)
 
 Neon green panels, black grid lines and large white type frame an isometric story about teams and budgets. Colored cubes, numerical limits, expanding geometry and graph-like paths alternate between flat compositions and perspective views.
 
@@ -2640,7 +2648,7 @@ https://github.com/user-attachments/assets/39994253-a288-414a-b72b-d8a9de208592
 
 **0:14 · 16:9 · 3.4K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/69.mp4) · [MP4 file](videos/launch-hook-layer-breakdown.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-69)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/69.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/69.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-69)
 
 A production breakdown exposes selection boxes, motion paths, handles and overlapping layers behind an app-launch hook. Vintage cutout images, serif lettering, pixel-style pointers and colored feature requests animate on a pale yellow canvas.
 
@@ -2685,7 +2693,7 @@ https://github.com/user-attachments/assets/c9121b6d-b09d-477c-a892-c239e8c44750
 
 **0:45 · 1:1 · 38.2K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/73.mp4) · [MP4 file](videos/paper-rich-text.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-73)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/73.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/73.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-73)
 
 Collaborative cursors and live selections turn a short line of text into a sequence of changing letterforms and contrasting type treatments. The square clip shifts between light and dark canvases, letter grids and oversized editorial layouts before the Paper mark.
 
@@ -2730,7 +2738,7 @@ https://github.com/user-attachments/assets/33e6f7da-09d4-4c1d-be3b-571071d0e34a
 
 **0:54 · 16:9 · 18.68M impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/74.mp4) · [MP4 file](videos/elevenlabs-speech-engine.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-74)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/74.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/74.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-74)
 
 A softly lit metallic sphere moves between dark and light compositions alongside chat bubbles and minimal captions. Integration blocks, multilingual speech examples and turn-taking labels explain the voice-agent workflow before the ElevenLabs closing mark.
 
@@ -2775,7 +2783,7 @@ https://github.com/user-attachments/assets/baaee9a0-ba32-4317-adff-edeb5e316b50
 
 **0:34 · 16:9 · 2.7K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/81.mp4) · [MP4 file](videos/lifted-finance.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-81)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/81.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/81.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-81)
 
 Minimal white typography introduces a yield question on a black canvas, with thin chart lines and outlined financial symbols. Animated spread curves and a leverage gauge illustrate the product before a compact Lifted Finance logo end card.
 
@@ -2820,7 +2828,7 @@ https://github.com/user-attachments/assets/ed39d530-913b-4cdc-93b6-1b838ef0cc14
 
 **0:13 · 16:9 · 1.9K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/86.mp4) · [MP4 file](videos/varcyyyy-do-dots-kinetic-type.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-86)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/86.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/86.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-86)
 
 White-canvas kinetic type with flat 2D mascots — a blue beret cloud, pink heart with sunglasses, and pink blob with headphones — perched on bold 'do' / 'dots' letterforms. Mid section cuts to real product UI: iPhone lock-screen Gmail banner, a color-block week calendar over a scenic landscape photo wallpaper, then a chat thread with the cloud as reply avatar.
 
@@ -2865,7 +2873,7 @@ https://github.com/user-attachments/assets/8849607f-3c58-43a3-bc24-f82f819aa1c4
 
 **0:22 · 16:9 · 448.5K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/88.mp4) · [MP4 file](videos/photonhq-omnichannel-kinetic-type.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-88)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/88.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/88.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-88)
 
 White minimal kinetic type with a column of channel icons (Messages, WhatsApp, Telegram, Email, Phone) and floating email/chat capsules around bold copy. Transitions through '100,000+ emails' → 'Unlimited iMessage/WhatsApp/Telegram' frames before closing on the Photon logo.
 
@@ -2916,7 +2924,7 @@ https://github.com/user-attachments/assets/870e16d9-c055-45c7-af1f-f6f9e6d9da55
 
 **1:01 · 16:9 · 1.49M impressions · 46.4K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/07.mp4) · [MP4 file](videos/synthesia-syren.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-7)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/07.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/07.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-7)
 
 The video is presented as an AI-generated Syren demo. Kinetic typography and brand cards mix with an AI presenter and a logo reveal.
 
@@ -2961,7 +2969,7 @@ https://github.com/user-attachments/assets/66360a9c-5968-4e3d-8ced-2d4bfe43e5b2
 
 **1:02 · 16:9 · 1.29M impressions · 22.8K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/10.mp4) · [MP4 file](videos/vida-desktop-agent.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-10)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/10.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/10.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-10)
 
 A short laptop shot introduces desktop windows, floating prompts and a large number counter. Caption-led storytelling moves from screen chaos to an agent doing useful work.
 
@@ -3006,7 +3014,7 @@ https://github.com/user-attachments/assets/29365212-0950-4805-aaf6-c9c113b60018
 
 **0:50 excerpt of 1:08 · 16:9 · 653.2K impressions · 78.6K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/13.mp4) · [MP4 file](videos/arcads-mark.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-13)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/13.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/13.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-13)
 
 Dark, glowing interface cards: competitor scraping, suggestions and a mascot. Large cursor clicks and ad thumbnails combine a product reveal with a funding announcement.
 
@@ -3051,7 +3059,7 @@ https://github.com/user-attachments/assets/b3c3d59c-4de9-476e-bd63-7e77c999b5e5
 
 **0:17 · 1:1 · 506.0K impressions · 87.5K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/45.mp4) · [MP4 file](videos/cash-app-weekly-bitcoin-rewards.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-45)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/45.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/45.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-45)
 
 A floating phone switches between an app launch screen, a toggle, a lock-screen notification and a reward result. A fluid multicolor gradient supplies atmosphere; much of the phone content resembles actual app footage.
 
@@ -3096,7 +3104,7 @@ https://github.com/user-attachments/assets/608cc9ed-1994-413e-973c-cbe157d049e3
 
 **0:45 excerpt of 1:25 · 16:9 · 443.2K impressions · 51.1K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/16.mp4) · [MP4 file](videos/kombai-2-0.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-16)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/16.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/16.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-16)
 
 A founder introduction gives way to web-design windows, terminal scenes and a bold “DOMINATE” frame. Finish with a green gradient and the AI design engineer proposition.
 
@@ -3141,7 +3149,7 @@ https://github.com/user-attachments/assets/ff55b978-dd52-4e5e-b872-0173e96b3732
 
 **0:26 · 16:9 · 435.4K impressions · 140.7K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/17.mp4) · [MP4 file](videos/instinct.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-17)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/17.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/17.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-17)
 
 Dark trading terminals sit over warm gradients. Notification cards deliver a specific market signal before a “Trade with superhuman” close.
 
@@ -3186,7 +3194,7 @@ https://github.com/user-attachments/assets/487d0ffe-6936-49eb-90a9-8757d0718f0f
 
 **0:31 · 16:9 · 394.5K impressions · 67.1K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/18.mp4) · [MP4 file](videos/lightreel.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-18)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/18.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/18.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-18)
 
 White, red and blue frames; TikTok cards, meme-like cutouts and big conversational captions. Fast collage pacing supports a creator-discovery demonstration.
 
@@ -3231,7 +3239,7 @@ https://github.com/user-attachments/assets/ad79a094-f2d2-47ba-beb6-2ecf7278330f
 
 **0:38 · 16:9 · 259.3K impressions · 13.0K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/22.mp4) · [MP4 file](videos/riverside-agentic-editor.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-22)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/22.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/22.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-22)
 
 Dark title frames mix photo collage with an editing timeline. Later product-demo scenes include people in podcast footage.
 
@@ -3276,7 +3284,7 @@ https://github.com/user-attachments/assets/a5cb5b28-f936-4fdc-a876-479c2b22c286
 
 **0:21 · 16:9 · 64.0K impressions · 13.5K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/47.mp4) · [MP4 file](videos/linear-mobile-coding-sessions.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-47)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/47.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/47.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-47)
 
 A phone interface floats at an angle against black. Code diffs and a keyboard appear in sequence before the Linear logo; perspective supplies most of the atmosphere.
 
@@ -3321,7 +3329,7 @@ https://github.com/user-attachments/assets/4b424985-a16c-4e98-b584-72edc11498d6
 
 **0:37 · 16:9 · 57.2K impressions · 15.9K plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/46.mp4) · [MP4 file](videos/readwise-for-openclaw.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-46)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/46.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/46.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-46)
 
 Deep purple and magenta gradients frame an iPhone conversation and large title statements. Alternate phone UI with typography, ending on a terminal command and logo; the source notes a brief tweet screenshot.
 
@@ -3366,7 +3374,7 @@ https://github.com/user-attachments/assets/75f167c7-b874-49c1-97aa-c506588abec6
 
 **0:15 · 1:1 · 48.5K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/49.mp4) · [MP4 file](videos/studiyo-grok-bot-widget.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-49)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/49.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/49.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-49)
 
 An iPhone home-screen widget introduces a round mascot, then cycles through expressive agent characters on a dark interface. The widget switches from loading files to a task-progress view, where a small mascot hammers an anvil above a growing progress bar.
 
@@ -3411,7 +3419,7 @@ https://github.com/user-attachments/assets/720c8c6f-db8d-4d67-9a3a-073541d59fad
 
 **2:55 · 16:9 · 7.8K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/62.mp4) · [MP4 file](videos/remocn-v3.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-62)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/62.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/62.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-62)
 
 A long-form showcase moves between a redesigned component library, floating reference thumbnails, large number typography and softly colored gradient scenes. The full clip includes dashboard mockups, phone screens, a launch checklist, animated logo typography and branching diagrams.
 
@@ -3456,7 +3464,7 @@ https://github.com/user-attachments/assets/e82542a7-d39d-47d5-9034-3ccedfa341ff
 
 **0:45 · 16:9 · 18.2K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/63.mp4) · [MP4 file](videos/holo-marketing-motion-study.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-63)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/63.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/63.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-63)
 
 A colorful pill-shaped word and floating image tiles introduce Holo on a bright canvas. Ads, social content, email and SEO labels transition into product images, dashboards and photography before the tryholo.ai end card.
 
@@ -3501,7 +3509,7 @@ https://github.com/user-attachments/assets/d3b6e619-4914-44c9-9671-2ff20b884d9f
 
 **0:45 · 16:9 · 66.4K impressions · — plays**
 
-[▶ Watch video](https://github.com/user-attachments/assets/d3b6e619-4914-44c9-9671-2ff20b884d9f) · [MP4 file](videos/raylight-2.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-67)
+[▶ Watch video](https://github.com/user-attachments/assets/d3b6e619-4914-44c9-9671-2ff20b884d9f) · [MP4 file](https://github.com/user-attachments/assets/d3b6e619-4914-44c9-9671-2ff20b884d9f) · [Browse with stats](https://kuchi.kalarislabs.com/#video-67)
 
 A glowing blue mark and prompt box introduce motion generation on a black canvas. A lit phone, colored editing tracks and a template gallery demonstrate moving from generated footage to editable motion, followed by a dark logo end card.
 
@@ -3546,7 +3554,7 @@ https://github.com/user-attachments/assets/d3c2792e-d911-4606-a90c-149e4b302a43
 
 **0:30 · 4:3 · 33.0K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/76.mp4) · [MP4 file](videos/instagram-reminders-motion-concept.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-76)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/76.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/76.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-76)
 
 An Instagram-style save action expands into large gradient lettering and a speculative reminder interface. The clip mixes social-post mockups, an editing-timeline view and a warm photographic scene to deliver a personal reminder joke.
 
@@ -3591,7 +3599,7 @@ https://github.com/user-attachments/assets/f24e5e3c-1003-44c3-be0a-518c146f49f0
 
 **0:13 · 16:9 · 6.6K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/77.mp4) · [MP4 file](videos/dnyx-imagination-upgrade.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-77)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/77.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/77.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-77)
 
 Floating design and product thumbnails move from a warm light background to a dark assistant-prompt scene. A short prompt, cursor action, expanding inspiration collage and blurred studio wordmark finish the compact motion piece.
 
@@ -3636,7 +3644,7 @@ https://github.com/user-attachments/assets/e16e1f0b-f036-4059-a897-1c0e9c60e0d8
 
 **1:00 · 16:9 · 3.8K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/80.mp4) · [MP4 file](videos/landatlas-launch.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-80)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/80.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/80.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-80)
 
 Property photography gives way to a dark real-estate interface lit with teal gradients and animated map points. A builder feed, map results, exports, seller details and team-access controls form a sequential product walkthrough.
 
@@ -3681,7 +3689,7 @@ https://github.com/user-attachments/assets/c7214ea4-b97a-4561-8a3e-7793731ba55b
 
 **1:04 · 16:9 · 1.5K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/84.mp4) · [MP4 file](videos/vainu-company-signals.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-84)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/84.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/84.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-84)
 
 A Nordic-minimal white background hosts dot-matrix statistics and green signal-line animations. City and landscape photography forms a rotating globe intro, then clean UI cards and kinetic typography close the story.
 
@@ -3726,7 +3734,7 @@ https://github.com/user-attachments/assets/427853cf-d06c-4702-bbf9-81d5a23c5d3b
 
 **0:19 · 16:9 · 23.1K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/85.mp4) · [MP4 file](videos/nexo-claude-opus-3d-scene.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-85)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/85.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/85.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-85)
 
 A warm peach 3D desktop scene shows the Claude mascot block bouncing on the macOS Dock. The camera cuts to a terminal window and notification popups in a fully rendered 3D environment.
 
@@ -3777,7 +3785,7 @@ https://github.com/user-attachments/assets/0c938f7b-b211-4d3b-ad18-9b06bda73873
 
 **0:33 · 9:16 · 10.4K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/51.mp4) · [MP4 file](videos/affordihome-finder-illustrated-launch.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-51)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/51.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/51.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-51)
 
 An illustrated snail searches for homes overnight; floating listing cards and a morning email turn the product workflow into a character story. Sunny farmhouse, pool and seaside scenes combine property UI cards with playful 2D environments, ending on the AffordiHome Finder logo and URL.
 
@@ -3822,7 +3830,7 @@ https://github.com/user-attachments/assets/fc89099f-f10d-4783-827c-759db160e5da
 
 **0:30 · 4:3 · 57.8K impressions · — plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/71.mp4) · [MP4 file](videos/idea-backing-landing-motion.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-71)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/71.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/71.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-71)
 
 A restrained landing-page composition holds its typography and calls to action while small rendered figures move around bright geometric forms. The repeated crowd motion sits above the headline about someone already believing in your idea; the source clip has no audio stream.
 
@@ -3867,7 +3875,7 @@ https://github.com/user-attachments/assets/b8b3a7f9-117a-4dcf-8394-168287272524
 
 **1:19 · 16:9 · 9.65M impressions · 1.06M plays**
 
-[▶ Watch video](https://kuchi.kalarislabs.com/assets/90.mp4) · [MP4 file](videos/grok-bot-1-0.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-90)
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/90.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/90.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-90)
 
 Big purple logo badge and colorful blob mascot avatars pop in on white; successive push-ins show real chat, meeting, chart and canvas UI. Same series as earlier @bot launch videos; contains a few segments with real people on video calls and portrait photos, so not 100% code-clonable.
 

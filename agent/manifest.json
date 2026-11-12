@@ -11,10 +11,10 @@
     "authentication": "none",
     "dailyQuota": "none",
     "shortTermThrottle": {
-      "requests": 600,
+      "requests": 120,
       "periodSeconds": 60,
       "key": "Cloudflare ingress IP",
-      "scope": "Approximate per Cloudflare location; shared by MCP and HTTP agent routes, including preflight and failed requests. Shared proxy IPs share the allowance."
+      "scope": "Approximate, per Cloudflare location. Shared by the MCP server and the /agent routes. Shared proxy IPs share the allowance."
     },
     "maxMcpRequestBodyBytes": 65536,
     "retry": {
@@ -26,7 +26,7 @@
     },
     "websiteAndVideoPlayback": "Public and outside the agent-service throttle.",
     "privacyUrl": "https://kuchi.kalarislabs.com/privacy.html",
-    "agentService": "Open: MCP and HTTP manifest/catalog/workflow routes need no account, OAuth or token.",
+    "agentService": "Open: the MCP server and the /agent manifest, catalog and workflow routes need no account or token.",
     "publicBootstrap": "SKILL.md and connection links are public."
   },
   "formats": [
@@ -56,23 +56,26 @@
     }
   ],
   "updatePolicy": {
-    "refresh": "Every authenticated tool call and HTTP agent read resolves the current published main revision.",
-    "clientBootstrap": "Keep the existing MCP endpoint and installed bootstrap skill.",
-    "catalogShapes": [
-      "video array",
-      {
-        "videos": "video array",
-        "otherFields": "exposed as catalogMetadata"
-      }
-    ],
-    "additiveVideoFields": "Exposed by get_launch_video and HTTP catalog as additionalMetadata.",
-    "additiveManifestFields": "Exposed in MCP manifest and at the root of the HTTP manifest.",
-    "breakingChanges": "Renamed core fields or a new major schema need a server adapter. Changed tool names, endpoint URLs or permissions may require client refresh or reconnect.",
-    "website": "Website layout and media assets use their publishing pipeline; the agent reads the published catalog and workflow.",
-    "authenticationMigration": "None needed: the server is open. Future catalog and workflow updates keep the same connection."
+    "refresh": "The server re-reads the published catalog at most once a minute. New videos appear without reinstalling.",
+    "clientBootstrap": "Keep the existing MCP endpoint and installed skill.",
+    "breakingChanges": "Changed tool names or endpoint URLs may need a client to refresh its tool list."
   },
   "statisticsUrl": "https://kuchi.kalarislabs.com/daily-stats.json",
   "setupLinks": {
-    "claude": "https://kuchi.kalarislabs.com/agent/connect/claude"
-  }
+    "claude": "https://kuchi.kalarislabs.com/agent/connect/claude",
+    "setupGuide": "https://github.com/kalarislabs/kuchi/blob/main/agent/SETUP.md"
+  },
+  "description": "Real product-launch videos to use as inspiration templates. Kuchi supplies structure; the user supplies their own product, assets and copy.",
+  "tools": [
+    "kuchi_search_videos",
+    "kuchi_get_video",
+    "kuchi_list_filters",
+    "kuchi_plan_remake",
+    "search",
+    "fetch"
+  ],
+  "prompts": [
+    "remake_launch_video",
+    "find_launch_inspiration"
+  ]
 }

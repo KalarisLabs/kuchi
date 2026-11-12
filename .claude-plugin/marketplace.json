@@ -1,0 +1,15 @@
+{
+  "name": "kuchi",
+  "description": "Kuchi: real product-launch videos as inspiration templates for your own launch video.",
+  "owner": {
+    "name": "Kalaris Labs",
+    "email": "support@kalarislabs.com"
+  },
+  "plugins": [
+    {
+      "name": "kuchi",
+      "source": "./plugin/launch-archive",
+      "description": "Real product-launch videos to use as inspiration templates, with a remake planner that asks for your own assets."
+    }
+  ]
+}

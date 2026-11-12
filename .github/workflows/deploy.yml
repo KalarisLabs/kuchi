@@ -1,0 +1,79 @@
+name: Publish to kuchi.kalarislabs.com
+
+# Every push to main (for example a curator commit, see agent/CURATOR.md)
+# checks media in the kuchi-bucket R2 bucket and deploys the gallery and MCP
+# Workers.
+#
+# Repository secrets:
+#   CLOUDFLARE_API_TOKEN            Workers Scripts:Edit, Workers Routes:Edit,
+#                                   R2:Edit, D1:Edit, Account Settings:Read
+#   CLOUDFLARE_ACCOUNT_ID           d59494a6afb6b5913ff800704c98e8e0
+#   PUBLIC_CLERK_PUBLISHABLE_KEY    Clerk production publishable key (pk_live_...)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/**'
+      - 'previews/**'
+      - 'site/**'
+      - 'web/**'
+      - 'scripts/**'
+      - 'agent-service/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      KUCHI_BASE_URL: https://kuchi.kalarislabs.com
+      KUCHI_MEDIA_URL: https://kuchi-media.kalarislabs.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # daily-stats reads catalog history
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # MP4s are not in git: the curator uploads them before committing
+      # (agent/CURATOR.md). This uploads new posters and fails if any
+      # catalog video is missing from R2.
+      - name: Upload posters, check videos in R2
+        run: python scripts/sync_media_r2.py
+
+      - name: Apply D1 migrations
+        run: npx -y wrangler@4 d1 migrations apply kuchi-conversations --remote --config agent-service/wrangler.json
+
+      - name: Deploy MCP Worker
+        run: |
+          npm ci --prefix agent-service
+          npx -y wrangler@4 deploy --config agent-service/wrangler.json
+
+      - name: Build and deploy gallery
+        working-directory: web
+        env:
+          PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_CLERK_PUBLISHABLE_KEY }}
+        run: |
+          npm ci
+          npm run build
+          npx wrangler deploy
+
+      - name: Smoke test
+        run: |
+          curl -fsS https://kuchi.kalarislabs.com/ -o /dev/null
+          curl -fsS https://kuchi.kalarislabs.com/mcp/health
+          curl -fsSI https://kuchi-media.kalarislabs.com/assets/34.mp4 | grep -i '^content-type: video/mp4'

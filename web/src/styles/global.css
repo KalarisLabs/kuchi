@@ -1,0 +1,6 @@
+/* Tailwind 4 without preflight, so the existing gallery stylesheet (public/style.css)
+   keeps its look. Use utilities freely in new Astro components. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source "../";

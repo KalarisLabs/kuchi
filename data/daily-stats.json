@@ -1,0 +1,87 @@
+{
+  "timeZone": "America/Los_Angeles",
+  "metricMeaning": "Collection totals; changes include newly added references and updated source snapshots, not daily site traffic or same-post daily growth.",
+  "snapshots": [
+    {
+      "date": "2026-11-05",
+      "videos": 47,
+      "impressions": 50994264,
+      "plays": 9283194,
+      "sourceRevision": "3346e6695dbb71c6a8114a24dc690ceaa55be3ff"
+    },
+    {
+      "date": "2026-11-06",
+      "videos": 74,
+      "impressions": 73883883,
+      "plays": 9283194,
+      "catalogHash": "964bffe12d66997dd8d194b895d0f68332f80e82fd2dc8846f5fdbf437370447"
+    },
+    {
+      "date": "2026-11-08",
+      "videos": 77,
+      "impressions": 73903735,
+      "plays": 9283194,
+      "catalogHash": "ab08f4ea6a6ff29ee33a43e3d434a329c4082c948eb909c7d5f10076c451e695"
+    },
+    {
+      "date": "2026-11-09",
+      "videos": 79,
+      "impressions": 73928769,
+      "plays": 9283194,
+      "catalogHash": "f8a2c4e91b3d7f5e06a8c9b2d4e6f1a3c5b7d9e2f4a6c8b0d2e4f6a8c0b2d4e6"
+    },
+    {
+      "date": "2026-11-10",
+      "videos": 82,
+      "impressions": 79146921,
+      "plays": 10348045,
+      "catalogHash": "f9e4ebabc136c8fb1f713f98758be97c2b78ac121600eced35bf9e09ca942ee6"
+    },
+    {
+      "date": "2026-11-11",
+      "videos": 83,
+      "impressions": 88795282,
+      "plays": 11412403,
+      "catalogHash": "f6afa20c2bd93cbdd7050ca671d084bd92088cbf448a7d00ba9e16956ff8773f"
+    },
+    {
+      "date": "2026-11-12",
+      "videos": 83,
+      "impressions": 88795282,
+      "plays": 11412403,
+      "catalogHash": "1fafd151fbe2986d42efa605eaea505257a044160bc25e06f912f82646c3f042"
+    }
+  ],
+  "observations": [
+    {
+      "recordedAt": "2026-11-10T07:09:24+00:00",
+      "videos": 81,
+      "impressions": 76050969,
+      "sourceRevision": "b79ed8768afcfeb641bc2e5d9ff2796291cee1a9"
+    },
+    {
+      "recordedAt": "2026-11-10T10:27:40+00:00",
+      "videos": 81,
+      "impressions": 76050969,
+      "sourceRevision": "0c4369bd904dfa036726433046c2052ff5e8015e"
+    },
+    {
+      "recordedAt": "2026-11-10T23:44:32+00:00",
+      "videos": 82,
+      "impressions": 79146921,
+      "sourceRevision": "87eef1766ec54c7a41fbd8511522f32da9d4e854"
+    },
+    {
+      "recordedAt": "2026-11-12T07:27:01+00:00",
+      "videos": 83,
+      "impressions": 88795282,
+      "sourceRevision": "4cc757d962dd98803835bec56660dd9ed1ba11e1"
+    },
+    {
+      "recordedAt": "2026-11-12T07:32:09+00:00",
+      "videos": 83,
+      "impressions": 88795282,
+      "sourceRevision": "cbeba7f150d9ca7b72c3bebfd4f7f8cf9c2b2bc6"
+    }
+  ]
+}

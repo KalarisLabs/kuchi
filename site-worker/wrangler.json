@@ -1,0 +1,50 @@
+{
+  "name": "kuchi-site",
+  "main": "worker.ts",
+  "compatibility_date": "2026-10-28",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "kuchi.kalarislabs.com/*",
+      "zone_name": "kalarislabs.com"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "kuchi-bucket"
+    }
+  ],
+  "assets": {
+    "directory": "../site-public",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/",
+      "/index.html",
+      "/consent.html",
+      "/sharing",
+      "/sharing/",
+      "/assets/*"
+    ],
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 0.1
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.01
+    }
+  },
+  "build": {
+    "command": "python3 scripts/build_site.py"
+  },
+  "vars": {
+    "UI_ORIGIN": ""
+  }
+}

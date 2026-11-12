@@ -1,0 +1,25 @@
+---
+// The gallery markup comes from the shared build (site/index.html plus the
+// generated catalog summary), so the existing app.js keeps working unchanged.
+import '../styles/global.css';
+import AuthControls from '../components/AuthControls.astro';
+import page from '../../.generated/index.html?raw';
+
+const head = page.match(/<head>([\s\S]*?)<\/head>/)?.[1] ?? '';
+const body = page.match(/<body>([\s\S]*?)<\/body>/)?.[1] ?? '';
+// Put the auth controls at the end of the masthead.
+const split = body.indexOf('</header>');
+const beforeHeaderEnd = split === -1 ? body : body.slice(0, split);
+const afterHeaderEnd = split === -1 ? '' : body.slice(split);
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <Fragment set:html={head} />
+  </head>
+  <body>
+    <Fragment set:html={beforeHeaderEnd} />
+    {split !== -1 && <AuthControls />}
+    <Fragment set:html={afterHeaderEnd} />
+  </body>
+</html>

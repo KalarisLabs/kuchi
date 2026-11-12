@@ -1,0 +1,93 @@
+{
+  "name": "kuchi-agent",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-03",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "ratelimits": [
+    {
+      "name": "ARCHIVE_REQUEST_LIMITER",
+      "namespace_id": "2026110501",
+      "simple": {
+        "limit": 600,
+        "period": 60
+      }
+    },
+    {
+      "name": "ACCOUNT_REQUEST_LIMITER",
+      "namespace_id": "2026111101",
+      "simple": {
+        "limit": 120,
+        "period": 60
+      }
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "kuchi.kalarislabs.com/mcp",
+      "zone_name": "kalarislabs.com"
+    },
+    {
+      "pattern": "kuchi.kalarislabs.com/mcp/health",
+      "zone_name": "kalarislabs.com"
+    },
+    {
+      "pattern": "kuchi.kalarislabs.com/agent",
+      "zone_name": "kalarislabs.com"
+    },
+    {
+      "pattern": "kuchi.kalarislabs.com/agent/*",
+      "zone_name": "kalarislabs.com"
+    },
+    {
+      "pattern": "kuchi.kalarislabs.com/.well-known/oauth-protected-resource/mcp",
+      "zone_name": "kalarislabs.com"
+    },
+    {
+      "pattern": "kuchi.kalarislabs.com/community/*",
+      "zone_name": "kalarislabs.com"
+    }
+  ],
+  "vars": {
+    "CLERK_AUTH_ENABLED": "true",
+    "CLERK_ISSUER": "https://clerk.kuchi.kalarislabs.com",
+    "CLERK_PUBLISHABLE_KEY": "REPLACE_WITH_KUCHI_CLERK_PUBLISHABLE_KEY"
+  },
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 0.1
+    },
+    "traces": {
+      "enabled": true,
+      "head_sampling_rate": 0.01
+    }
+  },
+  "d1_databases": [
+    {
+      "binding": "RECORDING_DB",
+      "database_name": "kuchi-conversations",
+      "database_id": "bcfd18f8-3345-4c13-acd8-6e50f0635a27",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "RECORDING_TEXT",
+      "bucket_name": "kuchi-conversations"
+    },
+    {
+      "binding": "COMMUNITY_MEDIA",
+      "bucket_name": "kuchi-bucket"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "17 * * * *"
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+.DS_Store
+__pycache__/
+node_modules/
+.wrangler/
+.dev.vars
+.env
+.env.*
+site-dist/
+site-public/
+
+site-worker/asset-sizes.json
+!.env.example
+.media-web/
+site-public/
+
+# Videos are third-party; they live in R2 (kuchi-bucket), not in git.
+videos/*.mp4

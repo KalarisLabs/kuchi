@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "name": "Kuchi",
+  "homepage": "https://kuchi.kalarislabs.com/",
+  "mcpUrl": "https://kuchi.kalarislabs.com/mcp",
+  "workflowUrl": "https://kuchi.kalarislabs.com/agent/workflow.md",
+  "catalogUrl": "https://kuchi.kalarislabs.com/agent/catalog.json",
+  "skillUrl": "https://kuchi.kalarislabs.com/agent/SKILL.md",
+  "sourceRepository": "https://github.com/kalarislabs/kuchi",
+  "accessPolicy": {
+    "authentication": "oauth2",
+    "dailyQuota": "none",
+    "shortTermThrottle": {
+      "requests": 600,
+      "periodSeconds": 60,
+      "key": "Cloudflare ingress IP",
+      "scope": "Approximate per Cloudflare location; shared by MCP and HTTP agent routes, including preflight and failed requests. Shared proxy IPs share the allowance."
+    },
+    "maxMcpRequestBodyBytes": 65536,
+    "retry": {
+      "rateLimitedStatus": 429,
+      "respectHeader": "Retry-After",
+      "defaultDelaySeconds": 60,
+      "maxRetries": 2,
+      "fallbackBypassesLimit": false
+    },
+    "websiteAndVideoPlayback": "Public and outside the agent-service throttle.",
+    "authorizationServer": "https://clerk.kuchi.kalarislabs.com",
+    "requiredScopes": [
+      "profile",
+      "email"
+    ],
+    "privacyUrl": "https://kuchi.kalarislabs.com/privacy.html",
+    "newsletterSubscription": "Separate opt-in; never implied by login.",
+    "agentService": "OAuth required for MCP and HTTP manifest/catalog/workflow routes. No anonymous fallback.",
+    "publicBootstrap": "SKILL.md, connection links and OAuth discovery remain public."
+  },
+  "formats": [
+    {
+      "id": "device-ui-transformations",
+      "name": "Device & UI Transformations"
+    },
+    {
+      "id": "clean-ui-data-graphics",
+      "name": "Clean UI, Data & Graphics"
+    },
+    {
+      "id": "pastel-ui-cursor-demos",
+      "name": "Pastel UI & Cursor Demos"
+    },
+    {
+      "id": "typography-abstract-motion",
+      "name": "Typography & Abstract Motion"
+    },
+    {
+      "id": "dark-gradient-mixed-media",
+      "name": "Dark, Gradient & Mixed Media"
+    },
+    {
+      "id": "illustrated-mascot-stories",
+      "name": "Illustrated Mascot Stories"
+    }
+  ],
+  "updatePolicy": {
+    "refresh": "Every authenticated tool call and HTTP agent read resolves the current published main revision.",
+    "clientBootstrap": "Keep the existing MCP endpoint and installed bootstrap skill.",
+    "catalogShapes": [
+      "video array",
+      {
+        "videos": "video array",
+        "otherFields": "exposed as catalogMetadata"
+      }
+    ],
+    "additiveVideoFields": "Exposed by get_launch_video and HTTP catalog as additionalMetadata.",
+    "additiveManifestFields": "Exposed in MCP manifest and at the root of the HTTP manifest.",
+    "breakingChanges": "Renamed core fields or a new major schema need a server adapter. Changed tool names, endpoint URLs or permissions may require client refresh or reconnect.",
+    "website": "Website layout and media assets use their publishing pipeline; the agent reads the published catalog and workflow.",
+    "authenticationMigration": "Existing unauthenticated installations must reconnect once for OAuth. Future catalog and workflow updates keep the same connection."
+  },
+  "statisticsUrl": "https://kuchi.kalarislabs.com/daily-stats.json",
+  "setupLinks": {
+    "claude": "https://kuchi.kalarislabs.com/agent/connect/claude"
+  },
+  "community": {
+    "url": "https://kuchi.kalarislabs.com/?tab=community",
+    "publication": "Ask once after final delivery. Public posting requires explicit user agreement. Upload final file bytes and publish immediately; no draft or second approval.",
+    "tools": [
+      "create_community_upload",
+      "publish_community_video"
+    ],
+    "maxVideoBytes": 100000000,
+    "authorControls": [
+      "edit",
+      "replace",
+      "delete"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+# Telemetry and privacy
+
+Telemetry defaults on when no preference has been saved; explicit opt-outs remain off. OAuth Allow/Deny still posts natively and does not authorize a recorder. A preference is not an active recording: a supported local recorder must also be connected and select a session.
+
+## User journey
+
+1. Open https://kuchi.kalarislabs.com/sharing and sign in.
+2. Review Telemetry and Privacy (turn it off at any time). Download `agent/recorder.mjs` from this repository (Node 22+).
+3. Run `node kuchi-recorder.mjs connect --client claude-code` (or `codex`). Open the displayed site URL, compare the code, approve the recorder. No API key or token is pasted into chat.
+4. Claude Code: run `node kuchi-recorder.mjs install-claude --project .`. Hooks preserve existing project configuration; recording begins only when that project session calls the configured Kuchi MCP server (default name `kuchi`, override with `--server NAME`). The entire selected conversation's user/AI text, including preceding messages in that session, is shared. Use a dedicated video-making conversation.
+5. Codex: select one native JSONL rollout using `node kuchi-recorder.mjs record --client codex --file /path/to/session.jsonl`. Ctrl+C stops it. Add `--once` to import a finished source snapshot. No directory scanning or blanket Codex-app access.
+6. View text, stop uploads, disconnect devices or delete recordings in Telemetry settings. Off stops new uploads; existing records remain until the user deletes them.
+
+Claude/ChatGPT ordinary web chats cannot supply a whole transcript through a remote MCP connection. Their connector-only sessions are not recorded. No workflow prompt asks the agent to reconstruct or transmit a chat.
+
+## Data and access
+
+- R2 bucket `kuchi-conversations`: private immutable text chunks. No public access or custom domain. Message text is verbatim, without redaction or summarization, and may itself contain sensitive information.
+- D1 `kuchi-conversations`: consent version/revision, hashed device credentials, session/task/reference IDs, sequence numbers and chunk hashes. Preferences survive sign-out. Client authorizations expire after 90 days; unapproved connection codes expire in ten minutes.
+- Browser API accepts verified Clerk **session** tokens from the site's authorized origin. Existing MCP OAuth tokens cannot read recordings. Recorder credentials can only upload sessions belonging to that device/account; they cannot read stored conversations or change consent.
+- Users read/delete their records. The existing `ANALYTICS_INTERNAL_USER_ID` account can review all authorized sessions in Team view. No role can expose R2 keys as a public URL. Page rendering uses React escaped text, never raw HTML/Markdown execution.
+- Raw text is not sent to PostHog, the catalog, tool responses or application logs. PostHog receives sharing enabled/disabled, session started/finished/deleted, opaque session/task IDs and the client/status only.
+- Conversation text is retained until the user explicitly deletes it. There is no automatic age-based deletion or expiry filter, and R2 must have no object-expiration rule for `sessions/`. The hourly job only retries explicitly requested deletions (100 per pass) and removes expired device authorizations. Failed deletion leaves a tombstone and is retried; the owner cannot read a tombstoned record. The legacy session `expires_at` column is unused by retention and set to the maximum safe integer for compatibility with older deployments. Cloudflare backups have their own retention.
+
+## Fidelity and operational limits
+
+Native user/assistant text blocks are copied directly. Newlines, spaces, Unicode and code remain unchanged. Native ask-user questions and responses are preserved as their original payload text. Thinking/system messages and other tool outputs are excluded; images/files are not uploaded. This release covers native text-message and supported ask-user records, not every platform-specific interactive UI or hidden history. Source-complete means the available source snapshot was synced, not independent proof that a host exposed all history.
+
+The collector retains each exact pending chunk and its source checksum locally before upload. A retry resends that chunk before uploading any newly appended messages. Sequence and SHA-256 acknowledgements make retries idempotent. Source rewriting, mixed session IDs, malformed JSON/UTF-8 and oversized messages stop collection explicitly. An unterminated line waits during live collection and is parsed after a stable session end or finished-snapshot import. Native logs and any unsent local chunk remain on the user's computer after server-side deletion.
+
+A selected live session stops on session end, explicit interruption, revocation, or a six-hour maximum. Reopening a closed shared source requires a new selected conversation. At the end the recorder waits for a stable source snapshot and the server confirms the contiguous chunk sequence and recorded message count. Older recorders that do not report a final count can stop and keep their text. To upgrade an existing Claude Code installation, download the current recorder and rerun `install-claude` in the configured project with the same server name; the existing device approval is reused. Replay checks each stored chunk against its SHA-256 before returning it. A local hook can fail without blocking the AI task; the server's session status and last update are the recording evidence.
+
+## Verification
+
+`npm test` in `agent-service` exercises actual local D1/R2 bindings through Miniflare plus source adapters and the authenticated route logic. Test fixtures are synthetic; no user's real conversation is uploaded by the suite. The frontend tests ensure sharing choice does not submit/intercept the OAuth form. `wrangler deploy --dry-run` verifies deployment packaging/bindings, not browser authorization.

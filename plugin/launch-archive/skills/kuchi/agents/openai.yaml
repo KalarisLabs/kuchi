@@ -1,0 +1,5 @@
+interface:
+  display_name: Kuchi
+  short_description: Find launch, demo, teaser and motion-design references.
+policy:
+  allow_implicit_invocation: true

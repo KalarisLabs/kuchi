@@ -154,15 +154,16 @@ line each), and any better cuts of existing entries you noticed.
 
 ## What happens after you commit
 
-`.github/workflows/deploy.yml` runs on every push to `main`:
+Cloudflare Workers Builds deploys both Workers on every push to `main`:
 
-1. `scripts/sync_media_r2.py` uploads any new posters to `kuchi-bucket` and
-   checks that every video in the catalog is live at
-   `https://kuchi-media.kalarislabs.com` (served from Cloudflare's edge cache).
-   It fails the run if one is missing.
-2. The Astro site in `web/` is rebuilt and deployed to
-   `https://kuchi.kalarislabs.com`, and the MCP worker is redeployed so agents
-   see the new references.
+1. `kuchi-site` rebuilds the gallery from `web/` and deploys it to
+   `https://kuchi.kalarislabs.com`.
+2. `kuchi-agent` (the MCP server) redeploys. It also re-reads the catalog from
+   `main` at most once a minute, so agents see new videos even without a deploy.
+
+`.github/workflows/deploy.yml` runs the tests and fails if any catalog video is
+missing from `https://kuchi-media.kalarislabs.com`, which is why you upload
+media before committing.
 
 The new video is live on the gallery within a few minutes of the push.
 

@@ -73,8 +73,8 @@ test('a broken or missing protection binding fails closed with a retryable respo
 
 test('deployment config binds the intended per-IP short-term allowance', async () => {
   const config=JSON.parse(await readFile(new URL('../wrangler.json',import.meta.url),'utf8'));
-  const binding=config.ratelimits.find(b=>b.name==='ARCHIVE_REQUEST_LIMITER');
-  assert.deepEqual(binding.simple,{limit:120,period:60});
+  assert.deepEqual(config.durable_objects.bindings,[{name:'IP_LIMITER',class_name:'IpRateLimiter'}]);
+  assert.ok(config.migrations.some(m=>m.new_sqlite_classes?.includes('IpRateLimiter')));
   assert.equal(config.name,'kuchi-agent');
   assert.equal(config.vars,undefined); // open server: no auth settings
 });
@@ -83,4 +83,25 @@ test('the published SKILL.md copies match the skill the Worker serves', async ()
   const {SKILL} = await import('../worker.mjs');
   for (const path of ['../../agent/SKILL.md', '../../plugin/launch-archive/skills/kuchi/SKILL.md'])
     assert.equal(await readFile(new URL(path, import.meta.url), 'utf8'), SKILL, path);
+});
+
+test('the Durable Object limiter is strict: request 121 in a minute is refused, then the window slides', async () => {
+  const {IpRateLimiter, LIMIT, WINDOW_MS, durableLimiter} = await import('../limiter.mjs');
+  const limiter = new IpRateLimiter();
+  for (let i = 0; i < LIMIT; i++) assert.equal(limiter.hit(1000 + i).allowed, true);
+  const refused = limiter.hit(1000 + LIMIT);
+  assert.equal(refused.allowed, false);
+  assert.equal(refused.retryAfter, 60);
+  assert.equal(limiter.hit(1000 + WINDOW_MS).allowed, true); // the first hit has aged out
+
+  // Through the Worker: one object per IP, and the 429 carries its exact Retry-After.
+  const objects = new Map();
+  const namespace = {idFromName:name => name, get:id => { if (!objects.has(id)) objects.set(id, new IpRateLimiter()); return objects.get(id); }};
+  const env = {IP_LIMITER:namespace};
+  for (let i = 0; i < LIMIT; i++) assert.equal((await durableLimiter(namespace).limit({key:'a'})).success, true);
+  const r = await worker.fetch(request('/agent/SKILL.md',{headers:{'CF-Connecting-IP':'192.0.2.99'}}), {IP_LIMITER:{idFromName:()=>'a', get:namespace.get}}, {});
+  assert.equal(r.status, 429);
+  assert.match(r.headers.get('retry-after'), /^[1-9][0-9]*$/);
+  const other = await worker.fetch(request('/agent/SKILL.md',{headers:{'CF-Connecting-IP':'192.0.2.100'}}), env, {});
+  assert.equal(other.status, 200);
 });

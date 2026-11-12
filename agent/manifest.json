@@ -14,13 +14,13 @@
       "requests": 120,
       "periodSeconds": 60,
       "key": "Cloudflare ingress IP",
-      "scope": "Approximate, per Cloudflare location. Shared by the MCP server and the /agent routes. Shared proxy IPs share the allowance."
+      "scope": "Exact sliding window per IP, shared by the MCP server and the /agent routes. Shared proxy IPs share the allowance."
     },
     "maxMcpRequestBodyBytes": 65536,
     "retry": {
       "rateLimitedStatus": 429,
       "respectHeader": "Retry-After",
-      "defaultDelaySeconds": 60,
+      "defaultDelaySeconds": "Retry-After header",
       "maxRetries": 2,
       "fallbackBypassesLimit": false
     },

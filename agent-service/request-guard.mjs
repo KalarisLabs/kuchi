@@ -22,8 +22,8 @@ export async function guardRequest(request, env) {
     // One key covers MCP, bootstrap and HTTP catalog routes together.
     const key = `launch-archive:${request.headers.get('CF-Connecting-IP') || 'unknown'}`;
     if (!env?.ARCHIVE_REQUEST_LIMITER) throw new Error('Missing rate limit binding');
-    const {success} = await env.ARCHIVE_REQUEST_LIMITER.limit({key});
-    if (!success) return {response:reject(429, 'Too many requests. Retry after 60 seconds.', RETRY_SECONDS)};
+    const {success, retryAfter = RETRY_SECONDS} = await env.ARCHIVE_REQUEST_LIMITER.limit({key});
+    if (!success) return {response:reject(429, `Too many requests: Kuchi allows 120 a minute per IP. Retry after ${retryAfter} seconds.`, retryAfter)};
   } catch {
     console.error(JSON.stringify({event:'archive_rate_limiter_unavailable'}));
     return {response:reject(503, 'Request protection temporarily unavailable. Retry shortly.', 10)};

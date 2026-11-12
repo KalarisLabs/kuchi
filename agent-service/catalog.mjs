@@ -37,10 +37,15 @@ export async function loadArchive(fetcher = fetch) {
   const refs = await readBounded(await fetcher(`https://github.com/${REPO}.git/info/refs?service=git-upload-pack`, options()), 128 * 1024);
   const sourceRevision = refs.match(/([0-9a-f]{40}) refs\/heads\/main(?:\0|\n)/)?.[1];
   if (!sourceRevision) throw new Error('Published main revision unavailable');
-  const raw = Object.fromEntries(await Promise.all(Object.entries(SOURCE_PATHS).map(async ([key, path]) => {
-    const response = await fetcher(`https://raw.githubusercontent.com/${REPO}/${sourceRevision}/${path}`, options());
-    return [key, await readBounded(response, key === 'catalog' ? 4 * 1024 * 1024 : 65536)];
-  })));
+  // Raw files for a commit pushed seconds ago can briefly 404, so retry.
+  const read = async (path, limit) => {
+    for (let attempt = 0; ; attempt++) {
+      try { return await readBounded(await fetcher(`https://raw.githubusercontent.com/${REPO}/${sourceRevision}/${path}`, options()), limit); }
+      catch (error) { if (attempt >= 2) throw error; await new Promise(r => setTimeout(r, 750 * (attempt + 1))); }
+    }
+  };
+  const raw = Object.fromEntries(await Promise.all(Object.entries(SOURCE_PATHS).map(async ([key, path]) =>
+    [key, await read(path, key === 'catalog' ? 4 * 1024 * 1024 : 65536)])));
   const catalog = JSON.parse(raw.catalog);
   const videos = Array.isArray(catalog) ? catalog : catalog?.videos;
   const manifest = JSON.parse(raw.manifest);
@@ -67,6 +72,8 @@ export function cachedLoader(load = loadArchive, now = Date.now) {
 }
 
 const posterUrl = poster => poster ? `${MEDIA_URL}/previews/${poster.split('/').pop()}` : null;
+// Catalog watchUrls name the site host; the files are served from the media domain.
+const videoUrl = url => url?.startsWith(`${SITE_URL}/assets/`) ? MEDIA_URL + url.slice(SITE_URL.length) : url;
 
 // The agent-facing shape of one video. Popularity metrics stay on the website:
 // references are chosen by fit, never by views.
@@ -80,7 +87,7 @@ export function record(archive, v) {
     width:v.width ?? null, height:v.height ?? null, has_audio:v.hasAudio ?? null,
     posted:v.date ?? null,
     notes:v.notes ?? [],
-    video_url:v.watchUrl, poster_url:posterUrl(v.poster),
+    video_url:videoUrl(v.watchUrl), poster_url:posterUrl(v.poster),
     page_url:v.detailUrl ?? `${SITE_URL}/#video-${v.id}`,
     source_post:v.source
   };

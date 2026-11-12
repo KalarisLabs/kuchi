@@ -2,8 +2,9 @@ import {createMcpHandler} from 'agents/mcp/server';
 import {loadArchive, cachedLoader, record, filters, SITE_URL} from './catalog.mjs';
 import {createServer, VERSION} from './server.mjs';
 import {guardRequest} from './request-guard.mjs';
+import {IpRateLimiter, durableLimiter} from './limiter.mjs';
 
-export {VERSION};
+export {VERSION, IpRateLimiter};
 // One catalog cache per isolate, shared by every request.
 const load = cachedLoader(() => loadArchive());
 const CLAUDE_CONNECT_URL = 'https://claude.ai/customize/connectors?' + new URLSearchParams({modal:'add-custom-connector', connectorName:'Kuchi', connectorUrl:`${SITE_URL}/mcp`});
@@ -43,7 +44,8 @@ export default {
       const health = response({status:'ok', product:'Kuchi', version:VERSION});
       return request.method === 'HEAD' ? new Response(null, {status:200, headers:health.headers}) : health;
     }
-    const guarded = await guardRequest(request, env);
+    // The strict per-IP Durable Object replaces the approximate binding when bound.
+    const guarded = await guardRequest(request, env.IP_LIMITER ? {...env, ARCHIVE_REQUEST_LIMITER:durableLimiter(env.IP_LIMITER)} : env);
     if (guarded.response) return guarded.response;
     request = guarded.request;
 

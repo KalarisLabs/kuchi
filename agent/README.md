@@ -51,7 +51,7 @@ Without MCP, the same data is at https://kuchi.kalarislabs.com/agent/catalog.jso
 
 ## Limits
 
-- 120 requests a minute per IP, shared by the MCP server and the `/agent` routes. Over the limit you get HTTP 429 with `Retry-After: 60`. The website and video files are not limited.
+- 120 requests a minute per IP (a sliding window, enforced exactly by a Durable Object per IP), shared by the MCP server and the `/agent` routes. Over the limit you get HTTP 429 with `Retry-After` set to the seconds until a slot frees. The website and video files are not limited.
 - MCP request bodies are capped at 64 KiB.
 - The catalog refreshes from this repository's `main` branch at most once a minute. If GitHub is unreachable, the last good copy keeps serving for up to a day.
 

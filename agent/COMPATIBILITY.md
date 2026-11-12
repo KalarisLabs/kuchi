@@ -51,5 +51,5 @@ Also run `npm run verify:live` after every deploy. CI's smoke test only checks h
 ## Phase 4: when traffic grows
 
 - If the per-IP limit hits real users behind shared networks, raise it or key it per MCP session.
-- If abuse appears, add Cloudflare WAF rate rules in front of `/mcp` (they're global, unlike the Worker's per-location counter).
+- If abuse comes from many IPs at once, add a Cloudflare WAF rate rule in front of `/mcp`. The per-IP Durable Object limit doesn't stop distributed traffic.
 - Add optional API keys only if a paid tier ever exists. The open tier stays.

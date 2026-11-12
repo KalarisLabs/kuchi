@@ -107,7 +107,7 @@ test('ChatGPT search and fetch return the documented shapes', async () => {
     assert.deepEqual(results[0], {id:'2', title:'Pastel cursor demo', url:'https://kuchi.kalarislabs.com/#video-2'});
     const doc = JSON.parse((await call(client, 'fetch', {id:'2'})).content[0].text);
     assert.equal(doc.id, '2'); assert.equal(doc.url, 'https://kuchi.kalarislabs.com/#video-2');
-    assert.match(doc.text, /Video file: https:\/\/kuchi\.kalarislabs\.com\/assets\/2\.mp4/);
+    assert.match(doc.text, /Video file: https:\/\/kuchi-media\.kalarislabs\.com\/assets\/2\.mp4/);
     assert.ok(Object.values(doc.metadata).every(v => typeof v === 'string'));
   } finally { await close(); }
 });

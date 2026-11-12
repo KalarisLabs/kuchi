@@ -7,16 +7,6 @@
   ],
   "workers_dev": false,
   "preview_urls": false,
-  "ratelimits": [
-    {
-      "name": "ARCHIVE_REQUEST_LIMITER",
-      "namespace_id": "2026110501",
-      "simple": {
-        "limit": 120,
-        "period": 60
-      }
-    }
-  ],
   "routes": [
     {
       "pattern": "kuchi.kalarislabs.com/mcp",
@@ -45,5 +35,21 @@
       "enabled": true,
       "head_sampling_rate": 0.01
     }
-  }
+  },
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "IP_LIMITER",
+        "class_name": "IpRateLimiter"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "IpRateLimiter"
+      ]
+    }
+  ]
 }

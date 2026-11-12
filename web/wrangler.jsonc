@@ -20,7 +20,6 @@
 		// MP4s are served from the kuchi-media R2 bucket on this custom domain.
 		"KUCHI_MEDIA_URL": "https://kuchi-media.kalarislabs.com"
 	},
-	// CLERK_SECRET_KEY: `npx wrangler secret put CLERK_SECRET_KEY`
 	"observability": {
 		"enabled": true,
 		"logs": { "enabled": true, "head_sampling_rate": 0.1 },

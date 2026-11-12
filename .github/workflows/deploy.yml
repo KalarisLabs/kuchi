@@ -8,7 +8,6 @@ name: Publish to kuchi.kalarislabs.com
 #   CLOUDFLARE_API_TOKEN            Workers Scripts:Edit, Workers Routes:Edit,
 #                                   R2:Edit, D1:Edit, Account Settings:Read
 #   CLOUDFLARE_ACCOUNT_ID           d59494a6afb6b5913ff800704c98e8e0
-#   PUBLIC_CLERK_PUBLISHABLE_KEY    Clerk production publishable key (pk_live_...)
 
 on:
   push:
@@ -65,8 +64,6 @@ jobs:
 
       - name: Build and deploy gallery
         working-directory: web
-        env:
-          PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.PUBLIC_CLERK_PUBLISHABLE_KEY }}
         run: |
           npm ci
           npm run build

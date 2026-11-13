@@ -1,6 +1,6 @@
 # Directory listings
 
-Everything needed to list Kuchi in the official MCP Registry, the Claude Connectors Directory and ChatGPT. All three list the same server. Nothing here has been submitted yet. Re-check every claim against the live server before submitting: `npm --prefix agent-service run verify:live`.
+Everything needed to list Kuchi in the official MCP Registry, the Claude Connectors Directory and ChatGPT. All three list the same server. The MCP Registry entry is published (version 1.3.0, 2026-11-13). The Claude and ChatGPT listings have not been submitted yet. Re-check every claim against the live server before submitting: `npm --prefix agent-service run verify:live`.
 
 ## Shared details
 
@@ -58,6 +58,8 @@ No tool takes a context, intent or conversation argument. Every input is needed 
 ## 1. Official MCP Registry
 
 The registry at `registry.modelcontextprotocol.io` is where other catalogs and clients look servers up. The entry is [`server.json`](../server.json), named `io.github.KalarisLabs/kuchi`.
+
+Version 1.3.0 is published and listed. To publish a later version:
 
 1. On GitHub, open **Actions → Publish to the MCP Registry → Run workflow** on `main`. It signs in with the repository's own identity, so no secret or token is needed.
 2. Confirm it is listed: `https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.KalarisLabs/kuchi`.

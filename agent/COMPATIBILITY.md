@@ -71,7 +71,7 @@ The steps, copy and test cases for each are in [`directory-submission/`](../dire
 
 | Listing | State | What is left |
 | --- | --- | --- |
-| Official MCP Registry | [`server.json`](../server.json) and a manual publish workflow are in the repository. Not published | Run the "Publish to the MCP Registry" workflow |
+| Official MCP Registry | Published on 2026-11-13 as `io.github.KalarisLabs/kuchi`, version 1.3.0, from [`server.json`](../server.json) | For a later release, raise the version and run the "Publish to the MCP Registry" workflow |
 | Claude Connectors Directory | Server meets the tool, privacy and documentation requirements. Not submitted | Test as a custom connector, then submit at `claude.ai/directory/manage` |
 | ChatGPT apps and plugins | Server meets the annotation and input requirements; the domain check route is deployed. Not submitted | Developer verification, the domain token, then submit on the OpenAI Platform |
 | Claude Code plugin marketplace | Live in this repository | Nothing |

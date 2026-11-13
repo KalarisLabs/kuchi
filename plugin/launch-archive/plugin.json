@@ -15,7 +15,7 @@
         "developerName": "Kalaris Labs",
         "displayName": "Kuchi",
         "logo": "./assets/kuchi-icon.png",
-        "longDescription": "Kuchi is a library of real launch videos, product demos and teasers. Search by product type, motion style, format or aspect ratio, watch each reference, then plan a remake: Kuchi lists what to borrow (pacing, transitions, layout) and which of your own assets it needs (logo, screenshots, features, call to action). No sign-in. Build the video with your own tools.",
+        "longDescription": "Kuchi is a library of real launch videos, product demos and teasers. Each one is measured frame by frame. Search by product type, motion style, format, pace or aspect ratio, watch each reference, then plan a remake: Kuchi gives the exact shots and storyboard frames, lists which of your own assets it needs (logo, screenshots, features, call to action) and returns a frame-timed plan. No sign-in. Kuchi does not render video; you build it with your own tools.",
         "shortDescription": "Launch-video inspiration templates"
       }
     }
@@ -33,5 +33,5 @@
   "license": "MIT",
   "name": "kuchi",
   "repository": "https://github.com/kalarislabs/kuchi",
-  "version": "1.0.0"
+  "version": "1.1.0"
 }

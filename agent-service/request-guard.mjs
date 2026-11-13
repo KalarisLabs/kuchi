@@ -18,18 +18,20 @@ function reject(status, error, retryAfter) {
   return new Response(JSON.stringify({error}), {status, headers});
 }
 
-// Returns {response} to send as is, or {request, messages, hour} to carry on with.
-// `messages` are the parsed JSON-RPC messages of an MCP POST (empty otherwise);
-// `hour` is how many requests this client has made in the last hour.
+// Returns {response} to send as is, or {request, messages, batch, hour} to carry on with.
+// `messages` are the parsed JSON-RPC messages of an MCP POST (empty otherwise),
+// `batch` says whether they arrived as an array, and `hour` is how many
+// requests this client has made in the last hour.
 export async function guardRequest(request, env) {
   const body = await readBoundedBody(request);
   if (body.response) return body;
 
-  let messages = [], hour = 0;
+  let messages = [], hour = 0, batch = false;
   if (body.bytes) {
     try {
       const parsed = JSON.parse(new TextDecoder().decode(body.bytes));
-      messages = Array.isArray(parsed) ? parsed : [parsed];
+      batch = Array.isArray(parsed);
+      messages = batch ? parsed : [parsed];
     } catch { /* The MCP handler answers malformed JSON with a parse error. */ }
     if (messages.length > MAX_COST) return {response:reject(400, `Send at most ${MAX_COST} JSON-RPC messages in one request.`)};
   }
@@ -50,7 +52,7 @@ export async function guardRequest(request, env) {
     console.error(JSON.stringify({event:'archive_rate_limiter_unavailable'}));
     return {response:reject(503, 'Request protection temporarily unavailable. Retry shortly.', 10)};
   }
-  return {request:body.request, messages, hour};
+  return {request:body.request, messages, batch, hour};
 }
 
 async function readBoundedBody(request) {

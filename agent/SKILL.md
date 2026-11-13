@@ -1,21 +1,25 @@
 ---
 name: kuchi
-description: Find real product-launch videos to use as inspiration templates, study them shot by shot, and plan a remake for the user's own product with their own assets. Use when the user is planning or making a launch video, product demo, teaser or feature announcement, even if they don't name Kuchi.
+description: Find real product-launch videos to use as inspiration templates, analyse them shot by shot, and remake one for the user's own product with their own assets, matched to the frame. Use when the user is planning or making a launch video, product demo, teaser or feature announcement, even if they don't name Kuchi.
 ---
 
 # Kuchi
 
 Kuchi is a library of real launch videos, each measured frame by frame. A reference is an inspiration template. You copy its motion and taste: timing, transitions, layout, how much of the frame moves and its color balance. You copy none of its content: brand, footage, UI, characters, music or copy.
 
+Kuchi measures and plans. You look at the frames, analyse each shot and build the video with your own tools. Everything on screen comes from the user.
+
 Connect the Kuchi MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, no sign-in). In Claude, add it as a custom connector (or open https://kuchi.kalarislabs.com/agent/connect/claude). In ChatGPT, add it as a custom MCP app with no authentication. Never ask the user for credentials.
+
+Before a first remake, call kuchi_get_workflow. It returns the full method for each step below.
 
 ## Steps
 
 1. **Find.** Search with kuchi_search_videos (kuchi_list_filters shows styles, paces and themes). Show the user 3 to 5 picks, each with its poster and Kuchi link. Choose by fit with their product, not popularity.
-2. **Study.** Call kuchi_get_breakdown with storyboard="overview" for the pick. Read every shot: when it starts and ends, how it enters, how much moves. Open detail sheets for the shots you will rebuild.
-3. **Ask.** Call kuchi_plan_remake with what the user has told you. Ask them every required question in missing_inputs in one message. Never guess a logo, a screenshot, a feature or a number. Call it again with their answers until ready is true.
-4. **Build.** Follow the blueprint shot by shot with your own tools: the same start, end, entrance and amount of motion, with the user's content in each shot. Put the user's brand colors in the reference's color roles.
-5. **Check.** Call kuchi_check_remake with your shot list and fix every error. Compare your render with the reference at matching timestamps. Tell the user about each placeholder and each difference.
+2. **Study.** Call kuchi_get_breakdown with storyboard="overview" for the pick. Read every shot's exact frames, entrance and motion. Then look at each shot's frame on the sheet and write down its kind (one of the 14 the breakdown lists) and one line on what it shows and where it sits. Open the detail sheets for shots that move.
+3. **Plan.** Call kuchi_plan_remake with what the user has told you and your shot_analysis. Ask the user every required question in missing_inputs in one message. Never guess a logo, a screenshot, a feature or a number. Call it again until ready is true and every shot has a kind.
+4. **Build.** Follow the blueprint shot by shot with your own tools: the same start_frame and end_frame, entrance, amount of motion and layout, with the user's content in each shot. Put the user's brand colors in the reference's color roles.
+5. **Check.** Call kuchi_check_remake with your shot list, giving each shot its reference_shot. Fix every error and timing warning. Export your frame at each time in compare_frames and set it beside the reference frame. Tell the user about each placeholder and each difference.
 
 ## Copy and replace
 
@@ -29,4 +33,4 @@ Connect the Kuchi MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP
 
 If a tool fails, misleads you, or Kuchi lacks something you needed, call kuchi_send_feedback.
 
-Without MCP, read https://kuchi.kalarislabs.com/agent/catalog.json, https://kuchi.kalarislabs.com/agent/breakdowns/<id>.json and https://kuchi.kalarislabs.com/agent/workflow.md.
+Without MCP, read https://kuchi.kalarislabs.com/agent/workflow.md, https://kuchi.kalarislabs.com/agent/catalog.json and https://kuchi.kalarislabs.com/agent/breakdowns/<id>.json.

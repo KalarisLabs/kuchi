@@ -6,6 +6,8 @@
   "workflowUrl": "https://kuchi.kalarislabs.com/agent/workflow.md",
   "catalogUrl": "https://kuchi.kalarislabs.com/agent/catalog.json",
   "skillUrl": "https://kuchi.kalarislabs.com/agent/SKILL.md",
+  "skillUri": "skill://kuchi/SKILL.md",
+  "registryName": "io.github.KalarisLabs/kuchi",
   "sourceRepository": "https://github.com/kalarislabs/kuchi",
   "accessPolicy": {
     "authentication": "none",
@@ -71,10 +73,11 @@
   "statisticsUrl": "https://kuchi.kalarislabs.com/daily-stats.json",
   "setupLinks": {
     "claude": "https://kuchi.kalarislabs.com/agent/connect/claude",
-    "setupGuide": "https://github.com/kalarislabs/kuchi/blob/main/agent/SETUP.md"
+    "setupGuide": "https://github.com/kalarislabs/kuchi/blob/main/agent/README.md"
   },
   "description": "Real product-launch videos, measured frame by frame, to use as inspiration templates. Kuchi supplies motion and taste; the user supplies their own product, assets and copy.",
   "tools": [
+    "kuchi_get_workflow",
     "kuchi_search_videos",
     "kuchi_get_video",
     "kuchi_list_filters",

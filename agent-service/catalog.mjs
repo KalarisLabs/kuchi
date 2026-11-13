@@ -1,7 +1,7 @@
 // The published Kuchi catalog: data/videos.json, the frame-by-frame breakdowns,
 // agent/manifest.json and agent/workflow.md, read at one immutable commit of the
 // public repository.
-import {indexBreakdowns, breakdownSummary, SHOT_KINDS} from './breakdown.mjs';
+import {indexBreakdowns, breakdownSummary, SHOT_KINDS, shotKinds} from './breakdown.mjs';
 
 const REPO = 'kalarislabs/kuchi';
 const SOURCE_PATHS = {catalog:'data/videos.json', manifest:'agent/manifest.json', workflow:'agent/workflow.md', breakdowns:'data/breakdowns.json', labels:'data/shot_labels.json'};
@@ -115,7 +115,8 @@ export function filters(archive) {
     aspect_ratios:count(v.map(x => x.ratio).filter(Boolean)),
     paces:count(v.map(x => archive.breakdowns?.get(x.id)?.pace).filter(Boolean)),
     themes:count(v.map(x => archive.breakdowns?.get(x.id)?.theme).filter(Boolean)),
-    shot_kinds:Object.entries(SHOT_KINDS).map(([id, kind]) => ({id, name:kind.name, videos:v.filter(x => [...(archive.labels?.get(x.id)?.shots.values() ?? [])].some(l => l.kind === id)).length}))
+    // The kinds a shot is classified into, for an agent analysing a storyboard.
+    shot_kinds:shotKinds()
   };
 }
 

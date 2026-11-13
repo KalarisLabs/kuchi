@@ -23,6 +23,10 @@
     {
       "pattern": "kuchi.kalarislabs.com/agent/*",
       "zone_name": "kalarislabs.com"
+    },
+    {
+      "pattern": "kuchi.kalarislabs.com/.well-known/openai-apps-challenge",
+      "zone_name": "kalarislabs.com"
     }
   ],
   "observability": {
@@ -54,7 +58,8 @@
   ],
   "vars": {
     "POSTHOG_PROJECT_TOKEN": "phc_BaUCoMX79564auphbhPunCevdRfmVCzVRqk6Tdjz69kq",
-    "POSTHOG_HOST": "https://us.i.posthog.com"
+    "POSTHOG_HOST": "https://us.i.posthog.com",
+    "OPENAI_APPS_CHALLENGE": ""
   },
   "r2_buckets": [
     {

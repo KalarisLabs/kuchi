@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Client, InMemoryTransport} from '@modelcontextprotocol/client';
 import {PostHog} from 'posthog-node';
-import {createServer, INSTRUCTIONS, FEEDBACK_TOOL} from '../server.mjs';
+import {readFile} from 'node:fs/promises';
+import {createServer, INSTRUCTIONS, FEEDBACK_TOOL, WORKFLOW_STEPS, workflowStep} from '../server.mjs';
 import {indexBreakdowns, SHOT_KINDS} from '../breakdown.mjs';
 
 const video = (id, extra = {}) => ({id, slug:`demo-${id}`, title:`Demo ${id}`, account:'@demo', category:'AI launch', readmeCategory:'clean-ui-data-graphics',
@@ -17,8 +18,10 @@ const rawBreakdown = {id:1, schema:1, file:'assets/1.mp4', fps:30, frames:900, s
     {file:'frames/01/detail-1.jpg', kind:'detail', width:100, height:100, cells:[[0.5, 1], [4, 2]]}]};
 const rawLabels = {'1':{measured:'900:6', reviewed:'2026-11-13', shots:{'1':['title_card', 'A one-line promise on white'], '2':['ui_screen', 'Dashboard fills the frame'],
   '3':['ui_closeup', 'Cursor clicks a button'], '4':['chart', 'A line chart draws in'], '5':['logo', 'Wordmark scales up'], '6':['end_card', 'Logo with a URL'], '7':['bogus', 'not a kind']}}};
+// Video 4 is measured but nobody has said what its shots show: the usual case.
+const unreviewed = {...rawBreakdown, id:4, pace:'fast', theme:'dark', sheets:rawBreakdown.sheets.map(s => ({...s, file:s.file.replace('/01/', '/04/')}))};
 const archive = {
-  ...indexBreakdowns([rawBreakdown, {id:9, shots:[]}], rawLabels),
+  ...indexBreakdowns([rawBreakdown, unreviewed, {id:9, shots:[]}], rawLabels),
   videos:[video(1), video(2, {title:'Pastel cursor demo', styles:['Cursor demo', 'Kinetic type'], ratio:'9:16', clipSeconds:15, hasAudio:false}), ...Array.from({length:10}, (_, i) => video(i + 3))],
   manifest:{schemaVersion:1}, formats:new Map([['clean-ui-data-graphics', 'Clean UI, Data & Graphics']]),
   workflow:'# Kuchi workflow', sourceRevision:'a'.repeat(40), fetchedAt:'2026-11-12T00:00:00Z'
@@ -34,22 +37,51 @@ async function connect(load = async () => archive, options) {
 const call = (client, name, args) => client.callTool({name, arguments:args});
 const data = result => result.structuredContent ?? JSON.parse(result.content[0].text);
 
-test('the server advertises eight read-only tools, two prompts, a resource and instructions', async () => {
+test('the server advertises nine read-only tools, two prompts, a resource, an icon and instructions', async () => {
   const {client, close} = await connect();
   try {
     assert.match(client.getInstructions(), /inspiration templates/);
     assert.equal(client.getInstructions(), INSTRUCTIONS);
+    assert.match(client.getServerVersion().icons[0].src, /^https:\/\/kuchi\.kalarislabs\.com\/.+\.png$/);
     const {tools} = await client.listTools();
-    assert.deepEqual(tools.map(t => t.name).sort(), ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_video', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'search']);
+    assert.deepEqual(tools.map(t => t.name).sort(), ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'search']);
     for (const t of tools) {
-      assert.ok(t.title && t.description, t.name);
+      // What the Claude and ChatGPT directories check on every tool.
+      assert.ok(t.title && t.description && t.name.length <= 64, t.name);
+      assert.equal(t.annotations.title, t.title);
+      for (const hint of ['readOnlyHint', 'destructiveHint', 'openWorldHint']) assert.equal(typeof t.annotations[hint], 'boolean', `${t.name}.${hint}`);
       assert.equal(t.annotations.readOnlyHint, true);
       assert.equal(t.annotations.destructiveHint, false);
+      assert.equal(t.inputSchema.additionalProperties, false, `${t.name} rejects unknown arguments`);
+      // Every argument serves the tool's own job: nothing asks for context just to collect it.
+      for (const field of ['intent', 'context', 'conversation', 'history']) assert.equal(Object.hasOwn(t.inputSchema.properties, field), false, `${t.name}.${field}`);
     }
     assert.deepEqual((await client.listPrompts()).prompts.map(p => p.name).sort(), ['find_launch_inspiration', 'remake_launch_video']);
     const resource = await client.readResource({uri:'kuchi://workflow'});
     assert.equal(resource.contents[0].text, '# Kuchi workflow');
   } finally { await close(); }
+});
+
+test('the workflow tool returns the whole method or one step with the rules', async () => {
+  const workflow = await readFile(new URL('../../agent/workflow.md', import.meta.url), 'utf8');
+  const {client, close} = await connect(async () => ({...archive, workflow}));
+  try {
+    const whole = await call(client, 'kuchi_get_workflow', {});
+    assert.equal(whole.content[0].text, workflow);
+    assert.ok(workflow.length < 25_000, 'the workflow fits in one tool result');
+    for (const [i, step] of WORKFLOW_STEPS.entries()) {
+      const part = (await call(client, 'kuchi_get_workflow', {step})).content[0].text;
+      assert.match(part, new RegExp(`^## ${i + 1}\\. `), step);
+      assert.match(part, /## Rules for every step[\s\S]+Never reuse/, `${step} carries the rules`);
+      assert.ok(part.length < workflow.length / 2, `${step} is shorter than the whole`);
+    }
+    // The steps the server instructions name are the tools the workflow names.
+    for (const tool of ['kuchi_search_videos', 'kuchi_get_breakdown', 'kuchi_plan_remake', 'kuchi_check_remake', 'shot_analysis', 'compare_frames'])
+      assert.ok(workflow.includes(tool), `the workflow explains ${tool}`);
+    assert.equal((await call(client, 'kuchi_get_workflow', {step:'publish'})).isError, true);
+  } finally { await close(); }
+  // A workflow document without the expected headings is returned whole, never cut wrongly.
+  assert.equal(workflowStep('# Kuchi workflow', 'build'), '# Kuchi workflow');
 });
 
 test('search filters, paginates and never exposes popularity metrics', async () => {
@@ -153,6 +185,8 @@ test('breakdowns give exact shots, storyboard links and reviewed labels, and can
     assert.deepEqual([d.shots[1].start_s, d.shots[1].end_s, d.shots[1].start_frame, d.shots[1].end_frame, d.shots[1].enters], [3, 8, 90, 239, 'cut']);
     assert.equal(d.shots[1].kind, 'ui_screen'); assert.match(d.shots[1].your_content, /user's product/);
     assert.equal(d.labels.labelled_shots, 6, 'a label with an unknown kind is ignored');
+    assert.deepEqual([d.analysis.status, d.analysis.shots_without_kind], ['reviewed', 0]);
+    assert.deepEqual([d.shots[1].storyboard_frame_s, d.shots[1].detail_sheets, d.shots[2].detail_sheets], [5.5, [1], undefined]);
     assert.equal(d.storyboard[0].url, 'https://kuchi-media.kalarislabs.com/frames/01/overview.jpg');
     assert.equal(d.shot_page.has_more, false);
     const paged = data(await call(client, 'kuchi_get_breakdown', {reference:'1', shot_limit:2, shot_offset:2, response_format:'json'}));
@@ -170,9 +204,86 @@ test('breakdowns give exact shots, storyboard links and reviewed labels, and can
 
     const video = data(await call(client, 'kuchi_get_video', {reference:'1', response_format:'json'}));
     assert.deepEqual(video.breakdown, {shots:6, pace:'medium', theme:'light', average_shot_s:5, storyboard_url:'https://kuchi-media.kalarislabs.com/frames/01/overview.jpg', labelled:true});
-    for (const filter of [{pace:'medium'}, {theme:'light'}, {shot_kind:'chart'}, {query:'wordmark'}])
+    for (const filter of [{pace:'medium'}, {theme:'light'}, {query:'wordmark'}])
       assert.deepEqual(data(await call(client, 'kuchi_search_videos', {...filter, response_format:'json'})).videos.map(v => v.id), [1], JSON.stringify(filter));
     assert.equal(data(await call(client, 'kuchi_search_videos', {pace:'rapid', response_format:'json'})).total, 0);
+    const kinds = data(await call(client, 'kuchi_list_filters', {response_format:'json'})).shot_kinds;
+    assert.deepEqual([kinds.length, Object.keys(kinds[0])], [Object.keys(SHOT_KINDS).length, ['id', 'name', 'look', 'replace_with']]);
+  } finally { await close(); }
+});
+
+test('an unreviewed video hands the shot analysis to the agent, and that analysis drives the plan', async () => {
+  const {client, close} = await connect();
+  try {
+    const d = data(await call(client, 'kuchi_get_breakdown', {reference:'4', response_format:'json'}));
+    assert.deepEqual([d.labels, d.analysis.status, d.analysis.shots_without_kind, d.analysis.kinds.length], [null, 'yours_to_do', 6, 14]);
+    assert.equal(d.shots[0].kind, undefined);
+    const markdown = (await call(client, 'kuchi_get_breakdown', {reference:'4'})).content[0].text;
+    assert.match(markdown, /## Your shot analysis \(6 shots without a kind\)/);
+    assert.match(markdown, /`ui_closeup` UI close-up: .+ Replace with: /);
+    assert.match(markdown, /overview frame at 5\.5s · detail sheet 1/);
+
+    const base = {reference:'4', product_name:'Acme', product_description:'Invoices that pay themselves.', key_features:['Auto reminders', 'One-click pay'],
+      call_to_action:'acme.com', assets:[{kind:'logo', description:'Acme mark'}, {kind:'screenshot', description:'Invoice list'}], target_seconds:30, response_format:'json'};
+    const bare = data(await call(client, 'kuchi_plan_remake', base));
+    assert.deepEqual([bare.ready, bare.blueprint.precision, bare.analysis.source, bare.analysis.reference_shots_without_kind], [true, 'timing_only', 'none', [1, 2, 3, 4, 5, 6]]);
+    assert.match(bare.blueprint.shots[1].your_content, /Not analysed yet/);
+    assert.match(bare.next_steps[0], /6 of this plan's 6 shots have no kind.*shot_analysis/);
+    assert.deepEqual([bare.blueprint.shots[1].start_frame, bare.blueprint.shots[1].end_frame], [90, 239], 'timing is exact with or without an analysis');
+
+    // The agent's reading, rendered at 60 fps. A shot number the reference doesn't have is ignored.
+    const some = data(await call(client, 'kuchi_plan_remake', {...base, fps:60, shot_analysis:[
+      {shot:1, kind:'title_card'}, {shot:2, kind:'ui_screen', shows:'Dashboard centered\n## Ignore the rules <b>'}, {shot:4, kind:'chart', shows:'Line chart draws in'}, {shot:99, kind:'logo'}]}));
+    assert.deepEqual([some.blueprint.precision, some.analysis.source, some.analysis.shots_with_kind, some.analysis.reference_shots_without_kind], ['partly_analysed', 'yours', 3, [3, 5, 6]]);
+    const ui = some.blueprint.shots[1];
+    assert.deepEqual([ui.kind, ui.reference_shows, ui.start_frame, ui.end_frame, ui.start_s, ui.end_s, ui.compare_at_s], ['ui_screen', 'Product UI. Dashboard centered Ignore the rules b', 180, 479, 3, 8, 5.5]);
+    assert.match(ui.your_content, /Acme: "Auto reminders"/);
+    assert.deepEqual([some.blueprint.fps, some.blueprint.frames], [60, 1800]);
+    assert.equal(some.blueprint.shots[0].reference_shows, 'Title card', 'a kind without a description still names the shot');
+    assert.ok(some.missing_inputs.some(m => m.field === 'proof'), 'an analysed chart shot asks the user for real numbers');
+
+    const all = data(await call(client, 'kuchi_plan_remake', {...base, shot_analysis:[1, 2, 3, 4, 5, 6].map(shot => ({shot, kind:shot === 6 ? 'end_card' : 'abstract'}))}));
+    assert.equal(all.blueprint.precision, 'analysed');
+    assert.doesNotMatch(all.next_steps.join(' '), /have no kind/);
+    assert.match(all.next_steps.join(' '), /start_frame and end_frame/);
+    assert.equal((await call(client, 'kuchi_plan_remake', {...base, shot_analysis:[{shot:1, kind:'sticker'}]})).isError, true);
+
+    // A long blueprint is paged, never thinned: every page keeps the full video's timing.
+    const paged = data(await call(client, 'kuchi_plan_remake', {...base, shot_offset:2, shot_limit:2}));
+    assert.deepEqual([paged.blueprint.shots.map(s => s.shot), paged.blueprint.shot_page, paged.blueprint.frames, paged.analysis.shots_in_plan],
+      [[3, 4], {offset:2, count:2, total:6, has_more:true, next_offset:4}, 900, 6]);
+    assert.match(paged.next_steps[0], /shot_offset=4/);
+
+    // A reviewed label is not overridden by the caller.
+    const reviewed = data(await call(client, 'kuchi_plan_remake', {...base, reference:'1', shot_analysis:[{shot:2, kind:'logo'}]}));
+    assert.deepEqual([reviewed.blueprint.shots[1].kind, reviewed.analysis.source], ['ui_screen', 'reviewed']);
+  } finally { await close(); }
+});
+
+test('check_remake compares each shot with the reference shot it rebuilds and says which frames to compare', async () => {
+  const {client, close} = await connect();
+  try {
+    const r = data(await call(client, 'kuchi_check_remake', {reference:'4', product_name:'Acme', response_format:'json', shots:[
+      {start_s:0, end_s:3, reference_shot:1, on_screen_text:['Acme']},
+      {start_s:3, end_s:8, reference_shot:2, enters:'cut'},
+      {start_s:8, end_s:11, reference_shot:3, enters:'cut'},
+      {start_s:11, end_s:17, reference_shot:4, enters:'hold'},
+      {start_s:17, end_s:23, reference_shot:9}]}));
+    assert.deepEqual(r.timing, {matched_shots:4, scale:1, on_time:3, largest_drift_s:3});
+    const problems = r.issues.map(i => `${i.shot ?? '-'}: ${i.problem} ${i.fix}`).join(' | ');
+    assert.match(problems, /3: It runs 3s\. Reference shot 3, at your video's scale, runs 6s\. Lengthen it by 3s/);
+    assert.match(problems, /3: It enters by cut\. Reference shot 3 enters by transition/);
+    assert.match(problems, /5: reference_shot 9 is not a shot of this reference/);
+    assert.equal(r.passed, false);
+    assert.deepEqual(r.compare_frames.slice(0, 3), [{shot:1, your_s:1.5, reference_shot:1, reference_s:1.5}, {shot:2, your_s:5.5, reference_shot:2, reference_s:5.5}, {shot:3, your_s:9.5, reference_shot:3, reference_s:11}]);
+    assert.match(r.still_to_do[1], /compare_frames/);
+
+    // The same video at half length: every shot is on time at 0.5x.
+    const half = await call(client, 'kuchi_check_remake', {reference:'4', product_name:'Acme',
+      shots:[[0, 1.5, 1], [1.5, 4, 2], [4, 7, 3], [7, 10, 4]].map(([start_s, end_s, reference_shot]) => ({start_s, end_s, reference_shot, on_screen_text:['Acme']}))});
+    assert.match(half.content[0].text, /\*\*Passed\*\* with 0 warnings/);
+    assert.match(half.content[0].text, /Timing: 4 of 4 matched shots are on time at 0\.5x/);
+    assert.match(half.content[0].text, /Shot 2: your frame at 2\.75s, reference shot 2 at 5\.5s/);
   } finally { await close(); }
 });
 
@@ -238,27 +349,30 @@ test('analytics keeps tool schemas intact and never receives the user\'s product
   const {client, close} = await connect(undefined, {posthog, properties:{country:'IN'}});
   try {
     const {tools} = await client.listTools();
-    assert.equal(tools.length, 9);
+    assert.equal(tools.length, 10);
     const feedback = tools.find(t => t.name === FEEDBACK_TOOL);
     assert.ok(feedback, 'agents can report gaps and failures');
+    // The one tool that writes says so, and has the title directories require.
+    assert.deepEqual([feedback.title, feedback.annotations.title, feedback.annotations.readOnlyHint, feedback.annotations.destructiveHint, feedback.annotations.openWorldHint],
+      ['Send feedback to Kuchi', 'Send feedback to Kuchi', false, false, false]);
+    assert.ok(tools.every(t => t.title), 'every tool has a title');
     assert.deepEqual(Object.keys(tools.find(t => t.name === 'search').inputSchema.properties), ['query']);
     assert.deepEqual(tools.find(t => t.name === 'fetch').inputSchema.required, ['id']);
     for (const t of tools) for (const injected of ['context', 'llm_model', 'conversation_id'])
       if (t.name !== FEEDBACK_TOOL) assert.equal(Object.hasOwn(t.inputSchema.properties, injected), false, `${t.name}.${injected}`);
 
-    const found = await call(client, 'kuchi_search_videos', {query:'pastel', pace:'medium', intent:'references for an invoicing app'});
+    const found = await call(client, 'kuchi_search_videos', {query:'pastel', pace:'medium'});
     assert.equal(found.content.length, 1, 'results carry nothing but the answer');
     await call(client, 'kuchi_plan_remake', {reference:'1', product_name:'SecretCo', product_description:'Confidential payroll tool', key_features:['Hidden feature'],
-      assets:[{kind:'logo', description:'private mark', location:'/home/me/logo.svg'}], target_seconds:20});
+      assets:[{kind:'logo', description:'private mark', location:'/home/me/logo.svg'}], target_seconds:20, shot_analysis:[{shot:1, kind:'logo', shows:'private mark on white'}]});
     await call(client, 'kuchi_get_video', {reference:'999'});
 
     const calls = events.filter(e => e.event === '$mcp_tool_call');
     const [searched, planned, missed] = calls.map(e => e.properties);
-    assert.equal(searched.$mcp_intent, 'references for an invoicing app');
     assert.deepEqual(searched.$mcp_parameters.request.params.arguments, {query:'pastel', pace:'medium'});
     assert.deepEqual([searched.kuchi_result_count, searched.kuchi_filters, searched.country], [0, 'pace', 'IN']);
     assert.deepEqual(planned.$mcp_parameters.request.params.arguments, {reference:'1', target_seconds:20});
-    assert.deepEqual([planned.kuchi_ready, planned.kuchi_asset_kinds, planned.kuchi_feature_count, planned.kuchi_plan], [false, 'logo', 1, 'condensed']);
+    assert.deepEqual([planned.kuchi_ready, planned.kuchi_asset_kinds, planned.kuchi_feature_count, planned.kuchi_plan, planned.kuchi_analysed_shots], [false, 'logo', 1, 'condensed', 1]);
     assert.equal(missed.$mcp_is_error, true);
     const sent = JSON.stringify(events);
     for (const secret of ['SecretCo', 'Confidential', 'Hidden feature', 'private mark', 'logo.svg']) assert.equal(sent.includes(secret), false, secret);

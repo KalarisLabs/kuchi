@@ -6,7 +6,7 @@ import {guardRequest} from './request-guard.mjs';
 import {IpRateLimiter, durableLimiter} from './limiter.mjs';
 import {createAnalytics, startSession, withSessionToken} from './analytics.mjs';
 
-import {SKILL} from './skill.mjs';
+import {SKILL, skillCatalog} from './skill.mjs';
 
 // The entry module may only export handlers and Durable Object classes.
 export {IpRateLimiter};
@@ -17,6 +17,20 @@ const CLAUDE_CONNECT_URL = 'https://claude.ai/customize/connectors?' + new URLSe
 // longer counted in analytics, so one client can't use up the analytics quota.
 const ANALYTICS_HOURLY_CAP = 300;
 const MCP_OPTIONS = {route:'/mcp', legacy:'stateless', allowedHostnames:['kuchi.kalarislabs.com', 'localhost', '127.0.0.1'], allowedOriginHostnames:'*'};
+
+// Arguments that earlier versions advertised. Clients can keep a tool list for
+// a long time, so a call that still carries one is answered with it dropped.
+const RETIRED_ARGUMENTS = {intent:tool => tool.startsWith('kuchi_'), shot_kind:tool => tool === 'kuchi_search_videos'};
+function dropRetiredArguments(request, messages, batch) {
+  let changed = false;
+  for (const message of messages) {
+    const args = message?.method === 'tools/call' ? message.params?.arguments : null;
+    if (!args || typeof args !== 'object') continue;
+    for (const [name, applies] of Object.entries(RETIRED_ARGUMENTS))
+      if (Object.hasOwn(args, name) && applies(String(message.params.name))) { delete args[name]; changed = true; }
+  }
+  return changed ? new Request(request, {body:JSON.stringify(batch ? messages : messages[0])}) : request;
+}
 
 const HEADERS = {'Cache-Control':'no-store, max-age=0', 'Access-Control-Allow-Origin':'*', 'X-Content-Type-Options':'nosniff'};
 function response(body, type = 'application/json', status = 200) {
@@ -66,13 +80,24 @@ export default {
     const muted = guarded.hour > ANALYTICS_HOURLY_CAP;
 
     if (path === '/mcp') {
+      request = dropRetiredArguments(request, guarded.messages, guarded.batch);
       const session = analytics ? startSession(request, guarded.messages) : {request, token:null};
-      const server = () => createServer(load, {posthog:analytics?.posthog, media:env.MEDIA, properties:analytics?.properties, muted});
+      // The skill is an extra. If it can't be built, the tools still serve.
+      const skills = await skillCatalog().catch(error => { console.error(JSON.stringify({event:'skill_catalog_unavailable', message:error.message})); return null; });
+      const server = () => createServer(load, {posthog:analytics?.posthog, media:env.MEDIA, properties:analytics?.properties, muted, skills});
       const result = await createMcpHandler(server, MCP_OPTIONS)(session.request, env, ctx);
       return done(withSessionToken(result, session.token));
     }
     if (request.method === 'OPTIONS') return new Response(null, {status:204, headers:{'Access-Control-Allow-Origin':'*', 'Access-Control-Allow-Methods':'GET, HEAD, OPTIONS', 'Access-Control-Allow-Headers':'Content-Type'}});
     if (!['GET', 'HEAD'].includes(request.method)) return response({error:'Method not allowed'}, 'application/json', 405);
+    // OpenAI checks that this domain belongs to the submitter by reading back
+    // the token its portal issued. Unset means there is nothing to verify.
+    if (path === '/.well-known/openai-apps-challenge') {
+      const token = String(env.OPENAI_APPS_CHALLENGE ?? '').trim();
+      if (!token) return response({error:'Not found'}, 'application/json', 404);
+      const proof = new Response(token, {status:200, headers:{...HEADERS, 'Content-Type':'text/plain; charset=utf-8'}});
+      return request.method === 'HEAD' ? new Response(null, {status:200, headers:proof.headers}) : proof;
+    }
     if (path === '/agent/connect/claude') {
       if (!muted) analytics?.capture('kuchi_connect_redirect', {client:'claude'});
       return done(new Response(null, {status:302, headers:{...HEADERS, Location:CLAUDE_CONNECT_URL}}));

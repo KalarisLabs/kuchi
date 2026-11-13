@@ -2,13 +2,19 @@
 // brief. The reference contributes motion and taste: timing, how shots enter,
 // how much moves, layout and color balance. Every piece of content comes from
 // the caller. Missing inputs are listed with a question to ask the user.
-import {SHOT_KINDS, UI_KINDS, colorRoles, sheetUrl} from './breakdown.mjs';
+//
+// Kuchi measures the reference. What each shot shows is read from the frames
+// by the calling agent and passed in as `shot_analysis`; a curator's reviewed
+// label, where one exists, takes its place.
+import {SHOT_KINDS, UI_KINDS, LEGEND, colorRoles, sheetUrl, shotFrames, plainLine} from './breakdown.mjs';
 
 export const ASSET_KINDS = ['logo', 'screenshot', 'screen_recording', 'product_photo', 'illustration', 'music', 'voiceover', 'font', 'other'];
+export const ENTRANCES = Object.keys(LEGEND.enters).filter(e => e !== 'start');
 
 // Styles whose shots are built from real product UI.
 const UI_STYLES = new Set(['UI motion', 'Device motion', 'Cursor demo', 'Terminal', 'Charts', 'Data graphics']);
 const MAX_BLUEPRINT_SHOTS = 40;
+const MAX_COMPARE_FRAMES = 40;
 
 export const GUARDRAILS = [
   'Replicate motion and taste, not content: timing, beat order, how each shot enters, how much of the frame moves, camera moves, layout, type hierarchy and color balance.',
@@ -21,6 +27,8 @@ export const GUARDRAILS = [
 
 const has = (assets, ...kinds) => assets.some(a => kinds.includes(a.kind));
 const round = n => Math.round(n * 10) / 10;
+const precise = n => Math.round(n * 1000) / 1000;
+const median = values => { const v = [...values].sort((a, b) => a - b); return v.length % 2 ? v[(v.length - 1) / 2] : (v[v.length / 2 - 1] + v[v.length / 2]) / 2; };
 
 // A generic launch arc scaled to the target length, for references that have
 // no measured breakdown yet.
@@ -49,29 +57,42 @@ function spread(items, count) {
   return Array.from({length:count}, (_, i) => items[Math.round(i * (items.length - 1) / (count - 1))]);
 }
 
-// The reference's real shots, re-timed to the target length, each with the
-// user's content that replaces what the reference shows.
-function blueprint(b, labels, input, seconds) {
+// What each reference shot shows: the agent's own reading of the frames, with
+// a curator's reviewed label taking its place where one exists.
+function shotKindsFor(b, labels, analysis = []) {
+  const numbers = new Set(b.shots.map(s => s.n));
+  const known = new Map();
+  for (const a of analysis) if (numbers.has(a.shot)) known.set(a.shot, {kind:a.kind, shows:plainLine(a.shows ?? ''), source:'yours'});
+  for (const [n, label] of labels?.shots ?? []) known.set(n, {...label, source:'reviewed'});
+  return known;
+}
+
+// The reference's real shots, re-timed to the target length on whole frames,
+// each with the user's content that replaces what the reference shows.
+function blueprint(b, known, input, seconds) {
+  const fps = input.fps ?? b.fps;
   const ratio = seconds / b.seconds;
   // Close to the reference's length: keep every shot and stretch. Much shorter:
   // keep the rhythm and drop shots instead of speeding everything up.
   const stretch = ratio >= 0.75;
-  let kept = stretch ? b.shots : spread(b.shots, Math.max(3, Math.round(b.shots.length * ratio)));
-  kept = spread(kept, MAX_BLUEPRINT_SHOTS);
+  const kept = stretch ? b.shots : spread(b.shots, Math.max(3, Math.round(b.shots.length * ratio)));
   const total = kept.reduce((n, s) => n + (s.end_s - s.start_s), 0);
   const scale = seconds / total;
   const features = input.key_features ?? [];
-  const label = s => labels?.shots.get(s.n);
+  const label = s => known.get(s.n);
   const uiShots = kept.filter(s => UI_KINDS.includes(label(s)?.kind) || label(s)?.kind === 'chart');
   const featureFor = s => features.length ? features[Math.min(features.length - 1, Math.floor(uiShots.indexOf(s) * features.length / uiShots.length))] : null;
   const name = input.product_name;
-  let t = 0, textShots = 0;
-  const overview = new Map(b.sheets[0].cells.map(([time, n]) => [n, time]));
+  const {overview} = shotFrames(b);
+  let t = 0, frame = 0, textShots = 0;
   const shots = kept.map((s, i) => {
-    const start = t;
+    const startFrame = frame;
     t += (s.end_s - s.start_s) * scale;
+    // Every shot starts on a whole frame and lasts at least one.
+    frame = Math.max(startFrame + 1, Math.round(t * fps));
+    const start = startFrame / fps, end = frame / fps;
     const l = label(s);
-    let fill = 'Look at this shot in the storyboard, then put the user\'s equivalent content in the same place.';
+    let fill = "Not analysed yet. Look at this shot's frame in the storyboard, then put the user's equivalent content in the same place.";
     if (l) {
       fill = SHOT_KINDS[l.kind].fill;
       if (UI_KINDS.includes(l.kind) || l.kind === 'chart') {
@@ -85,20 +106,32 @@ function blueprint(b, labels, input, seconds) {
       } else if (l.kind === 'logo') fill = `The ${name} logo.`;
       else if (l.kind === 'end_card') fill = `The ${name} logo${input.call_to_action ? ` and "${input.call_to_action}"` : ', the call to action and URL'}.`;
     }
+    const seen = overview.get(s.n);
     return {
-      shot:i + 1, start_s:round(start), end_s:round(t),
-      reference_shot:s.n, reference_start_s:s.start_s, reference_end_s:s.end_s, ...(overview.has(s.n) ? {storyboard_frame_s:overview.get(s.n)} : {}),
+      shot:i + 1, start_s:precise(start), end_s:precise(end), start_frame:startFrame, end_frame:frame - 1,
+      reference_shot:s.n, reference_start_s:s.start_s, reference_end_s:s.end_s,
+      // The same moment in both videos: the reference frame on the storyboard, and where it falls in the remake.
+      ...(seen !== undefined ? {storyboard_frame_s:seen, compare_at_s:precise(start + (seen - s.start_s) / (s.end_s - s.start_s) * (end - start))} : {}),
       enters:s.enters, motion:s.motion, tone:s.tone,
-      ...(l ? {reference_shows:`${SHOT_KINDS[l.kind].name}. ${l.shows}`} : {}),
+      ...(l ? {kind:l.kind, reference_shows:[SHOT_KINDS[l.kind].name, l.shows].filter(Boolean).join('. ')} : {}),
       your_content:fill
     };
   });
+  const analysed = shots.filter(s => s.kind).length;
+  const times = `${Math.round(scale * 100) / 100}x`;
+  // Long references come one page of shots at a time, so none is dropped to fit a result.
+  const offset = Math.min(input.shot_offset ?? 0, shots.length);
+  const page = shots.slice(offset, offset + Math.min(input.shot_limit ?? MAX_BLUEPRINT_SHOTS, MAX_BLUEPRINT_SHOTS));
+  const next = offset + page.length;
   return {
     mode:stretch ? 'retimed' : 'condensed',
-    note:stretch
-      ? `Every reference shot, re-timed by ${round(scale * 100) / 100}x to fit ${seconds}s.`
-      : `The reference runs ${b.seconds}s. To fit ${seconds}s, this keeps ${shots.length} of its ${b.shots.length} shots at close to their original rhythm instead of speeding everything up.`,
-    shots
+    fps, frames:frame,
+    precision:analysed === shots.length ? 'analysed' : analysed ? 'partly_analysed' : 'timing_only',
+    note:stretch ? `Every reference shot, re-timed by ${times} to fit ${seconds}s at ${fps} fps.`
+      : `The reference runs ${b.seconds}s. To fit ${seconds}s, this keeps ${shots.length} of its ${b.shots.length} shots, evenly spaced and re-timed by ${times}, instead of speeding every shot up.`,
+    without_kind:shots.filter(s => !s.kind).map(s => s.reference_shot),
+    shot_page:{offset, count:page.length, total:shots.length, has_more:next < shots.length, ...(next < shots.length ? {next_offset:next} : {})},
+    shots:page
   };
 }
 
@@ -106,7 +139,8 @@ export function planRemake(video, input, b = null, labels = null) {
   const assets = input.assets ?? [];
   const features = input.key_features ?? [];
   const name = input.product_name;
-  const kinds = b && labels ? b.shots.map(s => labels.shots.get(s.n)?.kind).filter(Boolean) : [];
+  const known = b ? shotKindsFor(b, labels, input.shot_analysis) : new Map();
+  const kinds = [...known.values()].map(k => k.kind);
   const count = (...wanted) => kinds.filter(k => wanted.includes(k)).length;
   const needsUi = kinds.length ? count(...UI_KINDS) > 0 : video.styles.some(s => UI_STYLES.has(s));
   const missing = [];
@@ -133,6 +167,12 @@ export function planRemake(video, input, b = null, labels = null) {
 
   const seconds = input.target_seconds ?? Math.round(video.seconds ?? 30);
   const ready = !missing.some(m => m.required);
+  const shots = b ? blueprint(b, known, input, seconds) : null;
+  const unanalysed = shots?.without_kind ?? [];
+  if (shots) delete shots.without_kind;
+  const planned = shots?.shot_page.total;
+  const sources = new Set([...known.values()].map(k => k.source));
+  const analyse = `${unanalysed.length} of this plan's ${planned} shots have no kind yet, so their content is a placeholder. Look at each one's frame (kuchi_get_breakdown with storyboard="overview"), then call kuchi_plan_remake again with shot_analysis.`;
   const plan = {
     ready,
     reference:{id:video.id, title:video.title, brand:video.brand, video_url:video.video_url, poster_url:video.poster_url, page_url:video.page_url, seconds:video.seconds, aspect_ratio:video.aspect_ratio,
@@ -159,15 +199,24 @@ export function planRemake(video, input, b = null, labels = null) {
     },
     missing_inputs:missing,
     target_seconds:seconds,
-    ...(b ? {blueprint:blueprint(b, labels, input, seconds)}
-      : {beat_sheet:beatSheet(seconds, features), beat_sheet_note:'Starting template only. Watch the reference and re-time each beat to its actual cuts and transitions.'}),
+    ...(shots ? {
+      // Whose reading of the frames the content assignments rest on.
+      analysis:{
+        source:sources.size > 1 ? 'mixed' : sources.has('reviewed') ? 'reviewed' : sources.has('yours') ? 'yours' : 'none',
+        shots_with_kind:planned - unanalysed.length, shots_in_plan:planned,
+        ...(unanalysed.length ? {reference_shots_without_kind:unanalysed} : {})
+      },
+      blueprint:shots
+    } : {beat_sheet:beatSheet(seconds, features), beat_sheet_note:'Starting template only. Watch the reference and re-time each beat to its actual cuts and transitions.'}),
     guardrails:GUARDRAILS,
     next_steps:!ready
-      ? ['Ask the user the required questions in missing_inputs (and the optional ones that matter), then call kuchi_plan_remake again with their answers.']
-      : b ? [
-          'Open the storyboard (kuchi_get_breakdown with storyboard="overview") and look at each shot you are about to rebuild.',
-          "Build shot by shot from the blueprint: same timing, entrance and amount of motion, with the user's content in place of the reference's.",
-          'Before delivering, call kuchi_check_remake with your shot list, then compare your render with the reference at matching timestamps.',
+      ? ['Ask the user the required questions in missing_inputs (and the optional ones that matter), then call kuchi_plan_remake again with their answers.',
+          ...(unanalysed.length ? [analyse] : [])]
+      : shots ? [
+          ...(shots.shot_page.has_more ? [`This is ${shots.shot_page.count} of ${planned} shots. Call kuchi_plan_remake again with shot_offset=${shots.shot_page.next_offset} for the next ones.`] : []),
+          ...(unanalysed.length ? [analyse] : ['Open the storyboard (kuchi_get_breakdown with storyboard="overview") and look again at each shot you are about to rebuild.']),
+          `Build shot by shot from the blueprint at ${shots.fps} fps: the same start_frame and end_frame, entrance and amount of motion, with the user's content in place of the reference's.`,
+          'Before delivering, call kuchi_check_remake with your shot list, giving each shot its reference_shot. Then compare your frames with the reference at the times it returns.',
           'Tell the user what differs from the reference and anything you used a placeholder for.'
         ] : [
           'Watch the reference video end to end and note each cut, transition and timing.', 'Re-time the beat sheet to match it.',
@@ -208,9 +257,14 @@ export function planMarkdown(plan) {
     ...(b.loudness_per_second ? [`- Loudness per second, 0-9: ${b.loudness_per_second} (place your own track's hits on the peaks)`] : []));
   lines.push(...b.motion_notes.map(n => `- Motion note: ${n}`), '');
   if (plan.blueprint) {
-    lines.push(`## Shot blueprint (${plan.target_seconds}s, ${plan.blueprint.mode})`, `_${plan.blueprint.note}_`, '');
+    const a = plan.analysis;
+    const p = plan.blueprint.shot_page;
+    lines.push(`## Shot blueprint (${plan.target_seconds}s, ${plan.blueprint.mode})`, `_${plan.blueprint.note}_`,
+      ...(p.count < p.total ? [`Shots ${p.offset + 1} to ${p.offset + p.count} of ${p.total}.${p.has_more ? ` More: call again with shot_offset=${p.next_offset}.` : ''}`] : []),
+      `${plan.blueprint.frames} frames at ${plan.blueprint.fps} fps. Shot analysis: ${a.shots_with_kind} of ${a.shots_in_plan} shots have a kind (${a.source === 'none' ? 'none sent yet' : a.source === 'yours' ? 'from your shot_analysis' : a.source === 'reviewed' ? 'reviewed by Kuchi' : 'yours and Kuchi\'s'}).`, '');
     for (const s of plan.blueprint.shots) lines.push(
-      `- **${s.shot}** ${s.start_s}s to ${s.end_s}s · enters: ${s.enters} · motion: ${s.motion} · ${s.tone} · reference shot ${s.reference_shot} (${s.reference_start_s}s to ${s.reference_end_s}s)` +
+      `- **${s.shot}** ${s.start_s}s to ${s.end_s}s (frames ${s.start_frame}-${s.end_frame}) · enters: ${s.enters} · motion: ${s.motion} · ${s.tone} · reference shot ${s.reference_shot} (${s.reference_start_s}s to ${s.reference_end_s}s)` +
+      (s.compare_at_s !== undefined ? `\n  - Compare: your frame at ${s.compare_at_s}s with the reference at ${s.storyboard_frame_s}s` : '') +
       (s.reference_shows ? `\n  - Reference shows: ${s.reference_shows}` : '') + `\n  - Your content: ${s.your_content}`);
   } else {
     lines.push(`## Beat sheet (${plan.target_seconds}s)`, `_${plan.beat_sheet_note}_`, '',
@@ -221,8 +275,44 @@ export function planMarkdown(plan) {
 }
 
 // A self-check for a finished or drafted remake. Flags reuse of the reference's
-// brand, assets the user didn't supply, and drift from the reference's rhythm.
+// brand, assets the user didn't supply, and drift from the reference's timing.
 const STOP = new Set(['launch', 'video', 'demo', 'intro', 'introducing', 'online', 'product', 'with', 'from', 'your', 'this', 'that', 'the', 'and', 'for', 'new', 'now', 'study', 'motion', 'film', 'teaser', 'trailer', 'feature', 'update']);
+
+// Compares each reported shot with the reference shot it rebuilds. The remake
+// may run at a different length, so shots are judged against the reference
+// scaled by the remake's own typical ratio.
+function checkTiming(b, shots, add) {
+  const byNumber = new Map(b.shots.map(s => [s.n, s]));
+  const pairs = [];
+  shots.forEach((s, i) => {
+    if (s.reference_shot === undefined) return;
+    const r = byNumber.get(s.reference_shot);
+    if (!r) return add('error', i + 1, `reference_shot ${s.reference_shot} is not a shot of this reference.`, `Use a shot number from 1 to ${b.shots.length} (kuchi_get_breakdown lists them).`);
+    if (s.end_s > s.start_s) pairs.push({n:i + 1, s, r, seconds:s.end_s - s.start_s, reference:r.end_s - r.start_s});
+  });
+  if (!pairs.length) return null;
+  const scale = median(pairs.map(p => p.seconds / p.reference));
+  let late = 0, worst = 0;
+  for (const p of pairs) {
+    const expected = p.reference * scale;
+    const drift = p.seconds - expected;
+    worst = Math.max(worst, Math.abs(drift));
+    if (Math.abs(drift) > Math.max(0.1, expected * 0.1)) {
+      late++;
+      add('warning', p.n, `It runs ${precise(p.seconds)}s. Reference shot ${p.r.n}, at your video's scale, runs ${precise(expected)}s.`, `${drift > 0 ? 'Shorten' : 'Lengthen'} it by ${precise(Math.abs(drift))}s, or tell the user the difference is intended.`);
+    }
+    if (p.s.enters && p.r.enters !== 'start' && p.s.enters !== p.r.enters)
+      add('warning', p.n, `It enters by ${p.s.enters}. Reference shot ${p.r.n} enters by ${p.r.enters} (${LEGEND.enters[p.r.enters]}).`, 'Match the entrance, or tell the user the difference is intended.');
+  }
+  if (pairs.some((p, i) => i && p.r.n < pairs[i - 1].r.n)) add('warning', null, "Your shots are not in the reference's order.", 'Keep the order of the reference shots, or tell the user the difference is intended.');
+  const {overview} = shotFrames(b);
+  return {
+    timing:{matched_shots:pairs.length, scale:Math.round(scale * 100) / 100, on_time:pairs.length - late, largest_drift_s:precise(worst)},
+    // The same moment in both videos, for a side-by-side look.
+    compare_frames:pairs.filter(p => overview.has(p.r.n)).slice(0, MAX_COMPARE_FRAMES).map(p => ({
+      shot:p.n, your_s:precise(p.s.start_s + (overview.get(p.r.n) - p.r.start_s) / p.reference * p.seconds), reference_shot:p.r.n, reference_s:overview.get(p.r.n)}))
+  };
+}
 
 export function checkRemake(video, input, b = null) {
   const issues = [];
@@ -255,15 +345,20 @@ export function checkRemake(video, input, b = null) {
   const texts = shots.flatMap(s => s.on_screen_text ?? []).join(' ').toLowerCase();
   if (texts && !texts.includes(own)) add('warning', null, `"${input.product_name}" never appears in the on-screen text.`, 'Show the product name at least once, usually at the reveal and on the end card.');
   const rhythm = b && shots.length ? {reference_average_shot_s:b.average_shot_s, yours_average_shot_s:round(length / shots.length), reference_pace:b.pace} : null;
-  if (rhythm && (rhythm.yours_average_shot_s > b.average_shot_s * 1.5 || rhythm.yours_average_shot_s < b.average_shot_s / 1.5))
+  const timed = b ? checkTiming(b, shots, add) : null;
+  // The average only matters when shots were not matched one by one.
+  if (rhythm && !timed && (rhythm.yours_average_shot_s > b.average_shot_s * 1.5 || rhythm.yours_average_shot_s < b.average_shot_s / 1.5))
     add('warning', null, `Your average shot is ${rhythm.yours_average_shot_s}s; the reference's is ${b.average_shot_s}s.`, 'The pacing has drifted from the reference. Re-time to the blueprint, or tell the user it is intentionally different.');
   const errors = issues.filter(i => i.severity === 'error').length;
   return {
     passed:errors === 0, errors, warnings:issues.length - errors, issues,
     ...(rhythm ? {rhythm} : {}),
+    ...(timed ?? {}),
     still_to_do:[
       'Play the exported file from start to end. Check it is the right length, size and has no blank or broken frames.',
-      `Compare with the reference at matching timestamps (${video.video_url}). Timing, entrances and amount of motion should match; nothing on screen should.`,
+      timed?.compare_frames.length
+        ? `Export a frame of your render at each your_s in compare_frames and set it beside the reference at reference_s (${video.video_url}, or the storyboard sheets). Position, scale, amount on screen and stage of the move should match; nothing on screen should.`
+        : `Compare with the reference at matching timestamps (${video.video_url}). Timing, entrances and amount of motion should match; nothing on screen should.${b ? ' Give each shot its reference_shot to have its timing checked and get the exact times to compare.' : ''}`,
       'Tell the user every placeholder, every difference from the reference and anything you could not verify.'
     ],
     note:'This checks what you reported, not the rendered file. Kuchi never sees your video.'
@@ -271,12 +366,15 @@ export function checkRemake(video, input, b = null) {
 }
 
 export function checkMarkdown(result, name) {
+  const t = result.timing;
   return [
     `# Remake check: ${name}`,
     result.passed ? `**Passed** with ${result.warnings} warning${result.warnings === 1 ? '' : 's'}.` : `**Not ready:** ${result.errors} error${result.errors === 1 ? '' : 's'}, ${result.warnings} warning${result.warnings === 1 ? '' : 's'}.`,
     '',
     ...(result.issues.length ? ['## Issues', ...result.issues.map(i => `- **${i.severity}**${i.shot ? ` (shot ${i.shot})` : ''}: ${i.problem} ${i.fix}`), ''] : []),
     ...(result.rhythm ? [`Rhythm: your average shot is ${result.rhythm.yours_average_shot_s}s; the reference's is ${result.rhythm.reference_average_shot_s}s (${result.rhythm.reference_pace} pace).`, ''] : []),
+    ...(t ? [`Timing: ${t.on_time} of ${t.matched_shots} matched shots are on time at ${t.scale}x the reference's length. Largest drift: ${t.largest_drift_s}s.`, ''] : []),
+    ...(result.compare_frames?.length ? ['## Frames to compare', ...result.compare_frames.map(f => `- Shot ${f.shot}: your frame at ${f.your_s}s, reference shot ${f.reference_shot} at ${f.reference_s}s`), ''] : []),
     '## Still to do yourself', ...result.still_to_do.map((s, i) => `${i + 1}. ${s}`),
     '', `_${result.note}_`
   ].join('\n');

@@ -76,10 +76,21 @@ test('deployment config binds the intended per-IP short-term allowance', async (
   assert.deepEqual(config.durable_objects.bindings,[{name:'IP_LIMITER',class_name:'IpRateLimiter'}]);
   assert.ok(config.migrations.some(m=>m.new_sqlite_classes?.includes('IpRateLimiter')));
   assert.equal(config.name,'kuchi-agent');
-  // Open server: the only settings are the public analytics token and host, and the media bucket.
-  assert.deepEqual(Object.keys(config.vars).sort(),['POSTHOG_HOST','POSTHOG_PROJECT_TOKEN']);
+  // Open server: the only settings are the public analytics token and host, the
+  // public domain-verification token for OpenAI's directory, and the media bucket.
+  assert.deepEqual(Object.keys(config.vars).sort(),['OPENAI_APPS_CHALLENGE','POSTHOG_HOST','POSTHOG_PROJECT_TOKEN']);
+  assert.ok(config.routes.some(r=>r.pattern==='kuchi.kalarislabs.com/.well-known/openai-apps-challenge'));
   assert.match(config.vars.POSTHOG_PROJECT_TOKEN,/^phc_/);
   assert.deepEqual(config.r2_buckets,[{binding:'MEDIA',bucket_name:'kuchi-bucket'}]);
+});
+
+test('the OpenAI domain check answers with the configured token, and with nothing until one is set', async () => {
+  const path='/.well-known/openai-apps-challenge';
+  assert.equal((await worker.fetch(request(path),allow,{})).status,404);
+  assert.equal((await worker.fetch(request(path),{...allow,OPENAI_APPS_CHALLENGE:'  '},{})).status,404);
+  const r=await worker.fetch(request(path),{...allow,OPENAI_APPS_CHALLENGE:'token-123\n'},{});
+  assert.deepEqual([r.status,r.headers.get('content-type'),await r.text()],[200,'text/plain; charset=utf-8','token-123']);
+  assert.equal((await worker.fetch(request(path,{method:'POST'}),{...allow,OPENAI_APPS_CHALLENGE:'token-123'},{})).status,405);
 });
 
 test('the published SKILL.md copies match the skill the Worker serves', async () => {

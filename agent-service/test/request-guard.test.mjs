@@ -24,7 +24,7 @@ test('the shared guard blocks MCP and agent HTTP routes before either can load u
     assert.equal(r.headers.get('cache-control'),'no-store');
   }
   assert.equal(new Set(keys).size,1);
-  assert.equal(keys[0],'launch-archive:192.0.2.10');
+  assert.equal(keys[0],'kuchi:192.0.2.10');
 });
 
 test('different ingress IPs get separate keys; missing IP does not bypass protection', async () => {
@@ -36,7 +36,7 @@ test('different ingress IPs get separate keys; missing IP does not bypass protec
   }
   assert.notEqual(keys[0],keys[1]);
   assert.equal(keys[2],keys[3]);
-  assert.equal(keys[2],'launch-archive:unknown');
+  assert.equal(keys[2],'kuchi:unknown');
 });
 
 test('normal requests, MCP preflights and copied setup remain available', async () => {
@@ -48,7 +48,7 @@ test('normal requests, MCP preflights and copied setup remain available', async 
   assert.equal((await worker.fetch(request(undefined,{method:'OPTIONS'}),allow,{})).status,200);
   const bootstrap=await worker.fetch(request('/agent/SKILL.md'),allow,{});
   assert.equal(bootstrap.status,200);
-  assert.match(await bootstrap.text(),/Call kuchi_plan_remake with the user.s product name/);
+  assert.match(await bootstrap.text(),/Call kuchi_plan_remake with what the user has told you/);
 });
 
 test('oversized bodies are rejected by both declared length and actual streamed bytes', async () => {
@@ -76,11 +76,14 @@ test('deployment config binds the intended per-IP short-term allowance', async (
   assert.deepEqual(config.durable_objects.bindings,[{name:'IP_LIMITER',class_name:'IpRateLimiter'}]);
   assert.ok(config.migrations.some(m=>m.new_sqlite_classes?.includes('IpRateLimiter')));
   assert.equal(config.name,'kuchi-agent');
-  assert.equal(config.vars,undefined); // open server: no auth settings
+  // Open server: the only settings are the public analytics token and host, and the media bucket.
+  assert.deepEqual(Object.keys(config.vars).sort(),['POSTHOG_HOST','POSTHOG_PROJECT_TOKEN']);
+  assert.match(config.vars.POSTHOG_PROJECT_TOKEN,/^phc_/);
+  assert.deepEqual(config.r2_buckets,[{binding:'MEDIA',bucket_name:'kuchi-bucket'}]);
 });
 
 test('the published SKILL.md copies match the skill the Worker serves', async () => {
-  const {SKILL} = await import('../worker.mjs');
+  const {SKILL} = await import('../skill.mjs');
   for (const path of ['../../agent/SKILL.md', '../../plugin/launch-archive/skills/kuchi/SKILL.md'])
     assert.equal(await readFile(new URL(path, import.meta.url), 'utf8'), SKILL, path);
 });
@@ -104,4 +107,88 @@ test('the Durable Object limiter is strict: request 121 in a minute is refused, 
   assert.match(r.headers.get('retry-after'), /^[1-9][0-9]*$/);
   const other = await worker.fetch(request('/agent/SKILL.md',{headers:{'CF-Connecting-IP':'192.0.2.100'}}), env, {});
   assert.equal(other.status, 200);
+});
+
+test('IPv6 clients are counted per /64, so rotating addresses inside one network shares a limit', async () => {
+  const {clientKey} = await import('../limiter.mjs');
+  assert.equal(clientKey('2001:db8:1:2:aaaa:bbbb:cccc:dddd'), clientKey('2001:db8:1:2::1'));
+  assert.equal(clientKey('2001:db8:1:2::1'), '2001:db8:1:2::/64');
+  assert.equal(clientKey('2001:0db8:0001:0002:0:0:0:1'), '2001:db8:1:2::/64');
+  assert.notEqual(clientKey('2001:db8:1:3::1'), clientKey('2001:db8:1:2::1'));
+  assert.equal(clientKey('::1'), '0:0:0:0::/64');
+  assert.equal(clientKey('::ffff:192.0.2.7'), '192.0.2.7');
+  assert.equal(clientKey('192.0.2.7'), '192.0.2.7');
+  assert.equal(clientKey(null), 'unknown');
+});
+
+test('every JSON-RPC message in a request counts, and oversized batches are refused', async () => {
+  const costs = [];
+  const env = {ARCHIVE_REQUEST_LIMITER:{limit:async ({cost}) => { costs.push(cost); return {success:true}; }}};
+  const post = body => request(undefined, {method:'POST', body:JSON.stringify(body), headers:{'Content-Type':'application/json'}});
+  const ping = id => ({jsonrpc:'2.0', id, method:'ping'});
+  assert.equal((await guardRequest(post(ping(1)), env)).messages.length, 1);
+  assert.equal((await guardRequest(post([ping(1), ping(2), ping(3)]), env)).messages.length, 3);
+  await guardRequest(request('/agent/catalog.json'), env);
+  assert.deepEqual(costs, [1, 3, 1]);
+  const big = await guardRequest(post(Array.from({length:11}, (_, i) => ping(i))), env);
+  assert.equal(big.response.status, 400);
+  assert.equal(costs.length, 3, 'an oversized batch is refused before it is counted');
+  // Malformed JSON still costs one and is passed on for the MCP handler to answer.
+  const bad = await guardRequest(request(undefined, {method:'POST', body:'{nope'}), env);
+  assert.ok(bad.request); assert.deepEqual(bad.messages, []);
+});
+
+test('the limiter charges by cost and enforces the hourly allowance', async () => {
+  const {IpRateLimiter, LIMIT, HOUR_LIMIT, WINDOW_MS} = await import('../limiter.mjs');
+  const burst = new IpRateLimiter();
+  assert.equal(burst.hit(0, 10).allowed, true);
+  for (let i = 0; i < LIMIT - 10; i++) assert.equal(burst.hit(1).allowed, true);
+  const refused = burst.hit(2, 5);
+  assert.deepEqual([refused.allowed, refused.window, refused.first], [false, 'minute', true]);
+  assert.equal(burst.hit(3).first, false, 'only the first refusal of a spell is flagged');
+  assert.equal(burst.hit(1e9, 9999).allowed, true, 'cost is capped');
+
+  const steady = new IpRateLimiter();
+  let used = 0, now = 0;
+  while (used + 100 <= HOUR_LIMIT) { for (let i = 0; i < 100; i++) steady.hit(now); used += 100; now += WINDOW_MS + 1; }
+  const over = steady.hit(now);
+  assert.deepEqual([over.allowed, over.window], [false, 'hour']);
+  assert.ok(over.retryAfter >= 1 && over.retryAfter <= 3600);
+  assert.equal(steady.hit(now + 61 * WINDOW_MS).allowed, true, 'the hour window slides');
+});
+
+test('counts survive the Durable Object being dropped from memory', async () => {
+  const {IpRateLimiter, LIMIT, SAVE_EVERY} = await import('../limiter.mjs');
+  const rows = new Map();
+  let writes = 0, alarms = 0;
+  const storage = {get:async key => structuredClone(rows.get(key)), put:async (key, value) => { writes++; rows.set(key, structuredClone(value)); },
+    setAlarm:async () => { alarms++; }, deleteAll:async () => rows.clear()};
+  const call = async object => (await object.fetch('https://limiter/hit?cost=1')).json();
+  let object = new IpRateLimiter({storage});
+  for (let i = 0; i < LIMIT; i++) assert.equal((await call(object)).allowed, true);
+  assert.equal(writes, LIMIT / SAVE_EVERY, 'saved every few units, not on every request');
+  assert.equal(alarms, 1);
+  assert.equal((await call(object)).allowed, false);
+
+  // The idle object is dropped; the next request builds a new one from storage.
+  object = new IpRateLimiter({storage});
+  const after = await call(object);
+  assert.deepEqual([after.allowed, after.window, after.hour], [false, 'minute', LIMIT]);
+
+  // Pausing mid-burst wins back fewer than SAVE_EVERY units.
+  rows.clear();
+  object = new IpRateLimiter({storage});
+  for (let i = 0; i < SAVE_EVERY + 4; i++) await call(object);
+  object = new IpRateLimiter({storage});
+  assert.equal((await call(object)).hour, SAVE_EVERY + 1);
+
+  // Storage that fails never blocks a client.
+  const broken = new IpRateLimiter({storage:{get:async () => { throw new Error('down'); }, put:async () => { throw new Error('down'); }, setAlarm:async () => { throw new Error('down'); }}});
+  for (let i = 0; i < SAVE_EVERY * 2; i++) assert.equal((await call(broken)).allowed, true);
+
+  // An hour after the last request, the alarm removes what was stored.
+  rows.set('counts', {hits:[1], minutes:[[0, 5]]});
+  const stale = new IpRateLimiter({storage});
+  await stale.alarm();
+  assert.equal(rows.size, 0);
 });

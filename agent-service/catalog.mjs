@@ -1,7 +1,13 @@
-// The published Kuchi catalog: data/videos.json, agent/manifest.json and
-// agent/workflow.md, read at one immutable commit of the public repository.
+// The published Kuchi catalog: data/videos.json, the frame-by-frame breakdowns,
+// agent/manifest.json and agent/workflow.md, read at one immutable commit of the
+// public repository.
+import {indexBreakdowns, breakdownSummary, SHOT_KINDS} from './breakdown.mjs';
+
 const REPO = 'kalarislabs/kuchi';
-const SOURCE_PATHS = {catalog:'data/videos.json', manifest:'agent/manifest.json', workflow:'agent/workflow.md'};
+const SOURCE_PATHS = {catalog:'data/videos.json', manifest:'agent/manifest.json', workflow:'agent/workflow.md', breakdowns:'data/breakdowns.json', labels:'data/shot_labels.json'};
+const LIMITS = {catalog:4 * 1024 * 1024, breakdowns:4 * 1024 * 1024, labels:1024 * 1024};
+// Breakdowns enrich the catalog. If they can't be read, the catalog still serves.
+const OPTIONAL = new Set(['breakdowns', 'labels']);
 export const SITE_URL = 'https://kuchi.kalarislabs.com';
 export const MEDIA_URL = 'https://kuchi-media.kalarislabs.com';
 // A fresh copy is fetched at most once a minute per isolate. If GitHub is
@@ -45,14 +51,15 @@ export async function loadArchive(fetcher = fetch) {
     }
   };
   const raw = Object.fromEntries(await Promise.all(Object.entries(SOURCE_PATHS).map(async ([key, path]) =>
-    [key, await read(path, key === 'catalog' ? 4 * 1024 * 1024 : 65536)])));
+    [key, await read(path, LIMITS[key] ?? 65536).catch(error => { if (OPTIONAL.has(key)) return null; throw error; })])));
+  const parse = text => { try { return JSON.parse(text); } catch { return null; } };
   const catalog = JSON.parse(raw.catalog);
   const videos = Array.isArray(catalog) ? catalog : catalog?.videos;
   const manifest = JSON.parse(raw.manifest);
   if (manifest.schemaVersion !== 1 || !Array.isArray(videos) || !videos.length || videos.length > 5000) throw new Error('Published archive schema unavailable');
   if (videos.some(v => !Number.isInteger(v.id) || !v.title || !v.source || !Array.isArray(v.styles))) throw new Error('Published catalog is invalid');
   const formats = new Map((manifest.formats ?? []).map(f => [f.id, f.name]));
-  return {videos, manifest, formats, workflow:raw.workflow, sourceRevision, fetchedAt:new Date().toISOString()};
+  return {videos, manifest, formats, workflow:raw.workflow, ...indexBreakdowns(parse(raw.breakdowns), parse(raw.labels)), sourceRevision, fetchedAt:new Date().toISOString()};
 }
 
 // Wraps a loader with the fresh/stale policy above. One wrapper lives at
@@ -87,6 +94,8 @@ export function record(archive, v) {
     width:v.width ?? null, height:v.height ?? null, has_audio:v.hasAudio ?? null,
     posted:v.date ?? null,
     notes:v.notes ?? [],
+    // Measured from every frame; kuchi_get_breakdown has the shot list.
+    breakdown:breakdownSummary(archive, v.id),
     video_url:videoUrl(v.watchUrl), poster_url:posterUrl(v.poster),
     page_url:v.detailUrl ?? `${SITE_URL}/#video-${v.id}`,
     source_post:v.source
@@ -103,7 +112,10 @@ export function filters(archive) {
     styles:count(v.flatMap(x => x.styles)),
     categories:count(v.map(x => x.category).filter(Boolean)),
     formats:[...archive.formats].map(([id, name]) => ({id, name, videos:v.filter(x => x.readmeCategory === id).length})),
-    aspect_ratios:count(v.map(x => x.ratio).filter(Boolean))
+    aspect_ratios:count(v.map(x => x.ratio).filter(Boolean)),
+    paces:count(v.map(x => archive.breakdowns?.get(x.id)?.pace).filter(Boolean)),
+    themes:count(v.map(x => archive.breakdowns?.get(x.id)?.theme).filter(Boolean)),
+    shot_kinds:Object.entries(SHOT_KINDS).map(([id, kind]) => ({id, name:kind.name, videos:v.filter(x => [...(archive.labels?.get(x.id)?.shots.values() ?? [])].some(l => l.kind === id)).length}))
   };
 }
 
@@ -113,7 +125,8 @@ export function search(archive, args = {}) {
   const tokens = (args.query ?? '').toLowerCase().split(/\s+/).filter(Boolean);
   const rows = archive.videos.map(v => {
     const title = `${v.title} ${v.account}`.toLowerCase();
-    const text = `${title} ${v.category} ${v.readmeCategory} ${archive.formats.get(v.readmeCategory) ?? ''} ${v.styles.join(' ')} ${(v.notes ?? []).join(' ')}`.toLowerCase();
+    const shots = [...(archive.labels?.get(v.id)?.shots.values() ?? [])];
+    const text = `${title} ${v.category} ${v.readmeCategory} ${archive.formats.get(v.readmeCategory) ?? ''} ${v.styles.join(' ')} ${(v.notes ?? []).join(' ')} ${shots.map(l => `${SHOT_KINDS[l.kind].name} ${l.shows}`).join(' ')}`.toLowerCase();
     return {v, score:tokens.reduce((n, t) => n + (title.includes(t) ? 3 : text.includes(t) ? 1 : 0), 0)};
   }).filter(({v, score}) =>
     (!tokens.length || score > 0) &&
@@ -121,6 +134,9 @@ export function search(archive, args = {}) {
     (!args.category || same(v.category, args.category)) &&
     (!args.format || same(v.readmeCategory, args.format) || same(archive.formats.get(v.readmeCategory), args.format)) &&
     (!args.aspect_ratio || v.ratio === args.aspect_ratio) &&
+    (!args.pace || archive.breakdowns?.get(v.id)?.pace === args.pace) &&
+    (!args.theme || archive.breakdowns?.get(v.id)?.theme === args.theme) &&
+    (!args.shot_kind || [...(archive.labels?.get(v.id)?.shots.values() ?? [])].some(l => l.kind === args.shot_kind)) &&
     (!args.max_seconds || (v.clipSeconds ?? v.originalSeconds ?? Infinity) <= args.max_seconds));
   rows.sort((a, b) => (args.sort === 'newest' ? String(b.v.date).localeCompare(String(a.v.date)) : b.score - a.score || String(b.v.date).localeCompare(String(a.v.date))) || a.v.id - b.v.id);
   const offset = args.offset ?? 0;

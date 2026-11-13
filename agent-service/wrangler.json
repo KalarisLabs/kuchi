@@ -51,5 +51,15 @@
         "IpRateLimiter"
       ]
     }
+  ],
+  "vars": {
+    "POSTHOG_PROJECT_TOKEN": "phc_BaUCoMX79564auphbhPunCevdRfmVCzVRqk6Tdjz69kq",
+    "POSTHOG_HOST": "https://us.i.posthog.com"
+  },
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "kuchi-bucket"
+    }
   ]
 }

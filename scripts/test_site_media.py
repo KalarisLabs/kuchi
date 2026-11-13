@@ -45,11 +45,10 @@ class RuntimeAssetTests(unittest.TestCase):
             (out / 'app.js').write_text("import('./analytics.mjs').catch(()=>null)")
             with self.assertRaisesRegex(ValueError, 'Missing runtime asset: analytics.mjs'):
                 verify_runtime_assets(out)
-            (out / 'analytics.mjs').write_text("import {capturePayload} from './analytics-events.mjs';")
-            (out / 'analytics-config.json').write_text('{"project_token":"public-test-key"}')
+            (out / 'analytics.mjs').write_text("import {eventProperties} from './analytics-events.mjs';")
             with self.assertRaisesRegex(ValueError, 'Missing runtime asset: analytics-events.mjs'):
                 verify_runtime_assets(out)
-            (out / 'analytics-events.mjs').write_text('export const capturePayload=()=>{};')
+            (out / 'analytics-events.mjs').write_text('export const eventProperties=()=>({});')
             self.assertEqual(verify_runtime_assets(out), 3)
 
 

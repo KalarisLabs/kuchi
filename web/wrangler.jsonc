@@ -18,7 +18,11 @@
 	},
 	"vars": {
 		// MP4s are served from the kuchi-media R2 bucket on this custom domain.
-		"KUCHI_MEDIA_URL": "https://kuchi-media.kalarislabs.com"
+		"KUCHI_MEDIA_URL": "https://kuchi-media.kalarislabs.com",
+		// Product analytics, served first-party through /relay. A PostHog project
+		// token is public by design. Set it to "" to switch analytics off.
+		"POSTHOG_PROJECT_TOKEN": "phc_BaUCoMX79564auphbhPunCevdRfmVCzVRqk6Tdjz69kq",
+		"POSTHOG_HOST": "https://us.i.posthog.com"
 	},
 	"observability": {
 		"enabled": true,

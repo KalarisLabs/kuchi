@@ -5,7 +5,7 @@ const track = (...args) => telemetry.then(api => api?.track(...args) ?? false).c
   const endpoint = 'https://kuchi.kalarislabs.com/mcp';
   const setup = `Connect the Kuchi MCP server at ${endpoint} (Streamable HTTP, no sign-in) and confirm it works by listing its tools.
 
-Kuchi is a library of real product-launch videos to use as inspiration templates. When I want a launch video: find references with kuchi_search_videos and show me their posters and links. Once I pick one, call kuchi_plan_remake with my product details and ask me for my logo, screenshots and anything else it lists as missing. Borrow only the reference's structure and motion; everything on screen comes from my product.`;
+Kuchi is a library of real product-launch videos to use as inspiration templates. When I want a launch video: find references with kuchi_search_videos and show me their posters and links. Once I pick one, study it with kuchi_get_breakdown, then call kuchi_plan_remake with my product details and ask me for my logo, screenshots and anything else it lists as missing. Before you deliver, run kuchi_check_remake on your shot list. Copy only the reference's motion and taste; everything on screen comes from my product.`;
   const esc = value => value.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const copyIcon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="8" y="8" width="12" height="13" rx="1"/><path d="M15 8V3H3v13h5"/></svg>';
   const values = {

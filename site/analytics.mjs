@@ -1,50 +1,78 @@
-import {capturePayload} from './analytics-events.mjs';
+// Product analytics for the gallery, sent to PostHog through this site's own
+// /relay path.
+//
+// Privacy rules this file keeps:
+//   - Nothing is stored in the browser: no cookies, no local storage. Each
+//     page load is its own anonymous visit.
+//   - Do Not Track and Global Privacy Control switch analytics off entirely.
+//   - No session recording, no surveys, and no IP address on any event.
+//   - Custom events carry only the properties listed in analytics-events.mjs.
+// Analytics must never break the page: every failure here ends in `false`.
+import {eventProperties} from './analytics-events.mjs';
 
-export function createAnalytics({config,storage,privacy,send,uuid = () => crypto.randomUUID(),isTest = false}) {
-  let anonymousId, accountId;
+const SDK_DEFAULTS = '2026-08-30';
+
+export function initOptions(config, isTest) {
+  return {
+    api_host:config.api_host,
+    ui_host:config.ui_host,
+    defaults:SDK_DEFAULTS,
+    persistence:'memory',
+    person_profiles:'never',
+    disable_session_recording:true,
+    disable_surveys:true,
+    enable_heatmaps:true,
+    capture_exceptions:true,
+    capture_performance:{web_vitals:true,network_timing:false},
+    // Clicks are recorded by element, never by what a visitor typed.
+    autocapture:{element_attribute_ignorelist:['value','placeholder']},
+    before_send:event => {
+      if (!event) return null;
+      // Stops PostHog from storing the visitor's IP address or deriving a location from it.
+      event.properties = {...event.properties,$ip:null,$geoip_disable:true,app:'kuchi',source:'web',is_test:isTest,...(config.country ? {country:config.country} : {})};
+      return event;
+    }
+  };
+}
+
+// Loads PostHog's script from this site and starts it. Resolves to the client, or null.
+export function createAnalytics({config,loadScript,getClient,privacy,isTest = false}) {
   const allowed = !privacy?.globalPrivacyControl && privacy?.doNotTrack !== '1';
-  if (allowed) {
-    try {
-      anonymousId = storage.getItem('kuchi_visitor');
-      if (!/^browser:[a-z0-9-]{36}$/i.test(anonymousId ?? '')) {
-        anonymousId = `browser:${uuid()}`;
-        storage.setItem('kuchi_visitor',anonymousId);
-      }
-    } catch { /* Storage restrictions disable analytics, not the product. */ }
-  }
+  const ready = !allowed ? Promise.resolve(null) : Promise.resolve(config).then(async settings => {
+    if (!settings?.token || !settings.api_host) return null;
+    await loadScript(`${settings.api_host}/static/array.js`);
+    const client = getClient();
+    if (!client?.init) return null;
+    client.init(settings.token,initOptions(settings,isTest));
+    return client;
+  }).catch(() => null);
   const track = async (name,properties = {}) => {
-    if (!anonymousId) return false;
     try {
-      const settings = await config;
-      if (!settings?.project_token || settings.api_host !== 'https://us.i.posthog.com') return false;
-      const payload = capturePayload(name,accountId ?? anonymousId,properties,{key:settings.project_token,source:'web',isTest,identified:!!accountId,uuid:uuid()});
-      return await send(settings.api_host,payload);
+      const client = await ready;
+      if (!client) return false;
+      client.capture(name,eventProperties(name,properties));
+      return true;
     } catch { return false; }
   };
-  const identify = async userId => {
-    if (!anonymousId || !/^user_[a-z0-9]+$/i.test(userId ?? '')) return false;
-    try {
-      const settings = await config;
-      if (!settings?.project_token || settings.api_host !== 'https://us.i.posthog.com') return false;
-      accountId = `account:${userId}`;
-      return await send(settings.api_host,{api_key:settings.project_token,event:'$identify',distinct_id:accountId,uuid:uuid(),properties:{$anon_distinct_id:anonymousId,$ip:null,$geoip_disable:true,is_test:isTest,app:'kuchi'}});
-    } catch { return false; }
-  };
-  return {track,identify};
+  return {track,ready};
 }
 
 const browser = typeof window !== 'undefined';
 const privacy = browser ? {globalPrivacyControl:navigator.globalPrivacyControl,doNotTrack:navigator.doNotTrack} : {};
-let storage;
-try { if (browser) storage = localStorage; } catch { /* No persistent analytics. */ }
 const permitted = browser && !privacy.globalPrivacyControl && privacy.doNotTrack !== '1';
-const config = permitted ? fetch('/analytics-config.json',{cache:'no-store'}).then(r=>r.ok ? r.json() : null).catch(()=>null) : Promise.resolve(null);
-const analytics = createAnalytics({config,storage,privacy,
+const analytics = createAnalytics({
+  privacy,
+  config:permitted ? fetch('/relay/config',{cache:'no-store'}).then(r => r.ok ? r.json() : null).catch(() => null) : null,
   isTest:browser && (new URLSearchParams(location.search).get('analytics_test') === '1' || ['localhost','127.0.0.1'].includes(location.hostname)),
-  send:async(host,payload) => (await fetch(`${host}/i/v0/e/`,{method:'POST',headers:{'Content-Type':'application/json'},credentials:'omit',body:JSON.stringify(payload),keepalive:true})).ok
+  loadScript:src => new Promise((resolve,reject) => {
+    const script = document.createElement('script');
+    script.src = src; script.async = true; script.crossOrigin = 'anonymous';
+    script.onload = resolve; script.onerror = reject;
+    document.head.append(script);
+  }),
+  getClient:() => window.posthog
 });
 export const track = analytics.track;
-export const identify = analytics.identify;
 
 if (permitted && /^\/?$/.test(location.pathname)) {
   let referrer = '';

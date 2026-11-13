@@ -14,8 +14,15 @@
       "requests": 120,
       "periodSeconds": 60,
       "key": "Cloudflare ingress IP",
-      "scope": "Exact sliding window per IP, shared by the MCP server and the /agent routes. Shared proxy IPs share the allowance."
+      "scope": "Exact sliding window per client, shared by the MCP server and the /agent routes. IPv6 clients are counted per /64 network. Shared proxy IPs share the allowance.",
+      "unit": "One JSON-RPC message, or one HTTP request to /agent."
     },
+    "hourlyThrottle": {
+      "requests": 1500,
+      "periodSeconds": 3600,
+      "key": "Same key as shortTermThrottle"
+    },
+    "maxMessagesPerRequest": 10,
     "maxMcpRequestBodyBytes": 65536,
     "retry": {
       "rateLimitedStatus": 429,
@@ -27,7 +34,8 @@
     "websiteAndVideoPlayback": "Public and outside the agent-service throttle.",
     "privacyUrl": "https://kuchi.kalarislabs.com/privacy.html",
     "agentService": "Open: the MCP server and the /agent manifest, catalog and workflow routes need no account or token.",
-    "publicBootstrap": "SKILL.md and connection links are public."
+    "publicBootstrap": "SKILL.md and connection links are public.",
+    "analytics": "Anonymous usage events (tool, outcome, duration, client, country, catalog search terms). Never the user's product details, tool results or IP addresses."
   },
   "formats": [
     {
@@ -65,17 +73,21 @@
     "claude": "https://kuchi.kalarislabs.com/agent/connect/claude",
     "setupGuide": "https://github.com/kalarislabs/kuchi/blob/main/agent/SETUP.md"
   },
-  "description": "Real product-launch videos to use as inspiration templates. Kuchi supplies structure; the user supplies their own product, assets and copy.",
+  "description": "Real product-launch videos, measured frame by frame, to use as inspiration templates. Kuchi supplies motion and taste; the user supplies their own product, assets and copy.",
   "tools": [
     "kuchi_search_videos",
     "kuchi_get_video",
     "kuchi_list_filters",
+    "kuchi_get_breakdown",
     "kuchi_plan_remake",
+    "kuchi_check_remake",
+    "kuchi_send_feedback",
     "search",
     "fetch"
   ],
   "prompts": [
     "remake_launch_video",
     "find_launch_inspiration"
-  ]
+  ],
+  "breakdownUrl": "https://kuchi.kalarislabs.com/agent/breakdowns/{id}.json"
 }

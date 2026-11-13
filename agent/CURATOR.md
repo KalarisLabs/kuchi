@@ -122,6 +122,25 @@ python scripts/sync_media_r2.py             # uploads them (needs wrangler auth 
 
 Do not commit until the upload succeeds, or the site will link a missing file.
 
+Then measure the new videos frame by frame and publish their storyboard sheets:
+
+```bash
+python scripts/analyze_video.py                      # measures videos that have no breakdown yet
+python scripts/sync_media_r2.py --only frames        # uploads the new storyboard sheets
+```
+
+This appends to `data/breakdowns.json`. Open each new `.media-web/frames/<id>/overview.jpg`
+and label what every shot shows in `data/shot_labels.json`:
+
+```json
+"91": {"measured": "<frames>:<shot count>", "reviewed": "<yyyy-mm-dd>",
+       "shots": {"1": ["title_card", "A one-line promise on white"], "2": ["ui_screen", "The dashboard fills the frame"]}}
+```
+
+- `measured` is the video's `frames` and number of shots from `data/breakdowns.json`, joined by a colon. Labels are only served while it matches.
+- The kind must be one of: `title_card`, `kinetic_type`, `logo`, `ui_screen`, `ui_closeup`, `device`, `chart`, `character`, `product_render`, `live_action`, `collage`, `abstract`, `end_card`, `blank`.
+- Describe what is on screen in 8 to 200 characters. Name no feature you cannot see. If a frame is unclear, open the detail sheets; if it is still unclear, leave that shot out.
+
 ### 7. Rebuild and check
 
 ```bash
@@ -129,6 +148,7 @@ python scripts/build_readme.py
 python scripts/test_site_media.py
 python scripts/test_site_summary.py
 python scripts/test_site_llms.py
+npm --prefix agent-service test   # includes the breakdown and label checks
 ```
 
 All must pass. Fix the entry, not the tests.
@@ -144,8 +164,8 @@ curator: add <n> launch videos (<yyyy-mm-dd>)
 - #<id> <title> — <post URL>
 ```
 
-Commit `data/videos.json`, `data/daily-stats.json`, `README.md`, and each new
-`previews/<slug>.jpg`. Nothing else. `videos/*.mp4` is git-ignored on purpose.
+Commit `data/videos.json`, `data/breakdowns.json`, `data/shot_labels.json`,
+`data/daily-stats.json`, `README.md`, and each new `previews/<slug>.jpg`. Nothing else. `videos/*.mp4` is git-ignored on purpose.
 
 ### 9. Report
 
@@ -170,6 +190,7 @@ The new video is live on the gallery within a few minutes of the push.
 ## Never
 
 - Add a video you have not watched.
+- Label a shot you have not looked at, or edit a number in `data/breakdowns.json` by hand.
 - Estimate or round a stat, or copy one from anywhere but the post.
 - Re-edit, crop, watermark or upscale a video.
 - Add more than 5 videos in one run.

@@ -91,12 +91,6 @@ def verify_runtime_assets(directory):
             imports = re.findall(r"\b(?:import|export)\s+(?:[^;\n]*?\s+from\s*)?['\"](\.[^'\"]+)['\"]", text)
             imports += re.findall(r"\bimport\s*\(\s*['\"](\.[^'\"]+)['\"]", text)
             queue.extend((ref, path.parent) for ref in imports)
-        if path.name == 'analytics.mjs':
-            config = root / 'analytics-config.json'
-            # An empty project_token is valid: analytics stay disabled until the
-            # operator adds their own PostHog project (see .env.example).
-            if not config.is_file() or 'project_token' not in json.loads(config.read_text()):
-                raise ValueError('Missing analytics-config.json project configuration')
     return len(visited)
 
 

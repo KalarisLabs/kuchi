@@ -1,5 +1,8 @@
 // This is an abuse throttle, not a daily allowance or a global billing limit.
-// Cloudflare's native counters are approximate and local to each edge location.
+// Order matters: bound the body first (cheap), count its messages, then charge
+// the client's limit for each one.
+import {clientKey, MAX_COST} from './limiter.mjs';
+
 export const MAX_MCP_BODY_BYTES = 64 * 1024;
 const RETRY_SECONDS = 60;
 
@@ -15,21 +18,39 @@ function reject(status, error, retryAfter) {
   return new Response(JSON.stringify({error}), {status, headers});
 }
 
+// Returns {response} to send as is, or {request, messages, hour} to carry on with.
+// `messages` are the parsed JSON-RPC messages of an MCP POST (empty otherwise);
+// `hour` is how many requests this client has made in the last hour.
 export async function guardRequest(request, env) {
+  const body = await readBoundedBody(request);
+  if (body.response) return body;
+
+  let messages = [], hour = 0;
+  if (body.bytes) {
+    try {
+      const parsed = JSON.parse(new TextDecoder().decode(body.bytes));
+      messages = Array.isArray(parsed) ? parsed : [parsed];
+    } catch { /* The MCP handler answers malformed JSON with a parse error. */ }
+    if (messages.length > MAX_COST) return {response:reject(400, `Send at most ${MAX_COST} JSON-RPC messages in one request.`)};
+  }
+
   try {
     // CF-Connecting-IP is set by Cloudflare at ingress. Never trust the
     // caller-supplied X-Forwarded-For, query string, client name or Bearer token.
     // One key covers MCP, bootstrap and HTTP catalog routes together.
-    const key = `launch-archive:${request.headers.get('CF-Connecting-IP') || 'unknown'}`;
+    const key = `kuchi:${clientKey(request.headers.get('CF-Connecting-IP'))}`;
     if (!env?.ARCHIVE_REQUEST_LIMITER) throw new Error('Missing rate limit binding');
-    const {success, retryAfter = RETRY_SECONDS} = await env.ARCHIVE_REQUEST_LIMITER.limit({key});
-    if (!success) return {response:reject(429, `Too many requests: Kuchi allows 120 a minute per IP. Retry after ${retryAfter} seconds.`, retryAfter)};
+    const {success, retryAfter = RETRY_SECONDS, window = 'minute', first = false, hour:used = 0} = await env.ARCHIVE_REQUEST_LIMITER.limit({key, cost:Math.max(1, messages.length)});
+    hour = used;
+    if (!success) {
+      const allowance = window === 'hour' ? '1,500 an hour' : '120 a minute';
+      return {limited:{window, first}, response:reject(429, `Too many requests: Kuchi allows ${allowance} per IP. Retry after ${retryAfter} seconds.`, retryAfter)};
+    }
   } catch {
     console.error(JSON.stringify({event:'archive_rate_limiter_unavailable'}));
     return {response:reject(503, 'Request protection temporarily unavailable. Retry shortly.', 10)};
   }
-
-  return readBoundedBody(request);
+  return {request:body.request, messages, hour};
 }
 
 async function readBoundedBody(request) {
@@ -63,5 +84,5 @@ async function readBoundedBody(request) {
   for (const chunk of chunks) {bytes.set(chunk, offset); offset += chunk.byteLength;}
   const headers = new Headers(request.headers);
   headers.delete('Content-Length');
-  return {request:new Request(request, {headers, body:bytes})};
+  return {request:new Request(request, {headers, body:bytes}), bytes};
 }

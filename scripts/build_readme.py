@@ -74,7 +74,7 @@ For founders, designers, and builders making their next product launch. Browse a
 
 ## Use with your agent
 
-Each video is an inspiration template: your agent borrows its pacing, transitions and layout, and fills it with your own product, assets and copy. Add the MCP server `https://kuchi.kalarislabs.com/mcp` (no sign-in), or paste this into your agent:
+Each video is an inspiration template, measured frame by frame: your agent reads its exact shots, timing and transitions, copies that motion and taste, and fills it with your own product, assets and copy. It never reuses the reference's brand, footage or music. Add the MCP server `https://kuchi.kalarislabs.com/mcp` (no sign-in), or paste this into your agent:
 
 ```text
 Connect the Kuchi MCP server at https://kuchi.kalarislabs.com/mcp (Streamable HTTP, no sign-in) and confirm it works by listing its tools.
@@ -153,35 +153,25 @@ Know a launch video worth cloning? [Suggest it in an issue](https://github.com/k
 
 ## Deploying (maintainers)
 
-The site has three parts on Cloudflare. Always start from an up-to-date `main`: deploying from a stale checkout reverts the live configuration.
+Pushing to `main` deploys everything. Cloudflare Workers Builds rebuilds both Workers; GitHub Actions only runs the checks.
 
-| Part | What it serves | Deploy from |
+| Part | What it serves | Source |
 | --- | --- | --- |
-| Gallery Worker (`site-worker/`) | `/` HTML, `videos.json`, MP4 playback | This repository |
-| Agent service (`agent-service/`) | MCP at `/mcp`, `/agent/*` | This repository |
+| Gallery Worker (`kuchi-site`) | The site, `videos.json`, the analytics relay | `web/` |
+| Agent service (`kuchi-agent`) | MCP at `/mcp`, `/agent/*` | `agent-service/` |
+| Media bucket (`kuchi-bucket`) | MP4s and storyboard sheets at `kuchi-media.kalarislabs.com` | Uploaded with `scripts/sync_media_r2.py` |
 
-**Gallery Worker**, after adding or changing videos:
-
-```bash
-git pull
-python3 scripts/build_site.py                            # stages site-public/
-python3 scripts/sync_media_r2.py                         # uploads new or changed MP4s to R2; rerun if it stops
-node --test site-worker/worker.test.mjs
-npx wrangler deploy --config site-worker/wrangler.json
-```
-
-MP4s are served from the `kuchi-media` R2 bucket, which handles seeking natively. A video that was not synced still plays from the bundled copy, but uses more Worker CPU. Every other static file is served directly and does not count toward the Workers daily request limit.
-
-**Agent service (MCP)**, only when `agent-service/` changes:
+Video files and storyboard sheets are third-party content and are not in this repository. Upload them before you push, or the checks fail:
 
 ```bash
-git pull
-cd agent-service && npm ci && npm test && npx wrangler deploy
+python scripts/encode_web_media.py     # web copies of new videos
+python scripts/analyze_video.py        # frame-by-frame breakdowns and storyboard sheets
+python scripts/sync_media_r2.py        # uploads what is new
 ```
 
-The catalog, manifest and workflow are read live from `main`, so data-only changes need no agent-service deploy.
+The catalog, breakdowns, manifest and workflow are read live from `main`, so data-only changes reach connected agents within a minute.
 
-**After deploying**, check `https://kuchi.kalarislabs.com/`, `/videos.json`, a video with `curl -H "Range: bytes=0-99"` (expect `206`) and `/mcp` (expect `401` without login). More detail: [site-worker/README.md](site-worker/README.md) and [agent/README.md](agent/README.md).
+**After deploying**, run `npm --prefix agent-service run verify:live`. It checks the MCP server with two client versions, the storyboard sheets and the rate limits. More detail: [agent/README.md](agent/README.md) and [agent/CURATOR.md](agent/CURATOR.md).
 
 ## License & credits
 

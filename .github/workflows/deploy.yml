@@ -41,6 +41,7 @@ jobs:
           python scripts/test_site_media.py
           python scripts/test_site_summary.py
           python scripts/test_site_llms.py
+          node --test scripts/test_analytics.mjs
 
       # Read-only: fails if a catalog video is missing from R2. The curator
       # uploads media before committing (agent/CURATOR.md).

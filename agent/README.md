@@ -11,7 +11,7 @@ Paste this into any agent that can add MCP servers:
 ```text
 Connect the Kuchi MCP server at https://kuchi.kalarislabs.com/mcp (Streamable HTTP, no sign-in) and confirm it works by listing its tools.
 
-Kuchi is a library of real product-launch videos to use as inspiration templates. When I want a launch video, read kuchi_get_workflow and follow it: find references with kuchi_search_videos and show me their posters and links. Once I pick one, study it with kuchi_get_breakdown, look at its storyboard and note what each shot shows, then call kuchi_plan_remake with my product details and your shot analysis, and ask me for my logo, screenshots and anything else it lists as missing. Build to the blueprint's frames. Before you deliver, run kuchi_check_remake and compare your frames with the reference. Copy only the reference's motion and taste; everything on screen comes from my product.
+Kuchi is a library of real product-launch videos to use as inspiration templates. When I want a launch video, read kuchi_get_workflow and follow it: get a short list with kuchi_suggest_templates and show me each one's poster and link so I can choose, in chat or by picking a video on kuchi.kalarislabs.com and pasting its link. Once I pick one, study it with kuchi_get_breakdown, look at its storyboard and note what each shot shows, then call kuchi_plan_remake with my product details and your shot analysis, and ask me for my logo, screenshots and anything else it lists as missing. Build to the blueprint's frames. Before you deliver, run kuchi_check_remake and compare your frames with the reference. Copy only the reference's motion and taste; everything on screen comes from my product.
 ```
 
 ## Per client
@@ -46,6 +46,7 @@ The split of work is fixed. Kuchi supplies exact measurements, real frames and a
 | Tool | What it does |
 | --- | --- |
 | `kuchi_get_workflow` | The remake method: how to pick a reference, analyse each shot from the storyboard, ask for assets, match timing to the frame and check the result. Whole, or one step (`find`, `study`, `plan`, `build`, `check`). |
+| `kuchi_suggest_templates` | A short numbered list of templates ranked for the user: what fits, what differs and what they would need to supply for each, a recommended choice, the question to ask, and the gallery link for picking on the website instead. |
 | `kuchi_search_videos` | Search by keywords, style, category, format, aspect ratio, length, pace or theme. Paginated (`limit`, `offset`). |
 | `kuchi_get_video` | One video by id, slug, Kuchi link or X URL: video file, poster, storyboard sheet, length, size, measured rhythm, notes on its motion. |
 | `kuchi_list_filters` | Every style, category, format, aspect ratio, pace and theme, with counts, plus the 14 shot kinds used when analysing a storyboard. |

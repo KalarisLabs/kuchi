@@ -148,9 +148,10 @@ export function search(archive, args = {}) {
 }
 
 // Accepts an id ("34"), a slug, a Kuchi page link (#video-34) or the X post URL.
+// A link may sit inside a pasted sentence, such as the website's remake brief.
 export function findVideo(archive, reference) {
   const ref = String(reference).trim().replace(/\?.*$/, '').replace(/\/video\/\d+\/?$/, '').replace(/\/$/, '');
-  const page = ref.match(/#video-(\d+)$/)?.[1];
+  const page = ref.match(/#video-(\d+)(?!\d)/)?.[1];
   const status = ref.match(/status\/(\d+)/)?.[1];
   return archive.videos.find(v => String(v.id) === (page ?? ref) || v.slug === ref || v.source === ref ||
     (status && status === v.source.match(/status\/(\d+)/)?.[1]));

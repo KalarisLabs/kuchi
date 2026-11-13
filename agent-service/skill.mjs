@@ -22,7 +22,7 @@ Before a first remake, call kuchi_get_workflow. It returns the full method for e
 
 ## Steps
 
-1. **Find.** Search with kuchi_search_videos (kuchi_list_filters shows styles, paces and themes). Show the user 3 to 5 picks, each with its poster and Kuchi link. Choose by fit with their product, not popularity.
+1. **Find.** Call kuchi_suggest_templates with what you know: the product, the feel wanted and the assets the user has. Show every choice with its poster and Kuchi link and let the user choose: a number in chat, or any video they pick at https://kuchi.kalarislabs.com and paste the link of. kuchi_search_videos searches the whole library. Rank by fit with their product, not popularity.
 2. **Study.** Call kuchi_get_breakdown with storyboard="overview" for the pick. Read every shot's exact frames, entrance and motion. Then look at each shot's frame on the sheet and write down its kind (one of the 14 the breakdown lists) and one line on what it shows and where it sits. Open the detail sheets for shots that move, and for any shot that is not on the overview.
 3. **Plan.** Call kuchi_plan_remake with what the user has told you and your shot_analysis. Ask the user every required question in missing_inputs in one message. Never guess a logo, a screenshot, a feature or a number. Call it again until ready is true and every shot has a kind.
 4. **Build.** Follow the blueprint shot by shot with your own tools: the same start_frame and end_frame, entrance, amount of motion and layout, with the user's content in each shot. Put the user's brand colors in the reference's color roles.

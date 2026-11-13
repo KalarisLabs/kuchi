@@ -10,7 +10,7 @@ import {StreamableHTTPClientTransport as LegacyHTTP} from '@modelcontextprotocol
 
 const url = process.argv[2] ?? 'https://kuchi.kalarislabs.com/mcp';
 const QUIET = {'User-Agent':'kuchi-verify/1.2'};
-const TOOLS = ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'search'];
+const TOOLS = ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'kuchi_suggest_templates', 'search'];
 const parse = r => r.structuredContent ?? JSON.parse(r.content[0].text);
 const head = async link => (await fetch(link, {method:'HEAD', headers:QUIET})).status;
 
@@ -25,6 +25,13 @@ for (const [name, Client, Transport] of [['modern', Modern, ModernHTTP], ['legac
 
     const page = await call('kuchi_search_videos', {limit:2});
     assert.ok(page.total > 0 && page.videos.length === 2);
+    // Choosing a template: a numbered short list, a question for the user, and the website route.
+    const offer = await call('kuchi_suggest_templates', {looking_for:'verification run', theme:'dark', available_assets:['logo', 'screenshot'], count:3});
+    assert.deepEqual(offer.choices.map(c => c.choice), [1, 2, 3]);
+    assert.ok(offer.ask_user.includes(offer.gallery.url) && offer.choices.every(c => c.watch_url && c.poster_url && c.needs_from_user.length));
+    assert.equal(await head(offer.choices[0].poster_url), 200, offer.choices[0].poster_url);
+    const pastedLink = await call('kuchi_get_video', {reference:`Use this Kuchi video as the template: ${offer.choices[0].watch_url}`});
+    assert.equal(pastedLink.id, offer.choices[0].id, 'a link pasted from the website selects that video');
     const video = await call('kuchi_get_video', {reference:String(page.videos[0].id)});
     assert.equal(await head(video.video_url), 200, video.video_url);
     assert.equal(await head(video.poster_url), 200, video.poster_url);

@@ -2,8 +2,8 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.KalarisLabs/kuchi",
   "title": "Kuchi",
-  "description": "Real product-launch videos, measured frame by frame, to plan a remake for your own product.",
-  "version": "1.2.0",
+  "description": "Pick a real launch video as a template, get its frame-by-frame breakdown and plan your own remake.",
+  "version": "1.3.0",
   "websiteUrl": "https://kuchi.kalarislabs.com/",
   "repository": {
     "url": "https://github.com/KalarisLabs/kuchi",

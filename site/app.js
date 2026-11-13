@@ -84,7 +84,7 @@ function setFeature(id) {
 }
 
 function brief(v) {
-  return `Remake this video's motion and vibe for my product: ${v.source}`;
+  return `Use this Kuchi video as the template for my launch video: https://kuchi.kalarislabs.com/#video-${v.id}\nRemake its motion and vibe for my product, with my own logo, screens and copy. Original post: ${v.source}`;
 }
 
 function openVideo(id, trigger) {

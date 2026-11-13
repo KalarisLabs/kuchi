@@ -25,11 +25,12 @@ Everything needed to list Kuchi in the official MCP Registry, the Claude Connect
 
 ## Tools
 
-Ten tools. Each has a title, and `readOnlyHint`, `destructiveHint`, `idempotentHint` and `openWorldHint` set explicitly. Nine are read-only (`readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`): they don't write data, send messages or store what the user's product is. `kuchi_send_feedback` is the one tool that writes: it stores a note the agent sends to Kuchi's maintainers.
+Eleven tools. Each has a title, and `readOnlyHint`, `destructiveHint`, `idempotentHint` and `openWorldHint` set explicitly. Ten are read-only (`readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`): they don't write data, send messages or store what the user's product is. `kuchi_send_feedback` is the one tool that writes: it stores a note the agent sends to Kuchi's maintainers.
 
 | Tool | Title | Purpose |
 | --- | --- | --- |
 | `kuchi_get_workflow` | Get the remake workflow | The method for turning a reference into the user's own video, whole or one step |
+| `kuchi_suggest_templates` | Suggest templates to choose from | A short numbered list ranked for the user, with what fits, what differs, a recommended choice and the gallery link |
 | `kuchi_search_videos` | Search launch videos | Search references by keywords, style, category, format, aspect ratio, length, pace or theme (paginated) |
 | `kuchi_get_video` | Get a launch video | One reference: video file, poster, storyboard, length, size, measured rhythm, notes on its motion |
 | `kuchi_list_filters` | List styles and formats | Valid styles, categories, formats, aspect ratios, paces and themes with counts, and the shot kinds used in an analysis |
@@ -47,7 +48,7 @@ No tool takes a context, intent or conversation argument. Every input is needed 
 ## Data handling
 
 - No accounts, cookies or tokens on the MCP server.
-- The user's product details (name, description, features, copy, asset descriptions, file locations and the shot analysis) are used to answer the call and are never stored or sent to analytics. A test enforces this.
+- The user's product details (name, description, features, copy, what they are looking for, asset descriptions, file locations and the shot analysis) are used to answer the call and are never stored or sent to analytics. A test enforces this.
 - Anonymous usage analytics (PostHog, United States) record the tool name, outcome, duration, client name and version, country, catalog search terms and filters, and the reference asked for. No IP address, no tool results, no person profiles.
 - `kuchi_send_feedback` stores the note the agent writes.
 - A per-client rate limit (120 requests a minute, 1,500 an hour) is keyed to the connecting IP. Only request counts are kept, and they are deleted after about an hour without requests.
@@ -69,7 +70,7 @@ Submit at https://claude.ai/directory/manage, signed in to the Claude account th
 
 | Requirement | Kuchi |
 | --- | --- |
-| Every tool has a title and `readOnlyHint` or `destructiveHint` | Yes, on all ten |
+| Every tool has a title and `readOnlyHint` or `destructiveHint` | Yes, on all eleven |
 | Tool names of 64 characters or fewer | Yes |
 | Descriptions say what a tool does and when to use it, with no instructions on how to behave and no promotion | Yes |
 | Errors say what went wrong and what to do | Yes |
@@ -81,7 +82,7 @@ Submit at https://claude.ai/directory/manage, signed in to the Claude account th
 
 Before submitting:
 
-1. In Claude, open **Settings → Connectors → Add custom connector**, name it Kuchi and paste the server URL. Confirm all ten tools load with their titles.
+1. In Claude, open **Settings → Connectors → Add custom connector**, name it Kuchi and paste the server URL. Confirm all eleven tools load with their titles.
 2. Run the review cases below in Claude web and desktop.
 3. Check the server with MCP Inspector: `npx @modelcontextprotocol/inspector`, Streamable HTTP, the server URL.
 
@@ -112,9 +113,10 @@ Positive: Kuchi should be used.
 
 | # | Prompt | Expected |
 | --- | --- | --- |
-| 1 | "Find inspiration for a launch video for my budgeting app." | Calls `kuchi_search_videos`, shows 3 to 5 references with posters and Kuchi links |
+| 1 | "Find inspiration for a launch video for my budgeting app." | Calls `kuchi_suggest_templates` or `kuchi_search_videos`, shows the choices with posters and Kuchi links, and asks which one to use |
 | 2 | "Show me short vertical launch videos." | Filters with `aspect_ratio: "9:16"` and a length limit |
 | 3 | "What motion styles does Kuchi have?" | Calls `kuchi_list_filters` |
+| 3a | Paste a link copied from the website: "Use https://kuchi.kalarislabs.com/#video-90 as my template." | Calls `kuchi_get_breakdown` for video 90 without searching again |
 | 4 | "Break down Kuchi video 90 shot by shot." | Calls `kuchi_get_breakdown`, lists shots with times and entrances, shows the storyboard sheet, and says what each shot shows |
 | 5 | "Plan a remake of video 90 for my product, Acme." | Calls `kuchi_plan_remake`, then asks for a product description, features, logo, screenshots and a call to action before building |
 | 6 | Answer 5's questions | Calls `kuchi_plan_remake` again with a shot analysis and gets `ready: true` with a blueprint in frames |

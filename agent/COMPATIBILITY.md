@@ -40,7 +40,8 @@ The split of work is fixed. Kuchi supplies exact measurements, real frames and a
 
 ## Shipped
 
-- Open remote MCP server (version 1.2.0) with 9 read-only tools, a feedback tool, 2 prompts, the workflow resource and the skill
+- Open remote MCP server (version 1.3.0) with 10 read-only tools, a feedback tool, 2 prompts, the workflow resource and the skill
+- Template selection: a ranked short list with what fits and what differs, chosen by number in chat or by picking a video on the website and pasting its link
 - Frame-by-frame breakdown of every video: exact shots, entrances, motion, color roles and storyboard sheets, with each shot's place on the sheets
 - Shot analysis by the connected agent, passed to the planner as `shot_analysis`
 - Remake planner that re-times every reference shot to the target length on whole frames, maps the user's own content onto each shot and asks for what is missing
@@ -87,6 +88,7 @@ Each tool has one job and takes only what that job needs.
 | Discover | `kuchi_search_videos`, `kuchi_list_filters`, `kuchi_get_video`, `search`, `fetch` | Catalog | Nothing |
 | Study | `kuchi_get_breakdown` | Measurements, labels, storyboard sheets | Nothing |
 | Plan | `kuchi_plan_remake` | Catalog, and the user's product details and the agent's shot analysis, for this call only | Nothing |
+| Choose | `kuchi_suggest_templates` | Catalog, and a few words on what the user wants, for this call only | Nothing |
 | Check | `kuchi_check_remake` | The agent's shot list, for this call only | Nothing |
 | Report | `kuchi_send_feedback` | Nothing | One feedback event |
 

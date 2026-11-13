@@ -78,6 +78,7 @@
   "description": "Real product-launch videos, measured frame by frame, to use as inspiration templates. Kuchi supplies motion and taste; the user supplies their own product, assets and copy.",
   "tools": [
     "kuchi_get_workflow",
+    "kuchi_suggest_templates",
     "kuchi_search_videos",
     "kuchi_get_video",
     "kuchi_list_filters",

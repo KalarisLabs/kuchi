@@ -12,10 +12,14 @@ Kuchi never receives the user's video, and it never renders one.
 
 ## 1. Find a reference
 
-- Ask what the product is and the feel the user wants, if you don't know.
-- Search with `kuchi_search_videos`. `kuchi_list_filters` shows the valid styles, categories, formats, aspect ratios, paces and themes.
-- Show 3 to 5 picks in chat, each with its poster, Kuchi link and one line on what the user could borrow. Choose by fit with the product, never by popularity.
-- Let the user pick. Don't start a remake on a reference they haven't seen.
+The reference is the user's template. Choosing it is their decision, and it should be easy.
+
+- Ask what the product is and the feel the user wants, if you don't know. Ask which assets they have: a logo, screenshots, screen recordings.
+- Call `kuchi_suggest_templates` with what you know. It returns a short numbered list ranked for this user. Each choice says what fits, what differs and what the user would need to supply, and one choice is recommended.
+- Show every choice in chat with its poster and Kuchi link, then put the result's `ask_user` question to the user.
+- The user chooses in one of two ways: a number in chat, or they open the gallery at https://kuchi.kalarislabs.com, pick any video and paste its link. Every tool accepts the pasted link as `reference`.
+- For other options, call again with `exclude`, or search the whole library with `kuchi_search_videos`. `kuchi_list_filters` shows the valid styles, categories, formats, aspect ratios, paces and themes.
+- Rank by fit with the product, never by popularity. Don't start a remake on a reference the user hasn't seen. If they ask you to choose, take the recommended one and say why.
 
 ## 2. Study it shot by shot
 

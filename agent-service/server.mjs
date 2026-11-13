@@ -4,8 +4,9 @@ import {z} from 'zod';
 import {record, filters, search, findVideo, SITE_URL} from './catalog.mjs';
 import {planRemake, planMarkdown, checkRemake, checkMarkdown, ASSET_KINDS, ENTRANCES} from './brief.mjs';
 import {breakdown, breakdownMarkdown, SHOT_KINDS} from './breakdown.mjs';
+import {suggestTemplates, suggestMarkdown, MAX_CHOICES} from './templates.mjs';
 
-export const VERSION = '1.2.0';
+export const VERSION = '1.3.0';
 export const CHARACTER_LIMIT = 25_000;
 export const FEEDBACK_TOOL = 'kuchi_send_feedback';
 const FEEDBACK_TITLE = 'Send feedback to Kuchi';
@@ -14,7 +15,7 @@ const FEEDBACK_TITLE = 'Send feedback to Kuchi';
 // agent/workflow.md, which kuchi_get_workflow returns.
 export const INSTRUCTIONS = `Kuchi is a library of real product-launch videos, each measured frame by frame, to use as inspiration templates for the user's own launch video. A remake copies a reference's motion and taste and none of its content. Kuchi measures and plans. You look at the frames, analyse each shot and build the video with your own tools.
 
-1. Find: kuchi_search_videos (kuchi_list_filters shows the styles, formats, paces and themes). Show the user each pick's poster and Kuchi link, and choose by fit with their product, never by popularity.
+1. Choose a template: kuchi_suggest_templates returns a short list ranked for the user's product (kuchi_search_videos browses the whole library). Show each choice's poster and Kuchi link and let the user choose, by number in chat or by picking a video at https://kuchi.kalarislabs.com and pasting its link. Every tool accepts that link. Rank by fit, never by popularity.
 2. Study: kuchi_get_breakdown with storyboard="overview" gives every shot's exact frames, how it enters, how much moves, its colors and a sheet of real frames. Look at each shot's frame and note its kind and what it shows.
 3. Plan: kuchi_plan_remake with the user's product details, the assets they gave you and your shot_analysis. Ask the user for everything in missing_inputs before building. When ready, it returns a frame-timed blueprint with the user's content in each shot.
 4. Build with your own tools, shot by shot: the same start and end frame, entrance, amount of motion and layout. Never reuse the reference's brand, footage, UI, characters, music or copy: every product detail and asset comes from the user.
@@ -53,7 +54,7 @@ const ICONS = [
 ];
 
 class UserError extends Error {}
-const notFound = ref => new UserError(`No Kuchi video matches "${ref}". Call kuchi_search_videos to find valid ids.`);
+const notFound = ref => new UserError(`No Kuchi video matches "${ref}". Call kuchi_suggest_templates or kuchi_search_videos to find valid ids.`);
 
 const json = value => ({content:[{type:'text', text:JSON.stringify(value, null, 2)}], structuredContent:value});
 const text = value => ({content:[{type:'text', text:value}]});
@@ -77,7 +78,7 @@ function videoMarkdown(v, detail = false) {
 
 // Tools whose arguments carry the user's product details. Analytics keeps only
 // the counts and choices recorded by `note`, never the text.
-const PRIVATE_TOOLS = new Set(['kuchi_plan_remake', 'kuchi_check_remake']);
+const PRIVATE_TOOLS = new Set(['kuchi_suggest_templates', 'kuchi_plan_remake', 'kuchi_check_remake']);
 
 // Sends anonymous usage events for this server instance. `state` carries what
 // each tool chose to record, so product details never reach analytics.
@@ -165,6 +166,35 @@ Returns Markdown. Pass step to get one step ("find", "study", "plan", "build" or
   }, handler('kuchi_get_workflow', (archive, {step}, note) => {
     note({step});
     return text(workflowStep(archive.workflow, step));
+  }));
+
+  server.registerTool('kuchi_suggest_templates', {
+    title:'Suggest templates to choose from',
+    description: `Get a short list of Kuchi launch videos for the user to choose their template from, ranked against what they want and what they can supply.
+
+Pass what is known: a few words on the product and the feel wanted, preferred styles, theme, pace, aspect ratio, target length and the kinds of asset the user has. All are optional, and they rank rather than filter. Returns up to 6 numbered choices, each with what fits, what differs, what the user would need to supply, a poster and a watch link; a recommended choice; a question to put to the user; and the gallery link, where the user can pick any video and paste its link instead.
+
+Use it when the user wants a launch video and has not picked a reference. Use kuchi_search_videos to browse or filter the whole library.`,
+    inputSchema:z.strictObject({
+      looking_for:z.string().max(300).optional().describe("A few words on the product and the feel wanted, e.g. 'AI note-taking app, calm and premium'"),
+      styles:z.array(z.string().max(100)).max(5).optional().describe("Preferred motion styles, e.g. ['UI motion', 'Kinetic type']; kuchi_list_filters has the full list"),
+      theme:z.enum(['dark', 'light', 'mixed']).optional().describe('Preferred overall brightness'),
+      pace:z.enum(['slow', 'medium', 'fast', 'rapid']).optional().describe('Preferred cutting pace'),
+      aspect_ratio:z.string().max(20).optional().describe("Output ratio wanted, e.g. '16:9', '1:1', '9:16'"),
+      target_seconds:z.number().int().min(5).max(180).optional().describe('Length wanted, in seconds'),
+      available_assets:z.array(z.enum(ASSET_KINDS)).max(ASSET_KINDS.length).optional().describe('The kinds of asset the user can supply. Templates that need something else rank lower and say so.'),
+      exclude:z.array(reference).max(20).optional().describe('Videos the user has already turned down'),
+      count:z.number().int().min(1).max(MAX_CHOICES).default(3).describe(`Choices to return (1-${MAX_CHOICES}, default 3)`),
+      response_format
+    }),
+    annotations:{...READ_ONLY, title:'Suggest templates to choose from'}
+  }, handler('kuchi_suggest_templates', (archive, args, note) => {
+    const result = suggestTemplates(archive, args);
+    // looking_for is the user's own words about their product: it is not kept.
+    note({result_count:result.choices.length, has_query:!!args.looking_for, recommended_id:result.recommended?.id ?? null,
+      preferences:['styles', 'theme', 'pace', 'aspect_ratio', 'target_seconds', 'available_assets', 'exclude'].filter(k => args[k] !== undefined).join(',')},
+      {count:args.count, ...(args.theme ? {theme:args.theme} : {}), ...(args.pace ? {pace:args.pace} : {}), ...(args.aspect_ratio ? {aspect_ratio:args.aspect_ratio} : {})});
+    return args.response_format === 'json' ? json(result) : text(suggestMarkdown(result));
   }));
 
   server.registerTool('kuchi_search_videos', {
@@ -394,7 +424,7 @@ It checks what you report, not the rendered file: Kuchi never receives your vide
     })
   }, ({product_name, reference:ref}) => ({messages:[{role:'user', content:{type:'text', text:
     `I want a launch video for ${product_name}, using a Kuchi video as an inspiration template.
-${ref ? `Use Kuchi reference ${ref}.` : 'Ask me what the product does, then find 3 fitting references with kuchi_search_videos and show me their posters and links so I can pick one.'}
+${ref ? `Use Kuchi reference ${ref}.` : 'Ask me what the product does, then call kuchi_suggest_templates and show me the choices with their posters and links so I can pick one, here or on the Kuchi website.'}
 Read kuchi_get_workflow first. Study the pick with kuchi_get_breakdown and storyboard="overview": look at each shot's frame and note its kind and what it shows. Then call kuchi_plan_remake with what I've told you and your shot_analysis. Ask me for anything in missing_inputs (my logo, product screenshots or recordings, features, call to action) and only build once it is ready.
 Copy the reference's motion and taste, to the frame: timing, transitions, layout and how much moves. Use my assets and claims only, never the reference's brand, footage or copy. Run kuchi_check_remake and compare your frames with the reference before you hand it over.`}}]}));
 
@@ -406,7 +436,7 @@ Copy the reference's motion and taste, to the frame: timing, transitions, layout
       vibe:z.string().max(200).optional().describe("The feel you want, e.g. 'dark and cinematic', 'playful pastel UI'")
     })
   }, ({product, vibe}) => ({messages:[{role:'user', content:{type:'text', text:
-    `Find launch-video inspiration for ${product}${vibe ? `, with a ${vibe} feel` : ''}. Use kuchi_list_filters and kuchi_search_videos, then show me 3 to 5 references with each poster, Kuchi link and one line on what I could borrow (pacing, transitions or layout). Pick by fit, not popularity.`}}]}));
+    `Find launch-video inspiration for ${product}${vibe ? `, with a ${vibe} feel` : ''}. Use kuchi_suggest_templates (and kuchi_search_videos for more), then show me 3 to 5 references with each poster, Kuchi link and one line on what I could borrow (pacing, transitions or layout). Rank by fit, not popularity, and let me choose.`}}]}));
 
   server.registerResource('kuchi-workflow', 'kuchi://workflow', {
     title:'Kuchi workflow', description:'How to use Kuchi references responsibly, from finding one to delivering a video', mimeType:'text/markdown'

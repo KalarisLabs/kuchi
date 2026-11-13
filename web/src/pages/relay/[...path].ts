@@ -1,8 +1,8 @@
 // First-party path for the site's product analytics (PostHog).
 //
 //   GET /relay/config   which PostHog project the page should use, if any
-//   everything else     forwarded to PostHog, with nothing of the visitor's
-//                       beyond the request itself
+//   everything else     forwarded to PostHog without the visitor's IP address
+//                       or cookies
 //
 // Analytics are off unless POSTHOG_PROJECT_TOKEN is set in wrangler.jsonc.
 import type { APIRoute } from 'astro';
@@ -57,9 +57,8 @@ export const ALL: APIRoute = async ({ request }) => {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
-  // PostHog uses the address to tell visitors from bots. The page tells it not to store it.
-  const ip = request.headers.get('CF-Connecting-IP');
-  if (ip) headers.set('X-Forwarded-For', ip);
+  // The visitor's IP address is deliberately not forwarded: PostHog saves whatever
+  // address it sees with the event, so it only ever sees Cloudflare's.
   const upstream = await fetch(`https://${API_HOST}${path}${url.search}`, { method: request.method, headers, body, redirect: 'manual' });
   const answer = new Headers(upstream.headers);
   answer.delete('Set-Cookie');

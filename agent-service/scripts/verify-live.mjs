@@ -14,6 +14,7 @@ const TOOLS = ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_
 const parse = r => r.structuredContent ?? JSON.parse(r.content[0].text);
 const head = async link => (await fetch(link, {method:'HEAD', headers:QUIET})).status;
 
+let checkedId = null;
 for (const [name, Client, Transport] of [['modern', Modern, ModernHTTP], ['legacy', Legacy, LegacyHTTP]]) {
   const c = new Client({name:`kuchi-verify-${name}`, version:'1.1.0'});
   try {
@@ -47,11 +48,12 @@ for (const [name, Client, Transport] of [['modern', Modern, ModernHTTP], ['legac
 
     assert.ok(parse(await c.callTool({name:'search', arguments:{query:'launch'}})).results.length > 0);
     assert.equal((await c.listPrompts()).prompts.length, 2);
+    checkedId = video.id;
     console.log(JSON.stringify({client:name, tools:tools.length, videos:page.total, checked:video.id, shots:breakdown.measured.shots}));
   } finally { await c.close().catch(() => {}); }
 }
 
-for (const path of ['manifest.json', 'catalog.json', 'workflow.md', 'SKILL.md', 'breakdowns/1.json'])
+for (const path of ['manifest.json', 'catalog.json', 'workflow.md', 'SKILL.md', `breakdowns/${checkedId}.json`])
   assert.equal((await fetch(new URL(`/agent/${path}`, url), {headers:QUIET})).status, 200, path);
 
 // The path real clients take: analytics on, the ChatGPT tools untouched.

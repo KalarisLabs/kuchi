@@ -54,3 +54,11 @@ test('custom events carry only short, listed values', () => {
   assert.throws(() => eventProperties('community_post_opened', {}), /Unknown analytics event/);
   assert.equal(EVENTS.length, 10);
 });
+
+test('the relay never passes the visitor\'s IP address or cookies on to PostHog', async () => {
+  const {readFile} = await import('node:fs/promises');
+  const relay = await readFile(new URL('../web/src/pages/relay/[...path].ts', import.meta.url), 'utf8');
+  const forwarded = relay.match(/for \(const name of \[([^\]]+)\]\)/)[1];
+  assert.doesNotMatch(forwarded, /cookie|authorization|forwarded|connecting|real-ip/i);
+  assert.doesNotMatch(relay, /headers\.set\('(X-Forwarded-For|X-Real-IP|CF-Connecting-IP|Forwarded)'/i);
+});

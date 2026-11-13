@@ -83,7 +83,7 @@ function blueprint(b, known, input, seconds) {
   const uiShots = kept.filter(s => UI_KINDS.includes(label(s)?.kind) || label(s)?.kind === 'chart');
   const featureFor = s => features.length ? features[Math.min(features.length - 1, Math.floor(uiShots.indexOf(s) * features.length / uiShots.length))] : null;
   const name = input.product_name;
-  const {overview} = shotFrames(b);
+  const frames = shotFrames(b).seen;
   let t = 0, frame = 0, textShots = 0;
   const shots = kept.map((s, i) => {
     const startFrame = frame;
@@ -106,12 +106,12 @@ function blueprint(b, known, input, seconds) {
       } else if (l.kind === 'logo') fill = `The ${name} logo.`;
       else if (l.kind === 'end_card') fill = `The ${name} logo${input.call_to_action ? ` and "${input.call_to_action}"` : ', the call to action and URL'}.`;
     }
-    const seen = overview.get(s.n);
+    const seen = frames.get(s.n);
     return {
       shot:i + 1, start_s:precise(start), end_s:precise(end), start_frame:startFrame, end_frame:frame - 1,
       reference_shot:s.n, reference_start_s:s.start_s, reference_end_s:s.end_s,
       // The same moment in both videos: the reference frame on the storyboard, and where it falls in the remake.
-      ...(seen !== undefined ? {storyboard_frame_s:seen, compare_at_s:precise(start + (seen - s.start_s) / (s.end_s - s.start_s) * (end - start))} : {}),
+      ...(seen ? {storyboard_frame_s:seen.s, storyboard_sheet:seen.sheet, compare_at_s:precise(start + (seen.s - s.start_s) / (s.end_s - s.start_s) * (end - start))} : {}),
       enters:s.enters, motion:s.motion, tone:s.tone,
       ...(l ? {kind:l.kind, reference_shows:[SHOT_KINDS[l.kind].name, l.shows].filter(Boolean).join('. ')} : {}),
       your_content:fill
@@ -264,7 +264,7 @@ export function planMarkdown(plan) {
       `${plan.blueprint.frames} frames at ${plan.blueprint.fps} fps. Shot analysis: ${a.shots_with_kind} of ${a.shots_in_plan} shots have a kind (${a.source === 'none' ? 'none sent yet' : a.source === 'yours' ? 'from your shot_analysis' : a.source === 'reviewed' ? 'reviewed by Kuchi' : 'yours and Kuchi\'s'}).`, '');
     for (const s of plan.blueprint.shots) lines.push(
       `- **${s.shot}** ${s.start_s}s to ${s.end_s}s (frames ${s.start_frame}-${s.end_frame}) · enters: ${s.enters} · motion: ${s.motion} · ${s.tone} · reference shot ${s.reference_shot} (${s.reference_start_s}s to ${s.reference_end_s}s)` +
-      (s.compare_at_s !== undefined ? `\n  - Compare: your frame at ${s.compare_at_s}s with the reference at ${s.storyboard_frame_s}s` : '') +
+      (s.compare_at_s !== undefined ? `\n  - Compare: your frame at ${s.compare_at_s}s with the reference at ${s.storyboard_frame_s}s (${s.storyboard_sheet} sheet)` : '') +
       (s.reference_shows ? `\n  - Reference shows: ${s.reference_shows}` : '') + `\n  - Your content: ${s.your_content}`);
   } else {
     lines.push(`## Beat sheet (${plan.target_seconds}s)`, `_${plan.beat_sheet_note}_`, '',
@@ -305,12 +305,14 @@ function checkTiming(b, shots, add) {
       add('warning', p.n, `It enters by ${p.s.enters}. Reference shot ${p.r.n} enters by ${p.r.enters} (${LEGEND.enters[p.r.enters]}).`, 'Match the entrance, or tell the user the difference is intended.');
   }
   if (pairs.some((p, i) => i && p.r.n < pairs[i - 1].r.n)) add('warning', null, "Your shots are not in the reference's order.", 'Keep the order of the reference shots, or tell the user the difference is intended.');
-  const {overview} = shotFrames(b);
+  const {seen} = shotFrames(b);
   return {
     timing:{matched_shots:pairs.length, scale:Math.round(scale * 100) / 100, on_time:pairs.length - late, largest_drift_s:precise(worst)},
     // The same moment in both videos, for a side-by-side look.
-    compare_frames:pairs.filter(p => overview.has(p.r.n)).slice(0, MAX_COMPARE_FRAMES).map(p => ({
-      shot:p.n, your_s:precise(p.s.start_s + (overview.get(p.r.n) - p.r.start_s) / p.reference * p.seconds), reference_shot:p.r.n, reference_s:overview.get(p.r.n)}))
+    compare_frames:pairs.filter(p => seen.has(p.r.n)).slice(0, MAX_COMPARE_FRAMES).map(p => {
+      const frame = seen.get(p.r.n);
+      return {shot:p.n, your_s:precise(p.s.start_s + (frame.s - p.r.start_s) / p.reference * p.seconds), reference_shot:p.r.n, reference_s:frame.s, reference_sheet:frame.sheet};
+    })
   };
 }
 
@@ -374,7 +376,7 @@ export function checkMarkdown(result, name) {
     ...(result.issues.length ? ['## Issues', ...result.issues.map(i => `- **${i.severity}**${i.shot ? ` (shot ${i.shot})` : ''}: ${i.problem} ${i.fix}`), ''] : []),
     ...(result.rhythm ? [`Rhythm: your average shot is ${result.rhythm.yours_average_shot_s}s; the reference's is ${result.rhythm.reference_average_shot_s}s (${result.rhythm.reference_pace} pace).`, ''] : []),
     ...(t ? [`Timing: ${t.on_time} of ${t.matched_shots} matched shots are on time at ${t.scale}x the reference's length. Largest drift: ${t.largest_drift_s}s.`, ''] : []),
-    ...(result.compare_frames?.length ? ['## Frames to compare', ...result.compare_frames.map(f => `- Shot ${f.shot}: your frame at ${f.your_s}s, reference shot ${f.reference_shot} at ${f.reference_s}s`), ''] : []),
+    ...(result.compare_frames?.length ? ['## Frames to compare', ...result.compare_frames.map(f => `- Shot ${f.shot}: your frame at ${f.your_s}s, reference shot ${f.reference_shot} at ${f.reference_s}s (${f.reference_sheet} sheet)`), ''] : []),
     '## Still to do yourself', ...result.still_to_do.map((s, i) => `${i + 1}. ${s}`),
     '', `_${result.note}_`
   ].join('\n');

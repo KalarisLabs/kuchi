@@ -31,7 +31,7 @@ Call `kuchi_get_breakdown` with `storyboard: "overview"`. It returns measurement
 
 **Analyse every shot.** Kuchi does not tell you what a shot shows. You read it from the frames:
 
-1. The overview sheet has one frame per shot, stamped with its shot number and time. Each shot's `storyboard_frame_s` is that time.
+1. The overview sheet has one frame per shot, stamped with its shot number and time. Each shot's `storyboard_frame_s` is that time. When a video has many shots, the overview keeps the longest ones: a shot with no `storyboard_frame_s` is not on it, so read that shot from the sheets in its `detail_sheets`, which show every shot.
 2. One frame can't show a move. For a shot that is long, enters by `transition`, or has `medium` or `high` motion, open its detail sheets: call `kuchi_get_breakdown` with `storyboard: "detail"` and `detail_sheet` set to a number from that shot's `detail_sheets`.
 3. Write one line per shot:
    - **kind**: one of the 14 kinds the breakdown lists (`title_card`, `kinetic_type`, `logo`, `ui_screen`, `ui_closeup`, `device`, `chart`, `character`, `product_render`, `live_action`, `collage`, `abstract`, `end_card`, `blank`). Pick by what the shot is for, not by a detail in it.
@@ -62,7 +62,7 @@ Call `kuchi_plan_remake` again with the answers until `ready` is true and `bluep
 - `start_frame` and `end_frame` in your video, at the blueprint's `fps`
 - the reference shot it rebuilds, how that shot enters, its motion level and tone
 - `your_content`: what of the user's goes in it
-- `compare_at_s` and `storyboard_frame_s`: the same moment in your video and in the reference
+- `compare_at_s` and `storyboard_frame_s`: the same moment in your video and in the reference. `storyboard_sheet` names the sheet that reference frame is on
 
 ## 4. Build to the frame
 
@@ -82,7 +82,7 @@ Don't add shots, drop shots or reorder them without telling the user. A shot who
 
 1. Call `kuchi_check_remake` with your shot list: each shot's `start_s`, `end_s`, the `reference_shot` it rebuilds, how it `enters`, its on-screen text, and where each asset came from (`user`, `generated`, `stock`, `placeholder` or `reference`). Kuchi checks the list you send. It never sees the video.
 2. Fix every error. Read each warning: a timing warning names the shot and by how much to shorten or lengthen it.
-3. Compare frames. The result's `compare_frames` pairs a time in your video (`your_s`) with the time in the reference (`reference_s`) that shows the same moment. Export your frame at each `your_s` and set it beside the reference frame. Position, scale, amount on screen and stage of the move should match. Nothing on screen should match: no brand, word or image of the reference.
+3. Compare frames. The result's `compare_frames` pairs a time in your video (`your_s`) with the time in the reference (`reference_s`) that shows the same moment, and names the sheet that frame is on (`reference_sheet`). Export your frame at each `your_s` and set it beside the reference frame. Position, scale, amount on screen and stage of the move should match. Nothing on screen should match: no brand, word or image of the reference.
 4. Watch each entrance in motion in your render.
 5. Play the exported file from start to end, then deliver it, plus the source if you built it in code.
 6. Tell the user about each placeholder, each difference from the reference and anything you couldn't verify.

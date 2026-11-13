@@ -240,11 +240,11 @@ Examples:
     title:'Get a frame-by-frame breakdown',
     description: `Get the shot-by-shot breakdown of one Kuchi reference, measured from every frame of its video file.
 
-Returns exact facts (fps, frame count, length), every shot's start and end in seconds and frames, how it enters (cut, animated transition, hold or blank frame), how much of the frame moves, its tone and colors, motion and loudness per second, and storyboard sheets: grids of real frames stamped with their time and shot number. Each shot says where its frame is on the overview sheet and which detail sheets show more of it.
+Returns exact facts (fps, frame count, length), every shot's start and end in seconds and frames, how it enters (cut, animated transition, hold or blank frame), how much of the frame moves, its tone and colors, motion and loudness per second, and storyboard sheets: grids of real frames stamped with their time and shot number. Each shot says where to see it: its frame on the overview sheet, when it has one, and the detail sheets that show it.
 
 Kuchi measures when things happen; what each shot shows is read from the frames. The result lists the shot kinds to classify against, and the analysis goes to kuchi_plan_remake as shot_analysis.
 
-Set storyboard="overview" (one frame per shot) or "detail" (evenly spaced frames, page with detail_sheet) to receive that sheet as an image. Use it before kuchi_plan_remake to study a reference, and while building to match each shot.`,
+Set storyboard="overview" (one frame per shot, or per longest shot when there are many) or "detail" (evenly spaced frames that cover every shot, page with detail_sheet) to receive that sheet as an image. Use it before kuchi_plan_remake to study a reference, and while building to match each shot.`,
     inputSchema:z.strictObject({
       reference,
       storyboard:z.enum(['links', 'overview', 'detail']).default('links').describe("'links' (default) returns sheet URLs only; 'overview' or 'detail' also returns one sheet as an image"),

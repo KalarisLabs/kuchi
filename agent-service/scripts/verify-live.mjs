@@ -46,7 +46,8 @@ for (const [name, Client, Transport] of [['modern', Modern, ModernHTTP], ['legac
     const step = (await c.callTool({name:'kuchi_get_workflow', arguments:{step:'build'}})).content[0].text;
     assert.ok(step.startsWith('## 4. ') && step.length < workflow.length, 'one step is returned on its own');
     assert.equal(breakdown.analysis.kinds.length, filters.shot_kinds.length);
-    assert.ok(breakdown.shots[0].storyboard_frame_s >= 0, 'each shot says where its frame is on the overview sheet');
+    assert.ok(breakdown.shots.some(s => s.storyboard_frame_s >= 0), 'shots say where their frame is on the overview sheet');
+    assert.ok(breakdown.shots.every(s => s.storyboard_frame_s >= 0 || s.detail_sheets?.length), 'every shot can be seen on some sheet');
 
     const plan = await call('kuchi_plan_remake', {reference:String(video.id), product_name:'Verify'});
     assert.equal(plan.ready, false);
@@ -63,7 +64,8 @@ for (const [name, Client, Transport] of [['modern', Modern, ModernHTTP], ['legac
     const timed = await call('kuchi_check_remake', {reference:String(video.id), product_name:'Verify',
       shots:planned.map(s => ({start_s:s.start_s, end_s:s.end_s, reference_shot:s.reference_shot, on_screen_text:['Verify']}))});
     assert.equal(timed.timing.on_time, planned.length, 'a remake built from the blueprint is on time');
-    assert.ok(timed.compare_frames.length > 0);
+    assert.ok(timed.compare_frames.length > 0 && timed.compare_frames.every(f => f.reference_sheet), 'each compared frame names the sheet it is on');
+    assert.equal(timed.compare_frames.length, Math.min(planned.length, 40), 'every planned shot has a frame to compare');
 
     assert.ok(parse(await c.callTool({name:'search', arguments:{query:'launch'}})).results.length > 0);
     assert.equal((await c.listPrompts()).prompts.length, 2);

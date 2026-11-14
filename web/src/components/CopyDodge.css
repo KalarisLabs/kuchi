@@ -1,0 +1,11 @@
+/* Copy pop-up (CopyDodge -> DodgeField). Kept next to the component, unlayered like
+   DodgeField.css, so these overrides win over it (rules in legacy.css sit in a cascade
+   layer and would lose). Fixed to the bottom of the viewport; the field is click-through,
+   only the pill takes the pointer. */
+.copy-dodge { position: fixed; z-index: 70; left: 50%; bottom: 0; width: min(520px, calc(100vw - 32px)); pointer-events: none;
+  opacity: 0; transform: translate(-50%, 12px); transition: opacity .2s var(--ease-out-strong, ease-out), transform .2s var(--ease-out-strong, ease-out); }
+.copy-dodge[data-shown="true"] { opacity: 1; transform: translate(-50%, 0); }
+.copy-dodge .dodge-field__mover { pointer-events: auto; }
+.copy-dodge .dodge-field__mover:not([data-caught="true"]) .dodge-field__pill { background: var(--k-raised); box-shadow: 0 0 0 1px var(--k-line), 0 8px 24px -6px rgba(0,0,0,.18); }
+.copy-dodge .dodge-field__pill { height: 46px; padding: 0 22px; font-size: 15px; }
+@media (prefers-reduced-motion: reduce) { .copy-dodge { transform: translate(-50%, 0); } }

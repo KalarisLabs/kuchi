@@ -122,9 +122,28 @@ export async function frontendResponse(request:Request,path:string,fetcher:typeo
   }
 }
 
+const STATUS_HOST = 'status.kalarislabs.com';
+const STATUS_PATHS = ['/status', '/status/', '/status.html'];
+export async function statusResponse(request:Request, env:Env, url:URL):Promise<Response|null> {
+  const onStatusHost = url.hostname === STATUS_HOST && url.pathname === '/';
+  if (!onStatusHost && !STATUS_PATHS.includes(url.pathname)) return null;
+  if (!['GET', 'HEAD'].includes(request.method)) return new Response('Method not allowed', { status: 405, headers: { Allow: 'GET, HEAD' } });
+  const assetUrl = new URL(url);
+  assetUrl.pathname = '/status.html';
+  assetUrl.search = '';
+  const asset = await env.ASSETS.fetch(new Request(assetUrl, { method: request.method, headers: request.headers }));
+  if (asset.status !== 200) return asset;
+  const headers = new Headers(asset.headers);
+  headers.set('Content-Type', 'text/html; charset=utf-8');
+  headers.set('Cache-Control', 'public, max-age=60');
+  return new Response(request.method === 'HEAD' ? null : asset.body, { status: 200, headers });
+}
+
 export default {
   async fetch(request:Request, env:Env):Promise<Response> {
     const url = new URL(request.url);
+    const status = await statusResponse(request, env, url);
+    if (status) return status;
     if (url.pathname === BASE_PATH) {
       url.pathname = `${BASE_PATH}/`;
       return Response.redirect(url.toString(), 308);

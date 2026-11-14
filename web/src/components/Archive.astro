@@ -1,0 +1,18 @@
+---
+// "All videos": result count, filters, and the collection the gallery script renders
+// into #collection (cards or table) from /videos.json.
+import type { Video } from '../lib/catalog';
+import { distinct } from '../lib/catalog';
+import FilterBar from './FilterBar.astro';
+
+interface Props {
+  videos: Video[];
+}
+const { videos } = Astro.props;
+---
+<section class="archive section numbered" id="archive" data-line="005" aria-labelledby="archive-title">
+  <div class="section-heading"><h2 id="archive-title">All videos</h2><span id="result-count" role="status" aria-live="polite">{videos.length}</span></div>
+  <FilterBar categories={distinct(videos.map((video) => video.category))} styles={distinct(videos.flatMap((video) => video.styles))} />
+  <div id="collection" class="video-grid" aria-label="Launch video collection"><p class="loading">Loading videos…</p></div>
+  <div id="empty" class="empty" hidden><p>No matching references.</p><button id="reset-filters">Reset filters ↗</button></div>
+</section>

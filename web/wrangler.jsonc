@@ -10,7 +10,8 @@
 	"workers_dev": false,
 	"preview_urls": false,
 	"routes": [
-		{ "pattern": "kuchi.kalarislabs.com/*", "zone_name": "kalarislabs.com" }
+		{ "pattern": "kuchi.kalarislabs.com/*", "zone_name": "kalarislabs.com" },
+		{ "pattern": "status.kalarislabs.com/*", "zone_name": "kalarislabs.com" }
 	],
 	"assets": {
 		"directory": "./dist",

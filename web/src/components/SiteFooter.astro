@@ -1,0 +1,228 @@
+---
+// Site footer, on every page. Always dark, in both themes, so it reads as a layer
+// beneath the page: the page ends in a rounded edge (.site-footer::before) and the
+// footer is uncovered from under it.
+//
+// Motion (the script below):
+//   - parallax: the content moves slower than the page, so it looks uncovered, not
+//     scrolled in (GSAP ScrollTrigger, scrubbed by the scroll position);
+//   - the giant "Kuchi" is a canvas of animated ASCII with ordered dithering
+//     (scripts/ascii-wordmark.ts). As the footer scrolls into view its weight goes from
+//     thin to black and its letters rise into line, all in place at the end of the page.
+// Without JavaScript the wordmark is the live text below it in the markup; under reduced
+// motion the canvas draws one still, full-weight frame. No colour behind the wordmark
+// (the blue glow was removed on the owner's instruction, 2026-11-14), and the footer does
+// not state the number of videos (same instruction). The Kalaris Labs wordmark is the production white file (for dark
+// backgrounds) from kalarislabs.com/brand; never rebuild it in live text.
+import wordmarkWhite from '../assets/kalaris-wordmark-white.png';
+
+interface Props {
+  /** True on the gallery page, where the section anchors are on the same page. */
+  home?: boolean;
+}
+const { home = false } = Astro.props;
+const at = (hash: string) => (home ? hash : `/${hash}`);
+const year = new Date().getFullYear();
+
+interface FooterLink { label: string; href: string; external?: boolean }
+const columns: { title: string; links: FooterLink[] }[] = [
+  { title: 'Explore', links: [
+    { label: 'All videos', href: at('#archive') },
+    { label: 'Connect your agent', href: at('#connect') },
+    { label: 'FAQ', href: at('#faq') },
+    { label: 'About the data', href: at('#method') },
+  ] },
+  { title: 'Kuchi', links: [
+    { label: 'Privacy', href: '/privacy' },
+    { label: 'Terms', href: '/terms' },
+    { label: 'Support', href: '/support' },
+    { label: 'Status', href: '/status.html', external: true },
+  ] },
+  { title: 'Follow', links: [
+    { label: '@sayanchowdhuryai on X', href: 'https://x.com/sayanchowdhuryai', external: true },
+    { label: 'Kalaris Labs', href: 'https://kalarislabs.com', external: true },
+  ] },
+];
+---
+<footer class="site-footer" data-footer>
+  <div class="footer-inner" data-footer-inner>
+    <div class="footer-top">
+      <div class="footer-pitch">
+        <p class="footer-brand"><img src="/favicon.svg" width="22" height="22" alt="" aria-hidden="true">Kuchi</p>
+        <h2 class="footer-title">Launch your idea before your product.</h2>
+        <p class="footer-sub">Launch videos your agent can use as templates. New every day.</p>
+        <div class="footer-actions">
+          <a class="pill pill-primary" href={at('#connect')}>Connect your agent</a>
+          <a class="pill pill-secondary" href={at('#archive')}>Browse videos</a>
+        </div>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        {columns.map((column) => (
+          <div class="footer-col">
+            <h3>{column.title}</h3>
+            <ul>
+              {column.links.map((link) => (
+                <li><a href={link.href} target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener' : undefined}>{link.label}{link.external && <span class="footer-out" aria-hidden="true">↗</span>}</a></li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </div>
+    <div class="footer-base">
+      <p class="footer-legal">© {year} <a class="footer-maker" href="https://kalarislabs.com" target="_blank" rel="noopener" aria-label="Kalaris Labs"><img src={wordmarkWhite.src} width="1200" height="400" alt="" aria-hidden="true"></a></p>
+      <a class="footer-to-top" href="#" data-footer-top>Back to top <span aria-hidden="true">↑</span></a>
+    </div>
+    <div class="footer-mark" aria-hidden="true">
+      <p class="footer-word" data-footer-word>{[...'Kuchi'].map((letter) => <span>{letter}</span>)}</p>
+      <canvas class="footer-ascii" data-footer-ascii></canvas>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    --f-bg: #0a0a0a; --f-ink: #f4f4f4; --f-muted: #8f8f8f; --f-line: rgba(255, 255, 255, .1);
+    /* The shared pills and focus ring read these tokens; inside the footer they are inverted. */
+    --k-ink: #f4f4f4; --k-on-ink: #0a0a0a; --k-ink-hover: #dadada;
+    --k-wash: #1c1c1c; --k-wash-hover: #282828; --k-accent: #8fa8ff;
+    position: relative; isolation: isolate; overflow: clip; margin-top: 72px;
+    background: var(--f-bg); color: var(--f-ink);
+  }
+  /* The end of the page: a paper-coloured edge with rounded corners that stays put while
+     the footer content moves beneath it. */
+  .site-footer::before {
+    content: ''; position: absolute; z-index: 2; top: -1px; left: 0; right: 0; height: 33px;
+    background: var(--k-paper); border-radius: 0 0 32px 32px;
+  }
+  .footer-inner { will-change: transform; }
+  .footer-top {
+    display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 48px;
+    max-width: 1180px; margin: 0 auto; padding: clamp(88px, 11vw, 136px) 34px 0;
+  }
+  .footer-brand { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
+  .footer-title { max-width: 14ch; margin-top: 22px; font-size: clamp(30px, 3.9vw, 50px); font-weight: 600; line-height: 1.04; letter-spacing: -.04em; text-wrap: balance; }
+  .footer-sub { max-width: 36ch; margin-top: 16px; color: var(--f-muted); font-size: 15px; line-height: 1.55; }
+  .footer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+
+  .footer-nav { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1.3fr); gap: 24px; align-content: start; padding-top: 6px; }
+  .footer-col a { white-space: nowrap; }
+  .footer-col h3 { margin-bottom: 14px; color: var(--f-muted); font-size: 12px; font-weight: 500; letter-spacing: .02em; }
+  .footer-col ul { margin: 0; padding: 0; list-style: none; }
+  .footer-col li + li { margin-top: 2px; }
+  .footer-col a { display: inline-flex; align-items: baseline; gap: 5px; padding: 5px 0; color: var(--f-ink); font-size: 14px; text-decoration: none; opacity: .82; transition: opacity 150ms var(--k-ease-out, ease-out), translate 200ms var(--k-ease-out, ease-out); }
+  .footer-out { color: var(--f-muted); font-size: 12px; transition: translate 200ms var(--k-ease-out, ease-out); }
+  @media (hover: hover) and (pointer: fine) {
+    .footer-col a:hover { opacity: 1; translate: 3px 0; }
+    .footer-col a:hover .footer-out { translate: 1px -1px; }
+    .footer-to-top:hover { color: var(--f-ink); }
+    .footer-to-top:hover span { translate: 0 -2px; }
+    .footer-maker:hover { opacity: 1; }
+  }
+  .footer-col a:active, .footer-to-top:active { scale: .97; }
+
+  .footer-base {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    position: relative; max-width: 1180px; margin: clamp(56px, 7vw, 88px) auto 0; padding: 18px 34px 0;
+    color: var(--f-muted); font-size: 13px;
+  }
+  /* The hairline spans the text column, not the page padding. */
+  .footer-base::before { content: ''; position: absolute; top: 0; left: 34px; right: 34px; height: 1px; background: var(--f-line); }
+  .footer-legal { display: inline-flex; align-items: center; gap: 6px; }
+  /* The wordmark canvas has wide transparent margins; the negative margins trim them. */
+  .footer-maker { display: inline-flex; opacity: .8; transition: opacity 150ms var(--k-ease-out, ease-out); }
+  .footer-maker img { display: block; width: auto; height: 40px; margin: -8px -2px -7px -6px; }
+  .footer-to-top { color: var(--f-muted); text-decoration: none; transition: color 150ms var(--k-ease-out, ease-out), scale 160ms var(--k-ease-out, ease-out); }
+  .footer-to-top span { display: inline-block; transition: translate 200ms var(--k-ease-out, ease-out); }
+
+  /* Giant wordmark, cut by the bottom edge of the footer. The live text is the fallback;
+     once the canvas has drawn (data-ascii on the wrapper) the text is taken out. */
+  .footer-mark { margin-top: clamp(8px, 2vw, 28px); user-select: none; pointer-events: none; }
+  .footer-ascii { display: none; width: 100%; }
+  .footer-mark[data-ascii] .footer-ascii { display: block; }
+  .footer-mark[data-ascii] .footer-word { display: none; }
+  .footer-word {
+    display: flex; justify-content: center; margin: 0 0 -.17em; padding: 0 8px;
+    font-size: clamp(112px, 33vw, 520px); font-weight: 600; line-height: .86; letter-spacing: -.055em;
+    font-variation-settings: "opsz" 32; white-space: nowrap; user-select: none; pointer-events: none;
+  }
+  /* The negative tracking makes each letter's box narrower than its glyph, and the
+     gradient is clipped to the box; the padding (cancelled by the margin) covers the glyph. */
+  .footer-word span {
+    display: block; padding: 0 .07em; margin: 0 -.07em;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .95) 8%, rgba(255, 255, 255, .1) 92%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  @media (max-width: 860px) {
+    .footer-top { grid-template-columns: 1fr; gap: 44px; padding-left: 20px; padding-right: 20px; }
+    .footer-base { padding-left: 20px; padding-right: 20px; }
+    .footer-base::before { left: 20px; right: 20px; }
+  }
+  @media (max-width: 520px) {
+    .footer-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 32px; }
+    .footer-col:last-child { grid-column: 1 / -1; }
+    .site-footer::before { height: 25px; border-radius: 0 0 24px 24px; }
+  }
+</style>
+
+<script>
+  import { getLenis, loadGsap, prefersReducedMotion } from '../scripts/motion';
+  import { mountAsciiWordmark } from '../scripts/ascii-wordmark';
+
+  const footer = document.querySelector<HTMLElement>('[data-footer]');
+  if (footer) {
+    footer.querySelector('[data-footer-top]')?.addEventListener('click', (event) => {
+      event.preventDefault();
+      const lenis = getLenis();
+      if (lenis) lenis.scrollTo(0);
+      else window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    });
+
+    // The ASCII wordmark. Its progress is read from its position each time it draws:
+    // 0 when its top edge enters the viewport, 1 at the end of the page (the footer's
+    // bottom edge on the viewport's). Under reduced motion it is one still frame at full weight.
+    const mark = footer.querySelector<HTMLElement>('.footer-mark');
+    const canvas = footer.querySelector<HTMLCanvasElement>('[data-footer-ascii]');
+    if (mark && canvas) {
+      const still = prefersReducedMotion();
+      const progress = () => {
+        if (still) return 1;
+        const top = mark.getBoundingClientRect().top;
+        return (window.innerHeight - top) / Math.max(1, footer.getBoundingClientRect().bottom - top);
+      };
+      // The canvas needs a size to be measured, so it is shown first and hidden again
+      // if it cannot draw.
+      mark.dataset.ascii = '';
+      mountAsciiWordmark(canvas, { text: 'Kuchi', ink: '#f4f4f4', progress, animate: !still })
+        .then((ok) => { if (!ok) delete mark.dataset.ascii; }, () => { delete mark.dataset.ascii; });
+    }
+
+    // Not on touch screens: there GSAP and ScrollTrigger cost ~5 s of main thread in
+    // Lighthouse's mobile run for a parallax few would notice, so the footer sits still.
+    const touchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    if (!prefersReducedMotion() && !touchOnly) {
+      // GSAP is loaded when the browser is idle, not when the footer is near: loading it
+      // swaps the smooth-scroll instance, which must not happen in the middle of a scroll.
+      const start = () => loadGsap().then(({ gsap, ScrollTrigger }) => {
+        const media = gsap.matchMedia();
+        media.add('(prefers-reduced-motion: no-preference)', () => {
+          gsap.timeline({
+            defaults: { ease: 'none' },
+            scrollTrigger: { trigger: footer, start: 'top bottom', end: 'bottom bottom', scrub: true },
+          })
+            .fromTo('[data-footer-inner]', { yPercent: -26 }, { yPercent: 0 }, 0);
+        });
+        // The page grows after load (the collection renders, the table view opens), which
+        // moves the footer; the trigger positions are measured again when that happens.
+        let timer = 0;
+        new ResizeObserver(() => {
+          window.clearTimeout(timer);
+          timer = window.setTimeout(() => ScrollTrigger.refresh(), 150);
+        }).observe(document.body);
+      });
+      if ('requestIdleCallback' in window) window.requestIdleCallback(start, { timeout: 2500 });
+      else setTimeout(start, 1200);
+    }
+  }
+</script>

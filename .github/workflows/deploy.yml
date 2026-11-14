@@ -4,7 +4,8 @@ name: Checks
 # connection in the Cloudflare dashboard (no secrets in GitHub):
 #   kuchi-site   root web/,           build "npm ci && npm run build"
 #   kuchi-agent  root agent-service/, build "npm ci"
-# This workflow only runs tests and checks that every catalog video is in R2.
+# This workflow only runs tests, builds the website the way Workers Builds does and
+# checks that every catalog video is in R2. It deploys nothing.
 
 on:
   push:
@@ -47,3 +48,39 @@ jobs:
       # uploads media before committing (agent/CURATOR.md).
       - name: Media is live
         run: python scripts/sync_media_r2.py --dry-run
+
+  # The website (kuchi-site) deploys from web/ on every push to main, so it is built and
+  # tested here first, with the same commands Workers Builds runs. web/'s scope check
+  # (npm run check:scope) is a local gate for frontend branches and is not run here: it
+  # rejects changes to agent-service/, site/, data/ and the like, which other PRs make.
+  website:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PYTHONUTF8: '1'
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the build reads catalog history for daily stats
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build (as Workers Builds does)
+        run: npm run build
+
+      - name: Website tests
+        run: npm test

@@ -9,6 +9,13 @@ Kuchi is a library of real launch videos, each measured frame by frame. A refere
 
 Kuchi measures and plans. You look at the frames, analyse each shot and build the video with your own tools. Everything on screen comes from the user.
 
+## Install the Skill
+
+Install Kuchi in your agent workspace:
+- **Universal (skills.sh):** `npx skills add kalarislabs/kuchi`
+- **Claude Code plugin:** `/plugin install kuchi --marketplace KalarisLabs/kuchi`
+- **Manual:** Place this file at `.agents/skills/kuchi/SKILL.md` (or `.claude/skills/kuchi/SKILL.md`).
+
 Connect the Kuchi MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, no sign-in). In Claude, add it as a custom connector (or open https://kuchi.kalarislabs.com/agent/connect/claude). In ChatGPT, add it as a custom MCP app with no authentication. Never ask the user for credentials.
 
 Before a first remake, call kuchi_get_workflow. It returns the full method for each step below.

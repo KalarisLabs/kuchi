@@ -1,0 +1,9 @@
+---
+// Reference details dialog. The gallery script fills #dialog-content and handles
+// prev/next, Escape and backdrop clicks. data-lenis-prevent keeps smooth scrolling
+// out of the dialog so it scrolls natively.
+---
+<dialog id="video-dialog" aria-labelledby="dialog-title" data-lenis-prevent>
+  <div class="dialog-header"><span id="dialog-ref">Reference / 003</span><div><button id="prev-video" aria-label="Previous reference">← Prev</button><button id="next-video" aria-label="Next reference">Next →</button><button id="close-dialog" aria-label="Close video details">Close ×</button></div></div>
+  <div id="dialog-content"></div>
+</dialog>

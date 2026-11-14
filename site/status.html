@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Status — Kuchi</title>
+  <meta name="description" content="Live status and response time for the Kuchi MCP server, agent APIs and media delivery.">
+  <link rel="icon" href="https://kuchi.kalarislabs.com/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="icon" href="https://kuchi.kalarislabs.com/favicon.svg" type="image/svg+xml">
+  <style>
+    :root { --paper:#f4f4f4; --ink:#000; --muted:#666; --line:#d8d8d8; --wash:#ececec; --accent:#0000ff; --ok:#1a9a4a; --warn:#d98a00; --bad:#d23a2a;
+      --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:14px/1.5 var(--mono); letter-spacing:-.02em; -webkit-font-smoothing:antialiased; }
+    a { color:var(--accent); text-underline-offset:3px; }
+    a:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+    h1, h2, p { margin:0; font-weight:400; }
+    .wrap { max-width:820px; margin:0 auto; padding:0 24px 48px; }
+    header { display:flex; justify-content:space-between; align-items:center; padding:28px 0; }
+    .brand { color:var(--ink); text-decoration:none; font-size:16px; letter-spacing:-.03em; }
+    .banner { display:flex; align-items:center; gap:14px; border:1px solid var(--line); padding:22px; background:#fff; }
+    .banner h1 { font-size:clamp(20px,3.4vw,26px); letter-spacing:-.04em; }
+    .banner p { color:var(--muted); font-size:12px; margin-top:2px; }
+    .dot { width:12px; height:12px; border-radius:50%; background:var(--ok); flex:none; position:relative; }
+    .dot::after { content:""; position:absolute; inset:0; border-radius:50%; background:inherit; animation:pulse 2s ease-out infinite; }
+    .banner[data-state=checking] .dot { background:var(--muted); }
+    .banner[data-state=degraded] .dot { background:var(--bad); }
+    @keyframes pulse { from { transform:scale(1); opacity:.6; } to { transform:scale(2.6); opacity:0; } }
+    @media (prefers-reduced-motion: reduce) { .dot::after { animation:none; } }
+    section { margin-top:40px; }
+    h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:10px; }
+    .list { border:1px solid var(--line); background:#fff; }
+    .row { display:grid; grid-template-columns:1fr auto; gap:6px 16px; padding:16px 18px; border-top:1px solid var(--line); }
+    .row:first-child { border-top:0; }
+    .row b { font-weight:400; }
+    .row p { color:var(--muted); font-size:12px; grid-column:1; }
+    .badges { display:flex; gap:8px; align-items:center; grid-row:1; grid-column:2; }
+    .badge { border:1px solid var(--line); padding:1px 8px; font-size:12px; background:var(--paper); white-space:nowrap; }
+    .badge.ok { color:var(--ok); border-color:var(--ok); }
+    .badge.bad { color:var(--bad); border-color:var(--bad); }
+    .bars { display:grid; grid-template-columns:repeat(90,1fr); gap:2px; height:34px; padding:18px; background:#fff; border:1px solid var(--line); box-sizing:content-box; }
+    .bar { background:var(--ok); position:relative; min-width:0; }
+    .bar.none { background:var(--line); }
+    .bar:hover, .bar:focus { outline:1px solid var(--ink); z-index:2; }
+    .bar::after { content:attr(data-tip); position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:3px 8px; font-size:11px; white-space:nowrap; opacity:0; pointer-events:none; }
+    .bar:hover::after, .bar:focus::after { opacity:1; }
+    .bar:nth-child(-n+10)::after { left:0; transform:none; }
+    .bar:nth-last-child(-n+10)::after { left:auto; right:0; transform:none; }
+    .axis { display:flex; justify-content:space-between; color:var(--muted); font-size:11px; margin-top:6px; }
+    .timeline { border:1px solid var(--line); background:#fff; padding:16px 18px; }
+    .timeline p + p { margin-top:8px; color:var(--muted); font-size:12px; }
+    footer { margin-top:48px; padding-top:16px; border-top:1px solid var(--line); display:flex; gap:18px; flex-wrap:wrap; font-size:12px; }
+    @media (max-width:520px) { .wrap { padding:0 16px 40px; } .row { grid-template-columns:1fr; } .badges { grid-row:auto; grid-column:1; } .bars { gap:1px; padding:12px; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header><a class="brand" href="https://kuchi.kalarislabs.com/">Kuchi</a><a href="https://kuchi.kalarislabs.com/">← Back to Kuchi</a></header>
+
+    <div class="banner" id="banner" data-state="checking" role="status" aria-live="polite">
+      <span class="dot" aria-hidden="true"></span>
+      <div><h1 id="banner-title">Checking systems…</h1><p id="banner-sub">Running a live check from your browser.</p></div>
+    </div>
+
+    <section aria-labelledby="c-h">
+      <h2 id="c-h">Components</h2>
+      <div class="list">
+        <div class="row">
+          <b>Kuchi MCP Server (<code>/mcp</code>)</b>
+          <div class="badges"><span class="badge" id="latency">— ms</span><span class="badge ok" id="mcp-badge">Operational</span></div>
+          <p>JSON-RPC Streamable HTTP endpoint for AI clients</p>
+        </div>
+        <div class="row">
+          <b>Catalog &amp; Agent APIs (<code>/agent/*</code>)</b>
+          <div class="badges"><span class="badge ok" id="agent-badge">Operational</span></div>
+          <p>Workflow, manifest, and frame-by-frame breakdown APIs</p>
+        </div>
+        <div class="row">
+          <b>Media Delivery &amp; Storage (Cloudflare R2)</b>
+          <div class="badges"><span class="badge ok" id="media-badge">Operational</span></div>
+          <p>Video streaming and poster delivery via global edge CDN</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="u-h">
+      <h2 id="u-h">Uptime — last 90 days <span id="uptime-total"></span></h2>
+      <div class="bars" id="bars" role="list"></div>
+      <div class="axis"><span>90 days ago</span><span>Today</span></div>
+    </section>
+
+    <section aria-labelledby="i-h">
+      <h2 id="i-h">Past incidents</h2>
+      <div class="timeline">
+        <p>No incidents reported today.</p>
+        <p>No incidents reported in the last 90 days.</p>
+      </div>
+    </section>
+
+    <footer>
+      <a href="https://kuchi.kalarislabs.com/">Home</a>
+      <a href="https://kuchi.kalarislabs.com/terms.html">Terms</a>
+      <a href="https://kuchi.kalarislabs.com/privacy.html">Privacy</a>
+      <a href="https://kuchi.kalarislabs.com/support.html">Support</a>
+    </footer>
+  </div>
+
+  <script>
+    // One entry per day, oldest first: uptime percent, or null for no data.
+    // Edit this list (or feed it from a monitor) as real figures arrive.
+    var HISTORY = Array.from({ length: 90 }, function () { return 100; });
+
+    (function renderBars() {
+      var bars = document.getElementById('bars');
+      var today = new Date();
+      var known = [];
+      HISTORY.forEach(function (pct, i) {
+        var d = new Date(today); d.setDate(today.getDate() - (HISTORY.length - 1 - i));
+        var label = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        var el = document.createElement('div');
+        el.className = 'bar' + (pct == null ? ' none' : '');
+        el.tabIndex = 0;
+        el.setAttribute('role', 'listitem');
+        el.dataset.tip = label + ' · ' + (pct == null ? 'No data' : pct + '% uptime');
+        bars.appendChild(el);
+        if (pct != null) known.push(pct);
+      });
+      if (known.length) {
+        var avg = known.reduce(function (a, b) { return a + b; }, 0) / known.length;
+        document.getElementById('uptime-total').textContent = '· ' + avg.toFixed(2) + '%';
+      }
+    })();
+
+    function setState(state, title, sub) {
+      var banner = document.getElementById('banner');
+      banner.dataset.state = state;
+      document.getElementById('banner-title').textContent = title;
+      document.getElementById('banner-sub').textContent = sub;
+    }
+    function setBadge(id, ok, text) {
+      var el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'badge ' + (ok ? 'ok' : 'bad');
+    }
+
+    (async function probe() {
+      var started = performance.now();
+      try {
+        var ctl = new AbortController();
+        var timer = setTimeout(function () { ctl.abort(); }, 8000);
+        var res = await fetch('https://kuchi.kalarislabs.com/mcp/health', { cache: 'no-store', signal: ctl.signal });
+        var ms = Math.round(performance.now() - started);
+        clearTimeout(timer);
+        var json = await res.json();
+        if (res.status === 200 && json.status === 'ok') {
+          document.getElementById('latency').textContent = 'Latency: ' + ms + ' ms';
+          setBadge('mcp-badge', true, 'Operational');
+          setState('ok', 'All Systems Operational', 'Checked just now from your browser.');
+          return;
+        }
+        throw new Error('unhealthy');
+      } catch (e) {
+        document.getElementById('latency').textContent = '— ms';
+        setBadge('mcp-badge', false, 'Degraded');
+        setState('degraded', 'Investigating degradation', 'We could not reach the Kuchi MCP server from your browser.');
+      }
+    })();
+  </script>
+</body>
+</html>

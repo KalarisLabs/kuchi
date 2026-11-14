@@ -1,0 +1,102 @@
+/* Motion for clicks and swaps, added on top of the ported styles (legacy.css) without
+   editing them. In the "components" layer: it wins over the legacy layer and loses to
+   Tailwind utilities. The JavaScript half is src/scripts/polish.ts.
+
+   Rules (docs/FRONTEND_PLAN.md section 6): transform, opacity and small blurs only;
+   under 300 ms; strong ease-out for enter and exit; exits faster than entrances;
+   nothing on search, filters, sort or keyboard navigation. Under reduced motion the
+   legacy stylesheet already zeroes every transition; keyframes are handled at the end. */
+:root {
+  --k-ease-out: cubic-bezier(.23, 1, .32, 1);
+  --k-ease-in-out: cubic-bezier(.77, 0, .175, 1);
+}
+
+@layer components {
+  /* 1. Press feedback on everything pressable that did not have it yet. `scale` is the
+     independent property, so it composes with whatever transform the element has. */
+  :where(.setup-prompt > button, .desk-selector button, #view-toggle, .dialog-header button,
+    .client-buttons > button, .copy-config, .connection-action, .solid-button,
+    .reference-feedback button, .empty button) {
+    transition: scale 160ms var(--k-ease-out), background-color 150ms var(--k-ease-out), color 150ms var(--k-ease-out);
+  }
+  :where(.setup-prompt > button, .desk-selector button, #view-toggle, .dialog-header button,
+    .client-buttons > button, .copy-config, .connection-action, .solid-button,
+    .reference-feedback button, .empty button):active:not(:disabled) { scale: .97; }
+  /* These two are centred with a transform, so the press is written into it. */
+  .connect-copy { transition: transform 160ms var(--k-ease-out), background-color 150ms var(--k-ease-out), color 150ms var(--k-ease-out); }
+  .connect-copy:active { transform: translateY(-50%) scale(.94); }
+  .play-icon { transition: transform 180ms var(--k-ease-out), opacity 160ms ease, visibility 0s; }
+  .play-icon:active { transform: translate(-50%, -50%) scale(.94); }
+  @media (hover: hover) and (pointer: fine) {
+    .video-card:hover .play-icon:not(:active) { transform: translate(-50%, -50%) scale(1.08); }
+  }
+
+  /* 2. Play button leaves with a fade instead of vanishing when a card starts playing. */
+  .inline-player.is-playing .inline-play {
+    display: grid; opacity: 0; visibility: hidden; pointer-events: none;
+    transform: translate(-50%, -50%) scale(.8);
+    transition: transform 160ms var(--k-ease-out), opacity 160ms ease, visibility 0s 160ms;
+  }
+
+  /* 3. Copy buttons: the icon and the check trade places with a short blur between them. */
+  .setup-prompt > button { position: relative; }
+  .connect-copy > svg, .setup-prompt > button > svg, .connection-code > .copy-config > svg {
+    transition: opacity 180ms ease, scale 180ms var(--k-ease-out), filter 180ms ease;
+  }
+  .connect-copy[data-copied="true"] > svg, .setup-prompt > button[data-copied="true"] > svg,
+  .connection-code > .copy-config[data-copied="true"] > svg { display: block; opacity: 0; scale: .5; filter: blur(2px); }
+  .connect-copy::after, .setup-prompt > button::after, .connection-code > .copy-config::after {
+    content: '✓'; position: absolute; inset: 0; display: grid; place-items: center;
+    color: var(--k-up); font-size: 15px; line-height: 1; pointer-events: none;
+    opacity: 0; scale: .5; filter: blur(2px);
+    transition: opacity 180ms ease, scale 180ms var(--k-ease-out), filter 180ms ease;
+  }
+  .connect-copy[data-copied="true"]::after, .setup-prompt > button[data-copied="true"]::after,
+  .connection-code > .copy-config[data-copied="true"]::after { opacity: 1; scale: 1; filter: blur(0); }
+
+  /* 4. Featured picker: one highlight slides between the picks (polish.ts adds the thumb
+     and sets its clip-path). Without JavaScript the pressed button keeps its own fill. */
+  .desk-selector { position: relative; isolation: isolate; }
+  .desk-selector-thumb { position: absolute; inset: 4px; z-index: -1; border-radius: 5px; background: var(--k-paper); pointer-events: none; }
+  .desk-selector[data-thumb="ready"] .desk-selector-thumb { transition: clip-path 260ms var(--k-ease-in-out); }
+  .desk-selector[data-thumb] button[aria-pressed="true"] { background: transparent; }
+  .desk-selector button { transition: scale 160ms var(--k-ease-out), color 200ms ease; }
+
+  /* 5. Reference dialog: grows in from 96% and fades; leaves faster than it arrives.
+     Browsers without @starting-style / allow-discrete simply open it at once. */
+  #video-dialog {
+    opacity: 0; transform: scale(.96);
+    transition: opacity 150ms ease-out, transform 150ms var(--k-ease-out), overlay 150ms allow-discrete, display 150ms allow-discrete;
+  }
+  #video-dialog[open] { opacity: 1; transform: none; transition-duration: 220ms; }
+  #video-dialog::backdrop { opacity: 0; transition: opacity 150ms ease-out, overlay 150ms allow-discrete, display 150ms allow-discrete; }
+  #video-dialog[open]::backdrop { opacity: 1; transition-duration: 220ms; }
+  @starting-style {
+    #video-dialog[open] { opacity: 0; transform: scale(.96); }
+    #video-dialog[open]::backdrop { opacity: 0; }
+  }
+
+  /* 6. Toast: rises by its own height, leaves faster. Transitions, so a second toast
+     can interrupt the first. */
+  .toast { border-radius: 10px; transform: translate(-50%, calc(100% + 24px)); transition: opacity 150ms ease, transform 180ms var(--k-ease-out); }
+  .toast.visible { transform: translate(-50%, 0); transition: opacity 200ms ease, transform 260ms var(--k-ease-out); }
+
+  /* 7. Disclosures: the revealed content settles in instead of snapping. */
+  details[open] > :not(summary) { animation: k-disclose 220ms var(--k-ease-out); }
+
+  /* 8. Theme toggle: moon and sun turn into each other. The page itself crossfades
+     through a view transition started by the toggle (SiteHeader.astro). */
+  .theme-toggle svg { grid-area: 1 / 1; transition: opacity 200ms ease, rotate 320ms var(--k-ease-out), scale 320ms var(--k-ease-out); }
+  .theme-toggle .icon-sun { display: block; opacity: 0; rotate: -90deg; scale: .5; }
+  :root[data-theme="dark"] .theme-toggle .icon-sun { opacity: 1; rotate: 0deg; scale: 1; }
+  :root[data-theme="dark"] .theme-toggle .icon-moon { display: block; opacity: 0; rotate: 90deg; scale: .5; }
+}
+
+@keyframes k-disclose { from { opacity: 0; transform: translateY(-4px); } }
+
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 240ms; animation-timing-function: ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  details[open] > :not(summary) { animation: none; }
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+}

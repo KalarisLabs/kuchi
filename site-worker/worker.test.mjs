@@ -58,3 +58,14 @@ test('without UI_ORIGIN the gallery HTML is served from this repository build',a
  const response=await worker.fetch(new Request('https://kuchi.kalarislabs.com/'),env);
  assert.equal(response.status,200);assert.equal(await response.text(),'<html>Kuchi</html>');assert.deepEqual(seen,['/index.html']);
 });
+
+test('status page is served from assets on the status host and /status with a 60s cache',async()=>{
+ const seen=[];
+ const env={ASSETS:{async fetch(req){seen.push(new URL(req.url).pathname);return new Response('<html>status</html>',{headers:{'Content-Type':'text/html'}});}}};
+ for(const u of ['https://status.kalarislabs.com/','https://kuchi.kalarislabs.com/status','https://kuchi.kalarislabs.com/status.html']){
+  const response=await worker.fetch(new Request(u),env);
+  assert.equal(response.status,200);assert.equal(response.headers.get('Cache-Control'),'public, max-age=60');
+ }
+ assert.deepEqual(seen,['/status.html','/status.html','/status.html']);
+ assert.equal((await worker.fetch(new Request('https://status.kalarislabs.com/',{method:'POST'}),env)).status,405);
+});

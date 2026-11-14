@@ -7,14 +7,14 @@ An awesome collection of AI-clonable launch videos.
 ![Launch video collection](assets/collection.png)
 
 [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
-[![References](https://img.shields.io/badge/video_references-83-black)](#table-of-contents)
+[![References](https://img.shields.io/badge/video_references-84-black)](#table-of-contents)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > A visual collection of launch videos worth studying — with playable MP4s, performance data, and copyable prompts to borrow their motion and vibe for your product with AI.
 
 For founders, designers, and builders making their next product launch. Browse a style, watch a reference, then copy the prompt and make it yours.
 
-**Every entry includes an inline video player, the video file, a remake prompt, and credit to the original creator.** The [live site](https://kuchi.kalarislabs.com/) plays all 83 videos directly in the cards. Video files are not stored in this repository; they are served from the site's media domain.
+**Every entry includes an inline video player, the video file, a remake prompt, and credit to the original creator.** The [live site](https://kuchi.kalarislabs.com/) plays all 84 videos directly in the cards. Video files are not stored in this repository; they are served from the site's media domain.
 
 ## Use with your agent
 
@@ -94,6 +94,7 @@ New videos reach connected agents within a minute, with no reinstall.
 - [Oh Wait — With Context vs. Without Context](#oh-wait-context-comparison)
 - [AI Workspace — Motion Design Study](#ai-workspace-motion-study)
 - [Proto — Calendar UI Demo](#proto-calendar-ui-demo)
+- [HeyClicky — AI Desktop Buddy](#heyclicky)
 
 ### [D. Typography & Abstract Motion](#typography-abstract-motion)
 
@@ -2401,6 +2402,51 @@ https://x.com/BuffetDesigns/status/2119047968091451746
 | Included file | 0:38 — full clip |
 | Aspect ratio | 16:9 |
 | Reference resolution | 1280 × 720 |
+| Audio track | Present |
+
+</details>
+
+---
+
+<a id="heyclicky"></a>
+
+### HeyClicky — AI Desktop Buddy
+
+[![▶ Watch HeyClicky — AI Desktop Buddy](previews/heyclicky.jpg)](https://kuchi.kalarislabs.com/assets/91.mp4)
+
+**0:20 · 16:9 · 2.85M impressions · 620.0K plays**
+
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/91.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/91.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-91)
+
+A screen-aware AI companion lives next to the cursor, watching the screen, answering voice queries, and pointing directly at desktop UI elements. Shows real-time voice-driven tutor interactions in coding and creative software.
+
+```text
+Remake this video's motion and vibe for my product:
+https://x.com/FarzaTV/status/2041314633978659092
+```
+
+*Source: [@FarzaTV](https://x.com/FarzaTV/status/2041314633978659092) · 2026-04-27*
+
+<details>
+<summary>Metadata & stats</summary>
+
+| Metadata | Value |
+| --- | --- |
+| Posting account | @FarzaTV |
+| Post date | 2026-04-27 |
+| Stats snapshot (PT) | 2026-11-13 |
+| Post impressions | 2,850,000 |
+| Video plays | 620,000 |
+| Likes | 14,500 |
+| Bookmarks | 3,800 |
+| Reposts | 1,200 |
+| Replies | 850 |
+| Quotes | 420 |
+| Account followers | 120,000 |
+| Original duration | 0:20 |
+| Included file | 0:20 — full clip |
+| Aspect ratio | 16:9 |
+| Reference resolution | 1600 × 900 |
 | Audio track | Present |
 
 </details>

@@ -1,0 +1,33 @@
+---
+// Featured player with its picker. The first pick is rendered at build time; the
+// gallery script swaps the player and fills #featured-info when a pick is pressed.
+// The gallery script also starts on reference 87, so keep the first pick in step with it.
+import type { Video } from '../lib/catalog';
+import { displayDuration } from '../lib/format.js';
+
+interface Props {
+  videos: Video[];
+}
+const { videos } = Astro.props;
+
+const picks = [
+  { id: 87, label: 'Photon' },
+  { id: 3, label: 'Sidehoe' },
+  { id: 11, label: 'Strawberry' },
+  { id: 9, label: 'Krea 3' },
+];
+const first = videos.find((video) => video.id === picks[0].id);
+if (!first) throw new Error(`Featured reference ${picks[0].id} is not in the catalog`);
+---
+<section class="featured section numbered" data-line="004" aria-labelledby="featured-title">
+  <div class="section-heading"><h2 id="featured-title">Featured</h2><div class="desk-selector" aria-label="Choose a featured video">
+    {picks.map((pick, index) => <button data-feature={pick.id} aria-pressed={index === 0 ? 'true' : 'false'}>{pick.label}</button>)}
+  </div></div>
+  <div class="featured-layout">
+    <div class="featured-media">
+      <video id="featured-video" controls playsinline preload="metadata" poster={first.poster} src={first.video} aria-label={`${first.title} launch video`}></video>
+      <div class="media-caption"><span id="featured-duration">{displayDuration(first)}</span></div>
+    </div>
+    <div class="featured-info" id="featured-info"></div>
+  </div>
+</section>

@@ -1,0 +1,26 @@
+/* Agent tile in the hero headline (LogoCycle.jsx). Every logo is stacked in the tile;
+   data-state decides which one shows. A logo waits below (idle, no transition, so it
+   returns there unseen), rises in (active), then leaves upward (leaving). The wrapper
+   carries the movement and blur; the image inside carries the dark-theme inversion,
+   because the two filters cannot share one element. Transform, opacity and a small
+   blur only. */
+.logo-cycle { position: absolute; inset: 0; display: block; }
+.logo-cycle__item {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  opacity: 0; transform: translateY(58%) scale(.86); filter: blur(4px);
+}
+.logo-cycle__item[data-state="active"] {
+  opacity: 1; transform: none; filter: blur(0);
+  transition: transform .55s cubic-bezier(.23, 1, .32, 1), opacity .3s ease, filter .3s ease;
+}
+.logo-cycle__item[data-state="leaving"] {
+  opacity: 0; transform: translateY(-58%) scale(.86); filter: blur(4px);
+  transition: transform .4s cubic-bezier(.77, 0, .175, 1), opacity .24s ease, filter .24s ease;
+}
+/* Beats `.intro-tile > img` and `.intro-tile-light img` in the legacy layer. */
+.intro-tile .logo-cycle__item img { position: static; display: block; width: 62%; height: 62%; margin: 0; object-fit: contain; }
+.logo-cycle__item img[data-mono] { filter: var(--k-invert); }
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-cycle__item { transform: none; filter: none; }
+}

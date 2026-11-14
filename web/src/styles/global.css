@@ -1,6 +1,122 @@
-/* Tailwind 4 without preflight, so the existing gallery stylesheet (public/style.css)
-   keeps its look. Use utilities freely in new Astro components. */
-@layer theme, base, components, utilities;
+/* Layer order matters. The ported gallery stylesheet sits in "legacy", above the base
+   layer and below Tailwind utilities, so it keeps its exact look while utilities and
+   shadcn/ui components win wherever they are used.
+
+   Tailwind's preflight is deliberately left out: it resets margins, lists and form
+   controls that the ported stylesheet relies on. The shadcn CLI only recognises the
+   one-line `@import "tailwindcss"`; if you re-run `shadcn init`, restore the split
+   imports below afterwards. `shadcn add <component>` works as is. */
+@layer theme, base, legacy, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
+@import "@fontsource-variable/inter/opsz.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./legacy.css" layer(legacy);
 @source "../";
+
+/* Dark theme: <html data-theme="dark"> (legacy.css redefines the --k-* tokens, which the
+   shadcn tokens below follow), so shadcn's dark: classes key off the same attribute. */
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+@theme inline {
+  /* The site is set in Inter (self-hosted variable font with optical sizing, legacy.css --k-sans).
+     Code keeps the system monospace stack (--font-mono). */
+  --font-sans: var(--k-sans);
+  --font-mono: var(--k-mono);
+  --font-heading: var(--font-sans);
+
+  /* Motion tokens, from Emil Kowalski's design-engineering rules (docs/FRONTEND_PLAN.md, section 6).
+     Use as ease-out-strong / ease-in-out-strong / ease-drawer. Never ease-in on UI. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-link: var(--link);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* shadcn/ui tokens, mapped onto the existing Kuchi palette (legacy.css :root) so new
+   components match the current site. Source values: paper #fff, ink #0a0a0a,
+   wash #f3f3f3, line #e6e6e6, muted text #6b6b6b, link/focus blue #0000ff. */
+:root {
+  --background: var(--k-paper);
+  --foreground: var(--k-ink);
+  --card: var(--k-paper);
+  --card-foreground: var(--k-ink);
+  --popover: var(--k-paper);
+  --popover-foreground: var(--k-ink);
+  --primary: var(--k-ink);
+  --primary-foreground: var(--k-paper);
+  --secondary: var(--k-wash);
+  --secondary-foreground: var(--k-ink);
+  --muted: var(--k-wash);
+  --muted-foreground: var(--k-muted);
+  --accent: var(--k-wash);
+  --accent-foreground: var(--k-ink);
+  --destructive: var(--k-down); /* the "down" colour of .stat-delta */
+  --border: var(--k-line);
+  --input: var(--k-line);
+  --ring: var(--k-accent);
+  --link: var(--k-accent);
+  --radius: 0.375rem; /* 6px, the radius of the filter-bar controls */
+}
+
+@layer base {
+  /* Preflight is off globally, so shadcn components get the few resets they assume
+     here, scoped to their own elements (every shadcn element carries data-slot).
+     Zero specificity and in the base layer: utilities and the ported styles still win.
+     If a newly added component looks off, a missing preflight rule is the first suspect. */
+  :where([data-slot]) {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    border-style: solid;
+  }
+  :where(button, input, select, textarea):where([data-slot]) {
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    border-radius: 0;
+    background-color: transparent;
+    opacity: 1;
+  }
+
+  /* shadcn's stock rule also sets `outline-ring/50` on everything. That is left out:
+     it would recolour the browser's own focus ring on elements the ported stylesheet
+     does not style (video players, the dialog), weakening a keyboard focus indicator. */
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}

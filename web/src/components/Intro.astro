@@ -1,0 +1,97 @@
+---
+// Hero: centered headline with app tiles set inline in the type, the tagline,
+// collection totals and the two calls to action. The headline and tagline blur in
+// word by word (HeroCopy -> BlurText); the totals and buttons follow with a CSS blur-in.
+// The totals are rendered at build time; the gallery script refreshes them and fills
+// the day-over-day deltas (#delta-*), so they stay outside the React island.
+// Behind it all, HeroBackground (GradientASCII, follows the theme) fills the hero edge to edge.
+// Phones (under 768px) never hydrate these islands, so React and motion do not load there
+// (Lighthouse mobile went from 51 to the live site's level): the server-rendered HTML is
+// shown as is, made visible by the "Phones" rule in legacy.css. Keep the 768px in step.
+// CopyDodge is fixed to the viewport (pops up when a visitor copies text); it is mounted
+// here only so it ships with the page.
+import { compact } from '../lib/format.js';
+import HeroCopy from './HeroCopy.jsx';
+import HeroBackground from './HeroBackground.jsx';
+import CopyDodge from './CopyDodge.jsx';
+
+interface Props {
+  totalVideos: number;
+  totalImpressions: number;
+}
+const { totalVideos, totalImpressions } = Astro.props;
+---
+<section class="intro numbered" data-line="002" aria-labelledby="main-title">
+  <div class="intro-bg" aria-hidden="true">
+    <HeroBackground client:media="(min-width: 768px)" />
+  </div>
+  <!-- The two wrappers are the parallax layers (script below). They exist because the
+       elements inside animate their own transform (BlurText, .intro-reveal), which would
+       override a transform set on them directly. -->
+  <div class="intro-layer" data-hero-copy><HeroCopy client:media="(min-width: 768px)" /></div>
+  <div class="intro-layer" data-hero-lower>
+  <p class="intro-stats intro-reveal"><span class="summary" aria-label="Collection statistics"><span><strong id="total-videos">{totalVideos}</strong> videos<span class="stat-delta" id="delta-videos" hidden></span></span>, <span><strong id="total-impressions">{compact(totalImpressions)}</strong> impressions<span class="stat-delta" id="delta-impressions" hidden></span></span>, new every day.</span></p>
+  <div class="intro-actions intro-reveal">
+    <a class="pill pill-primary" href="#connect">Connect your agent</a>
+    <a class="pill pill-secondary" href="#archive">Browse videos <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+  </div>
+  <CopyDodge client:media="(min-width: 768px) and (hover: hover) and (pointer: fine)" />
+  <noscript><style>.intro-title [aria-hidden], .intro-tagline { opacity: 1 !important; filter: none !important; transform: none !important; visibility: visible !important; }</style></noscript>
+</section>
+
+<style is:global>
+  /* Global on purpose: a scoped style would stamp a scope attribute on every element of the
+     hero, including the totals the tests read by id. (And no HTML comment here: it would
+     be rendered into the page.)
+     A layer keeps the hero's centred column, so wrapping changes nothing in the layout. */
+  .intro-layer { display: flex; flex-direction: column; align-items: center; width: 100%; }
+</style>
+
+<script>
+  // Hero parallax, scrubbed by the scroll position from the top of the page until the hero
+  // has left the viewport (when "Connect your agent" has taken its place):
+  //   - the headline rises a little faster than the page and fades;
+  //   - the totals and buttons fall behind it and fade first;
+  //   - the ASCII background falls behind too and dims;
+  //   - the three tiles in the headline drift apart and tilt.
+  // Transform and opacity only. Not on phones (the hero islands are not hydrated there),
+  // not on touch screens (GSAP is not loaded there, as in the footer), and not under
+  // reduced motion.
+  import { loadGsap, prefersReducedMotion } from '../scripts/motion';
+
+  const hero = document.querySelector<HTMLElement>('section.intro');
+  const pointerDesktop = window.matchMedia('(min-width: 768px)').matches && !window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+  if (hero && !prefersReducedMotion() && pointerDesktop) {
+    // Loaded at once, not at idle: loading GSAP swaps the smooth-scroll instance, which
+    // must happen before the visitor starts scrolling the hero.
+    loadGsap().then(({ gsap }) => {
+      const media = gsap.matchMedia();
+      media.add('(min-width: 768px) and (prefers-reduced-motion: no-preference)', () => {
+        const drift = [{ y: -22, rotate: -9 }, { y: 16, rotate: 7 }, { y: -12, rotate: -5 }];
+        const timeline = gsap.timeline({
+          defaults: { ease: 'none' },
+          scrollTrigger: {
+            trigger: hero, start: 0, end: 'bottom top', scrub: true,
+            // The tiles are rendered by React, so they are looked up when needed, not once.
+            onUpdate: (self) => {
+              hero.querySelectorAll<HTMLElement>('.intro-tile').forEach((tile, index) => {
+                const d = drift[index % drift.length];
+                tile.style.transform = `translate3d(0, ${(d.y * self.progress).toFixed(2)}px, 0) rotate(${(d.rotate * self.progress).toFixed(2)}deg)`;
+              });
+            },
+          },
+        });
+        timeline
+          .fromTo('[data-hero-copy]', { yPercent: 0, scale: 1 }, { yPercent: -26, scale: 0.96, duration: 1 }, 0)
+          .fromTo('[data-hero-copy]', { opacity: 1 }, { opacity: 0, duration: 0.55 }, 0.3)
+          .fromTo('[data-hero-lower]', { yPercent: 0 }, { yPercent: 70, duration: 1 }, 0)
+          .fromTo('[data-hero-lower]', { opacity: 1 }, { opacity: 0, duration: 0.45 }, 0.2)
+          .fromTo('.intro-bg', { yPercent: 0, opacity: 1 }, { yPercent: 14, opacity: 0.12, duration: 1 }, 0);
+        return () => {
+          hero.querySelectorAll<HTMLElement>('.intro-tile').forEach((tile) => { tile.style.transform = ''; });
+        };
+      });
+    });
+  }
+</script>

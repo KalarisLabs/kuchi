@@ -1,18 +1,45 @@
 ---
-// The gallery markup comes from the shared build (site/index.html plus the
-// generated catalog summary), so the existing app.js keeps working unchanged.
-import '../styles/global.css';
-import page from '../../.generated/index.html?raw';
+// The gallery. Static sections are Astro components; the gallery script
+// (scripts/gallery.js) drives the featured player, filters, collection and dialog
+// through the element ids those components render.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SkipLink from '../components/SkipLink.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import Intro from '../components/Intro.astro';
+import AgentConnect from '../components/AgentConnect.astro';
+import Faq from '../components/Faq.astro';
+import Featured from '../components/Featured.astro';
+import Archive from '../components/Archive.astro';
+import SourceNotes from '../components/SourceNotes.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import VideoDialog from '../components/VideoDialog.astro';
+import Toast from '../components/Toast.astro';
+import { videos, totalImpressions } from '../lib/catalog';
 
-const head = page.match(/<head>([\s\S]*?)<\/head>/)?.[1] ?? '';
-const body = page.match(/<body>([\s\S]*?)<\/body>/)?.[1] ?? '';
+// Nothing on this page depends on the request, so it is built once as static HTML.
+export const prerender = true;
 ---
-<!doctype html>
-<html lang="en">
-  <head>
-    <Fragment set:html={head} />
-  </head>
-  <body>
-    <Fragment set:html={body} />
-  </body>
-</html>
+<BaseLayout
+  title="Kuchi — Launch your idea before your product"
+  description="Launch-video references, updated daily. Watch launch videos and connect your agent to the latest references with MCP."
+>
+  <SkipLink href="#archive" label="Skip to videos" />
+  <SiteHeader />
+  <main class="document">
+    <Intro totalVideos={videos.length} totalImpressions={totalImpressions} />
+    <AgentConnect />
+    <Faq />
+    <Featured videos={videos} />
+    <Archive videos={videos} />
+    <SourceNotes />
+  </main>
+
+  <VideoDialog />
+  <Toast />
+  <noscript><p class="noscript">Enable JavaScript to browse the collection. You can also <a href="/videos.json">download the metadata</a>.</p></noscript>
+  <SiteFooter home />
+
+  <script>
+    import '../scripts/gallery.js';
+  </script>
+</BaseLayout>

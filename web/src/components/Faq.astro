@@ -1,0 +1,171 @@
+---
+// Frequently asked questions section.
+// Incorporates the interactive rare-ui chat-bubble FAQ component (ui/faq.tsx),
+// with server-side rendered questions and answers for full search engine indexing,
+// and Schema.org FAQPage JSON-LD for Google rich snippets.
+import FaqComponent from './ui/faq';
+
+const MCP_URL = 'https://kuchi.kalarislabs.com/mcp';
+
+interface FaqEntry {
+  id: string;
+  question: string;
+  answerHtml: string;
+  plainText: string;
+}
+
+const faqData: FaqEntry[] = [
+  {
+    id: 'what-is-kuchi',
+    question: 'What is Kuchi?',
+    answerHtml: 'Kuchi is a curated library of real product-launch videos, each measured frame by frame. You can browse and study them on the site, or connect your AI coding agent via MCP to use any video as an inspiration template for your own product’s launch video.',
+    plainText: 'Kuchi is a curated library of real product-launch videos, each measured frame by frame. You can browse and study them on the site, or connect your AI coding agent via MCP to use any video as an inspiration template for your own product’s launch video.',
+  },
+  {
+    id: 'how-templates-work',
+    question: 'How do the launch video inspiration templates work?',
+    answerHtml: 'Your AI agent inspects Kuchi’s frame-by-frame breakdown to understand pacing, transitions, layout, and visual rhythm. It produces a shot-by-shot blueprint tailored to your product using your own logo, product UI screenshots, copy, and colors. Before finishing, a verification tool checks your remake against the reference to ensure pacing matches while keeping all on-screen creative assets 100% original to your product.',
+    plainText: 'Your AI agent inspects Kuchi’s frame-by-frame breakdown to understand pacing, transitions, layout, and visual rhythm. It produces a shot-by-shot blueprint tailored to your product using your own logo, product UI screenshots, copy, and colors. Before finishing, a verification tool checks your remake against the reference to ensure pacing matches while keeping all on-screen creative assets 100% original to your product.',
+  },
+  {
+    id: 'mcp-agent-connection',
+    question: 'How does the MCP server connect with AI coding agents (Claude Code, Cursor, Windsurf)?',
+    answerHtml: `Kuchi runs an open Model Context Protocol (MCP) server at <code>${MCP_URL}</code>. In Claude Code, Cursor, Windsurf, Codex, ChatGPT, or Gemini CLI, simply add the MCP endpoint URL to your client configuration. No authentication tokens or API keys are required.`,
+    plainText: `Kuchi runs an open Model Context Protocol (MCP) server at ${MCP_URL}. In Claude Code, Cursor, Windsurf, Codex, ChatGPT, or Gemini CLI, simply add the MCP endpoint URL to your client configuration. No authentication tokens or API keys are required.`,
+  },
+  {
+    id: 'real-vs-ai',
+    question: 'Are the videos real or AI-generated?',
+    answerHtml: 'All videos in Kuchi are real product-launch videos created and published by actual startups, companies, and creative studios. Each video includes verified performance snapshots, source links, and detailed frame timing analysis.',
+    plainText: 'All videos in Kuchi are real product-launch videos created and published by actual startups, companies, and creative studios. Each video includes verified performance snapshots, source links, and detailed frame timing analysis.',
+  },
+  {
+    id: 'pricing-cost',
+    question: 'What does Kuchi cost?',
+    answerHtml: 'Kuchi is 100% free to use. There are no subscription plans, no paywalls, no credits, and no usage fees for either the web gallery or the MCP agent server.',
+    plainText: 'Kuchi is 100% free to use. There are no subscription plans, no paywalls, no credits, and no usage fees for either the web gallery or the MCP agent server.',
+  },
+  {
+    id: 'account-requirements',
+    question: 'Do I need an account or API key?',
+    answerHtml: 'No. Kuchi requires no user accounts, no sign-in, and no API keys. The web gallery and MCP endpoints are publicly accessible with zero authentication.',
+    plainText: 'No. Kuchi requires no user accounts, no sign-in, and no API keys. The web gallery and MCP endpoints are publicly accessible with zero authentication.',
+  },
+  {
+    id: 'copy-vs-inspiration',
+    question: 'Will my video be a copy of the reference?',
+    answerHtml: 'No. Your agent adopts only the motion choreography, timing, and compositional structure. Your product’s branding, UI recordings, copy, typography, color palette, and assets belong entirely to you. Kuchi’s automated remake checks explicitly flag any borrowed assets or placeholders. The reference videos belong to their owners, and you are responsible for the rights to your own output.',
+    plainText: 'No. Your agent adopts only the motion choreography, timing, and compositional structure. Your product’s branding, UI recordings, copy, typography, color palette, and assets belong entirely to you. Kuchi’s automated remake checks explicitly flag any borrowed assets or placeholders. The reference videos belong to their owners, and you are responsible for the rights to your own output.',
+  },
+  {
+    id: 'privacy-details',
+    question: 'What happens to my product details?',
+    answerHtml: 'When your agent calls Kuchi to plan or inspect a remake, your product details are used solely to generate that immediate response. Kuchi never stores your proprietary product details, never trains models on your inputs, and never shares data with third parties. Learn more in our <a href="/privacy">privacy policy</a>.',
+    plainText: 'When your agent calls Kuchi to plan or inspect a remake, your product details are used solely to generate that immediate response. Kuchi never stores your proprietary product details, never trains models on your inputs, and never shares data with third parties. Learn more in our privacy policy at https://kuchi.kalarislabs.com/privacy.',
+  },
+  {
+    id: 'library-updates',
+    question: 'How often is the library updated?',
+    answerHtml: 'The Kalaris Labs team adds new launch video references daily. Connected MCP agents automatically access newly added videos immediately without needing updates or reinstallations.',
+    plainText: 'The Kalaris Labs team adds new launch video references daily. Connected MCP agents automatically access newly added videos immediately without needing updates or reinstallations.',
+  },
+  {
+    id: 'support-help',
+    question: 'Where do I ask for help or report an issue?',
+    answerHtml: 'If you encounter any issues or have questions, check our <a href="/support">support page</a> or email <a href="mailto:support@kalarislabs.com">support@kalarislabs.com</a>.',
+    plainText: 'If you encounter any issues or have questions, check our support page at https://kuchi.kalarislabs.com/support or email support@kalarislabs.com.',
+  },
+];
+
+const faqItems = faqData.map((item) => ({
+  id: item.id,
+  question: item.question,
+  answer: item.answerHtml,
+}));
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqData.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: item.plainText,
+    },
+  })),
+};
+---
+<section class="faq section" id="faq" aria-labelledby="faq-title">
+  <div class="connect-heading">
+    <h2 id="faq-title">Frequently asked questions.</h2>
+    <p class="connect-sub">Everything you need to know about Kuchi templates, the MCP agent connection, and video remakes.</p>
+  </div>
+
+  <div class="faq-container">
+    <FaqComponent client:load items={faqItems} defaultValue="what-is-kuchi" />
+  </div>
+
+  <noscript>
+    <div class="faq-fallback">
+      {faqData.map((item) => (
+        <details class="faq-fallback-item">
+          <summary><span>{item.question}</span></summary>
+          <p set:html={item.answerHtml} />
+        </details>
+      ))}
+    </div>
+  </noscript>
+
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+</section>
+
+<style>
+  .faq {
+    margin-top: clamp(72px, 9vw, 112px);
+  }
+  .faq-container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+  .faq-fallback {
+    max-width: 720px;
+    margin: 24px auto 0;
+    border: 1px solid var(--k-line);
+    border-radius: 12px;
+    background: var(--k-paper);
+    overflow: hidden;
+  }
+  .faq-fallback-item {
+    border-top: 1px solid var(--k-line);
+  }
+  .faq-fallback-item:first-child {
+    border-top: none;
+  }
+  .faq-fallback-item summary {
+    padding: 16px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 15.5px;
+    color: var(--k-ink);
+  }
+  .faq-fallback-item p {
+    padding: 0 20px 16px;
+    margin: 0;
+    color: var(--k-muted);
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+  .faq-fallback-item p :global(a) {
+    color: var(--k-ink);
+    text-underline-offset: 3px;
+  }
+  .faq-fallback-item p :global(code) {
+    font: 13px/1.5 var(--k-mono);
+    color: var(--k-ink);
+    background: var(--k-wash);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+</style>

@@ -6,7 +6,8 @@
     "./worker-configuration.d.ts"
   ],
   "exclude": [
-    "dist"
+    "dist",
+    "src/registry/files"
   ],
   "compilerOptions": {
     "baseUrl": ".",

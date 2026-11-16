@@ -3,7 +3,7 @@ import type { APIRoute } from 'astro';
 
 export const prerender = true;
 
-const PAGES = ['/', '/privacy', '/terms', '/support'];
+const PAGES = ['/', '/privacy', '/terms', '/support', '/components'];
 
 export const GET: APIRoute = ({ site }) => {
   const urls = PAGES.map((path) => `  <url><loc>${new URL(path, site).href}</loc></url>`).join('\n');

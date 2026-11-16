@@ -1,0 +1,117 @@
+---
+// /components: copy-paste video components (Remotion). Static; the filter, dialog and
+// copy buttons are src/scripts/components-page.ts. Source is fetched from /r/<name>.json
+// only when a component is opened.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SkipLink from '../components/SkipLink.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Toast from '../components/Toast.astro';
+import { components, categories, categoryLabels, installCommand, posterUrl, videoUrl } from '../lib/components-catalog';
+
+export const prerender = true;
+---
+<BaseLayout title="Video components · Kuchi" description="Copy-paste Remotion components for launch videos: text, scenes, device screens, captions and more. One command installs the source into your project.">
+  <SkipLink href="#cmp-title" label="Skip to components" />
+  <SiteHeader navHref="/" navLabel="Kuchi ↗" />
+  <main class="document">
+    <section class="cmp section" aria-labelledby="cmp-title">
+      <div class="cmp-head">
+        <h1 id="cmp-title">Video components</h1>
+        <p>Remotion components for the shots a launch video is made of. One command copies the source into your project, so the code is yours to edit.</p>
+      </div>
+
+      <div class="cmp-tools">
+        <label class="search-label"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="cmp-search" type="search" placeholder="Search components…" aria-label="Search components"></label>
+        <div class="cmp-chips" role="group" aria-label="Category">
+          <button type="button" class="cmp-chip" data-cat="all" aria-pressed="true">All</button>
+          {categories.map((key) => <button type="button" class="cmp-chip" data-cat={key} aria-pressed="false">{categoryLabels[key]}</button>)}
+        </div>
+        <span id="cmp-count" class="cmp-count" role="status" aria-live="polite">{components.length} components</span>
+      </div>
+
+      <ul class="cmp-grid" id="cmp-grid">
+        {components.map((item) => (
+          <li class="cmp-card" data-name={item.name} data-cat={item.category} data-search={`${item.title} ${item.description} ${item.category}`.toLowerCase()}>
+            <button type="button" class="cmp-open" data-open={item.name} aria-label={`Open ${item.title}`}>
+              <span class="cmp-media">
+                <img src={posterUrl(item.name)} alt="" loading="lazy" decoding="async" width="640" height="360" data-poster>
+                <video src={videoUrl(item.name)} muted loop playsinline preload="none" data-preview></video>
+              </span>
+              <span class="cmp-meta">
+                <span class="cmp-title">{item.title}</span>
+                <span class="cmp-cat">{categoryLabels[item.category]}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div id="cmp-empty" class="empty" hidden><p>No matching components.</p><button type="button" id="cmp-reset">Reset filters ↗</button></div>
+    </section>
+  </main>
+
+  <dialog id="cmp-dialog" class="cmp-dialog" aria-labelledby="cmp-d-title">
+    <div class="cmp-d-bar">
+      <h2 id="cmp-d-title"></h2>
+      <button type="button" class="cmp-d-close" id="cmp-d-close" aria-label="Close">✕</button>
+    </div>
+    <div class="cmp-d-body" data-lenis-prevent>
+      <p id="cmp-d-desc" class="cmp-d-desc"></p>
+      <div class="cmp-install">
+        <code id="cmp-d-cmd"></code>
+        <button type="button" class="pill pill-secondary" id="cmp-copy-cmd">Copy command</button>
+      </div>
+      <p class="cmp-d-note" id="cmp-d-deps"></p>
+      <div class="cmp-d-code-head"><span id="cmp-d-file"></span><button type="button" class="pill pill-secondary" id="cmp-copy-src">Copy code</button></div>
+      <pre class="cmp-code" tabindex="0"><code id="cmp-d-src">Loading…</code></pre>
+    </div>
+  </dialog>
+
+  <Toast />
+  <SiteFooter />
+
+  <script>
+    import '../scripts/components-page.ts';
+  </script>
+</BaseLayout>
+
+<style>
+  .cmp { max-width: 1200px; margin: 0 auto; padding: 56px 0 96px; }
+  .cmp-head h1 { font-size: clamp(32px, 5vw, 56px); line-height: 1.1; margin: 0 0 12px; }
+  .cmp-head p { max-width: 62ch; margin: 0 0 32px; color: var(--k-muted); line-height: 1.6; }
+  .cmp-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-bottom: 24px; }
+  .cmp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cmp-chip { border: 1px solid var(--k-line); background: transparent; color: var(--k-ink); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; transition: background-color 160ms var(--ease-out-strong, ease-out), transform 160ms var(--ease-out-strong, ease-out); }
+  .cmp-chip[aria-pressed='true'] { background: var(--k-ink); color: var(--k-paper); border-color: var(--k-ink); }
+  .cmp-chip:active { transform: scale(0.97); }
+  .cmp-count { margin-left: auto; font-size: 14px; color: var(--k-muted); }
+  .cmp-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+  .cmp-card[hidden] { display: none; }
+  .cmp-open { all: unset; box-sizing: border-box; display: block; width: 100%; cursor: pointer; border-radius: 14px; }
+  .cmp-open:focus-visible { outline: 2px solid var(--k-accent); outline-offset: 3px; }
+  .cmp-media { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: var(--k-wash); border: 1px solid var(--k-line); }
+  .cmp-media img, .cmp-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .cmp-media video { opacity: 0; transition: opacity 200ms var(--ease-out-strong, ease-out); }
+  .cmp-media.playing video { opacity: 1; }
+  .cmp-media img.missing { visibility: hidden; }
+  .cmp-meta { display: flex; justify-content: space-between; gap: 12px; padding: 10px 2px 0; }
+  .cmp-title { font-weight: 600; }
+  .cmp-cat { color: var(--k-muted); font-size: 14px; }
+  .cmp-dialog { width: min(920px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); margin: auto; padding: 0; border: 1px solid var(--k-line); border-radius: 18px; background: var(--k-paper); color: var(--k-ink); overflow: hidden; }
+  .cmp-dialog[open] { display: flex; flex-direction: column; animation: cmp-in 200ms var(--ease-out-strong, ease-out); }
+  .cmp-dialog::backdrop { background: rgb(0 0 0 / 0.5); }
+  @keyframes cmp-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+  .cmp-d-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--k-line); }
+  .cmp-d-bar h2 { margin: 0; font-size: 20px; }
+  .cmp-d-close { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 999px; }
+  .cmp-d-close:hover { background: var(--k-wash); }
+  .cmp-d-close:focus-visible { outline: 2px solid var(--k-accent); }
+  .cmp-d-body { overflow: auto; padding: 20px; display: grid; gap: 16px; }
+  .cmp-d-desc { margin: 0; line-height: 1.6; color: var(--k-muted); }
+  .cmp-install { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .cmp-install code { flex: 1 1 320px; min-width: 0; overflow-x: auto; white-space: nowrap; padding: 10px 14px; border-radius: 10px; background: var(--k-wash); font-family: var(--k-mono); font-size: 13px; }
+  .cmp-d-note { margin: 0; font-size: 14px; color: var(--k-muted); }
+  .cmp-d-code-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-family: var(--k-mono); font-size: 13px; color: var(--k-muted); }
+  .cmp-code { margin: 0; max-height: 46dvh; overflow: auto; padding: 14px; border-radius: 10px; background: var(--k-wash); font-family: var(--k-mono); font-size: 12.5px; line-height: 1.55; }
+  @media (prefers-reduced-motion: reduce) { .cmp-dialog[open] { animation: none; } .cmp-media video { transition: none; } }
+</style>

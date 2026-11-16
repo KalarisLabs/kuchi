@@ -128,7 +128,7 @@ for (const [file, title, heading] of [['privacy.html', 'Privacy — Kuchi', 'Kuc
 }
 
 test('every page ends with the site footer and its links', async () => {
-  for (const file of ['index.html', 'privacy.html', 'terms.html', 'support.html']) {
+  for (const file of ['index.html', 'privacy.html', 'terms.html', 'support.html', 'components.html']) {
     const footer = (await read(dist, file)).match(/<footer\b[\s\S]*?<\/footer>/)?.[0] ?? '';
     for (const href of ['/privacy', '/terms', '/support', '/status.html', 'https://x.com/sayanchowdhuryai']) {
       assert.ok(footer.includes(`href="${href}"`), `${file}: the footer does not link ${href}`);
@@ -205,7 +205,7 @@ test('the hero agent tile carries every agent logo, the first one visible withou
 });
 
 test('no page references files that do not exist', async () => {
-  for (const file of ['index.html', 'privacy.html', 'terms.html', 'support.html']) {
+  for (const file of ['index.html', 'privacy.html', 'terms.html', 'support.html', 'components.html']) {
     const html = await read(dist, file);
     assert.ok(!html.includes('/shared/site-header'), `${file} still links the missing /shared/site-header files`);
     for (const [, path] of html.matchAll(/(?:src|href)="(\/[^"#?]*)[^"]*"/g)) {
@@ -232,7 +232,7 @@ test('the frontend build stays out of the backend routes and ships no stale copi
 });
 
 test('every page has link-preview tags, a canonical URL and an existing preview image', async () => {
-  for (const [file, path] of [['index.html', '/'], ['privacy.html', '/privacy'], ['terms.html', '/terms'], ['support.html', '/support']]) {
+  for (const [file, path] of [['index.html', '/'], ['privacy.html', '/privacy'], ['terms.html', '/terms'], ['support.html', '/support'], ['components.html', '/components']]) {
     const html = await read(dist, file);
     assert.match(html, new RegExp(`<link rel="canonical" href="https://kuchi\.kalarislabs\.com${path.replace('/', '\/')}"`), `${file} canonical`);
     for (const tag of ['og:title', 'og:description', 'og:image', 'og:url']) assert.match(html, new RegExp(`property="${tag}" content="[^"]+"`), `${file} is missing ${tag}`);
@@ -244,6 +244,23 @@ test('every page has link-preview tags, a canonical URL and an existing preview 
 
 test('the sitemap lists every page and robots.txt points to it', async () => {
   const sitemap = await read(dist, 'sitemap.xml');
-  for (const path of ['/', '/privacy', '/terms', '/support']) assert.ok(sitemap.includes(`<loc>https://kuchi.kalarislabs.com${path}</loc>`), `sitemap is missing ${path}`);
+  for (const path of ['/', '/privacy', '/terms', '/support', '/components']) assert.ok(sitemap.includes(`<loc>https://kuchi.kalarislabs.com${path}</loc>`), `sitemap is missing ${path}`);
   assert.match(await read(dist, 'robots.txt'), /^Sitemap: https:\/\/kuchi\.kalarislabs\.com\/sitemap\.xml$/m);
+});
+
+test('the components page and registry ship clean: free items only, no source named', async () => {
+  const html = await read(dist, 'components.html');
+  assert.match(html, /<h1[^>]*>Video components<\/h1>/);
+  const registry = JSON.parse(await read(dist, 'r/registry.json'));
+  assert.ok(registry.items.length >= 60, 'registry lost components');
+  const licenceLine = /Portions Copyright \(c\) 2026 Sri Nath \(snap-cn\)\. MIT License\. See THIRD_PARTY_LICENSES\./g;
+  for (const item of registry.items) {
+    const raw = await read(dist, `r/${item.name}.json`);
+    const body = JSON.parse(raw);
+    assert.ok(body.files.every((f) => f.content && f.content.length > 20), `${item.name} has an empty file (a Pro stub?)`);
+    assert.ok(!/snap-?cn/i.test(raw.replace(licenceLine, '')), `r/${item.name}.json names the upstream project`);
+    assert.ok(!raw.includes('media.snap'), `r/${item.name}.json hotlinks the upstream media host`);
+  }
+  assert.ok(!/snap-?cn/i.test(html), 'components.html names the upstream project');
+  assert.ok(!/snap-?cn/i.test(await read(dist, 'r/registry.json')), 'r/registry.json names the upstream project');
 });

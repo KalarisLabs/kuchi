@@ -1,0 +1,1497 @@
+[
+  {
+    "name": "agent-steps",
+    "type": "registry:component",
+    "title": "Agent Steps",
+    "description": "AI agent steps animation: a streaming task log with spinner and checkmarks for agent demos. An agent narrating its own work: the prompt lands in a pill, and under it a log writes itself one line at a time — each step running with a faint spinning globe, then flipping to past tense behind a check while the whole column steps up a row so the live line always sits on the centre.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/agent-steps.tsx",
+        "target": "components/kuchi/agent-steps.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "announce-title",
+    "type": "registry:component",
+    "title": "Announce Title",
+    "description": "Launch title animation, product announcement intro with kinetic typography. A four-shot launch title: the eyebrow rushes past the camera on a receding type plane and lands on a colour field, the name assembles word by word on paper, and a macro pan across the tagline cuts wide as the line builds itself last word first while a white sweep drains it out of colour.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/announce-title.tsx",
+        "target": "components/kuchi/announce-title.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "answer-highlight",
+    "type": "registry:component",
+    "title": "Answer Highlight",
+    "description": "AI answer highlight animation, ChatGPT-style chat response with a text selection. A question in a pill, an answer that writes itself a word at a time, and then the beat the whole shot is for: a caret lands mid-sentence and a selection band drags across one statement, wrapping the line the way a real one does — and settles onto the single word that matters.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/answer-highlight.tsx",
+        "target": "components/kuchi/answer-highlight.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "answer-stream",
+    "type": "registry:component",
+    "title": "Answer Stream",
+    "description": "Streaming AI response animation, from the send button to the answer typing in. The beat after send: a macro shot on the button that cuts — hard, on its fastest frame — to the answer building itself on the page, while the camera pulls back 1.364× about a focal point above the frame to keep up with it.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui",
+      "input"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/answer-stream.tsx",
+        "target": "components/kuchi/answer-stream.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "block-wordmark",
+    "type": "registry:component",
+    "title": "Block Wordmark",
+    "description": "Logo sting and wordmark animation: blocks build into your brand name. A wordmark builds out of solid blocks — a square scales in, a coloured deck fans out around it and winds back, the stack collapses and stretches into one block per letter, then each block flashes a colour and swaps for its real letterform.",
+    "category": "logos",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/block-wordmark.tsx",
+        "target": "components/kuchi/block-wordmark.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "bloom-lockup",
+    "type": "registry:component",
+    "title": "Bloom Lockup",
+    "description": "Logo reveal in four seconds. A wall of finished work blooms outward from your logo, cuts in tight on it, then bends away through a lens and a flash while the logo rises to take its wordmark and tagline.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/bloom-lockup/index.tsx",
+        "target": "components/kuchi/bloom-lockup/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/bloom-lockup/data.ts",
+        "target": "components/kuchi/bloom-lockup/data.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "brand-wheel",
+    "type": "registry:component",
+    "title": "Brand Wheel",
+    "description": "Rotating logos text: a lead word and a wheel of brand pills that rolls through the platforms you ship to, blurred rows above and below, then a cursor clicks the last one. Motion measured frame by frame from a recording.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/brand-wheel/index.tsx",
+        "target": "components/kuchi/brand-wheel/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/brand-wheel/data.ts",
+        "target": "components/kuchi/brand-wheel/data.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "button-press",
+    "type": "registry:component",
+    "title": "Button Press",
+    "description": "Cursor clicks a button: a cursor walks onto a split action button (label, divider, chevron), it darkens on hover, gives on press, spins while pending and lands on a drawn tick. The deploy, publish or send beat of every launch video.",
+    "category": "cursor",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui",
+      "cursor-track"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/button-press.tsx",
+        "target": "components/kuchi/button-press.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "capture-reveal",
+    "type": "registry:component",
+    "title": "Capture Reveal",
+    "description": "Screenshot capture animation: a toast counts \"Capturing selection…\" up to 100% over a browser window, the window drops away and shrinks, the toast pops to \"Copied to clipboard.\" and a two-line headline rises out from behind the window while the cursor glides up. Every curve was measured off a recording frame by frame: the window's drop and shrink share one cubic-bezier, the toast pops on another, the headline rises without scaling or blurring, and type moves by fractions of a pixel.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/capture-reveal.tsx",
+        "target": "components/kuchi/capture-reveal.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "card-rail",
+    "type": "registry:component",
+    "title": "Card Rail",
+    "description": "Card carousel animation: cards flicked sideways on a tilted 3D plane. A rail of cards flicked sideways across a tilted plane.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/card-rail.tsx",
+        "target": "components/kuchi/card-rail.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "caret",
+    "type": "registry:component",
+    "title": "UI Caret",
+    "description": "A blinking text caret — a controlled vertical bar, or a pure motion atom that blinks deterministically from useCurrentFrame.",
+    "category": "library",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/caret.tsx",
+        "target": "components/kuchi/caret.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "channel-thread",
+    "type": "registry:component",
+    "title": "Channel Thread",
+    "description": "Slack-style chat animation: team messages arrive with typing dots. A work chat filling itself in, the way the channel actually reads: an avatar, a name in bold, a quiet timestamp and the messages as plain lines under them.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/channel-thread.tsx",
+        "target": "components/kuchi/channel-thread.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "check-cycle",
+    "type": "registry:component",
+    "title": "Check Cycle",
+    "description": "Rotating words beside a checkbox: a sentence that finishes itself several ways. \"Create your own\" sits left of a ticked shadcn-style checkbox and the word to its right rolls up out of a slot — Intros, Demos, Launches, Changelogs, Tutorials, And more — then the line steps back a little and rests.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/check-cycle.tsx",
+        "target": "components/kuchi/check-cycle.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "click-type",
+    "type": "registry:component",
+    "title": "Click Type",
+    "description": "Click to type: a prompt composer (Prompt Send's glass panel, writing surface and round send button) whose placeholder writes itself while a cursor flies in from the edge and clicks the field, then a hard cut into the field where the real prompt types at the caret and send arms. Two shots of one composer under a constant camera, anchored on the first letter, so the type never scales while it moves.",
+    "category": "cursor",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui",
+      "input",
+      "caret",
+      "cursor-track"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/click-type.tsx",
+        "target": "components/kuchi/click-type.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "count-grid",
+    "type": "registry:component",
+    "title": "Count Grid",
+    "description": "Number count-up grid: cards multiply and a counter jumps, the it-scales stat shot. A grid of cards rushes in under a horizontal smear, settles on five and a label, then the camera pulls back a fraction while every empty cell around them fills in from the middle out and the number jumps.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/count-grid.tsx",
+        "target": "components/kuchi/count-grid.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "cursor-track",
+    "type": "registry:component",
+    "title": "Cursor Track",
+    "description": "Cursor click animation: a mouse pointer that moves and clicks over any UI. A synthetic cursor that walks a path of normalized waypoints over any children and pulses a click ring on arrival.",
+    "category": "screens",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/cursor-track.tsx",
+        "target": "components/kuchi/cursor-track.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "cut-lockup",
+    "type": "registry:component",
+    "title": "Cut Lockup",
+    "description": "Logo reveal in hard cuts. The logo lands huge on grid paper, steps down in three cuts, pushes in, cuts to night where its construction lines and anchor points draw themselves, then a paper panel wipes up onto the resting lockup.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/cut-lockup/index.tsx",
+        "target": "components/kuchi/cut-lockup/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/cut-lockup/data.ts",
+        "target": "components/kuchi/cut-lockup/data.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "dot-bloom",
+    "type": "registry:component",
+    "title": "Dot Bloom",
+    "description": "Halftone dot transition. White dots spark over the outgoing shot while it washes out to cream, then the cream breaks into warm coral, peach and blush dots in drifting diagonal bands that thin out cell by cell until the incoming shot is all that is left.",
+    "category": "transitions",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/dot-bloom.tsx",
+        "target": "components/kuchi/dot-bloom.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "drop-line",
+    "type": "registry:component",
+    "title": "Drop Line",
+    "description": "Words cut past one card at a time, then the last word sinks out from under the dot of its own i",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/drop-line/index.tsx",
+        "target": "components/kuchi/drop-line/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/drop-line/data.ts",
+        "target": "components/kuchi/drop-line/data.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "follower-rush",
+    "type": "registry:component",
+    "title": "Follower Rush",
+    "description": "Follower count animation: X/Twitter follower notification with a count-up and avatar wave, for social proof. An X-style follower notification that piles up — avatars stack in and the count explodes, then the row bends into an undulating wave of faces.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/follower-rush.tsx",
+        "target": "components/kuchi/follower-rush.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "font-shuffle",
+    "type": "registry:component",
+    "title": "Font Shuffle",
+    "description": "Launch title animation: the line decodes out of scrambled glyphs set in the wrong typeface, flashes the accent, settles to ink, then the product name cycles through eleven typefaces (mono, light, humanist, pixel, script, slab, condensed, italic, blackletter, wide, bold grotesk) while the line zooms a step closer on each swap. Every beat is a held state measured off a recording frame by frame — timing, masks, layout, zoom and colour.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/font-shuffle.tsx",
+        "target": "components/kuchi/font-shuffle.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "gather-lockup",
+    "type": "registry:component",
+    "title": "Gather Lockup",
+    "description": "Logo reveal in two and a half seconds. A wall of your work sits under a line of type.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/gather-lockup/index.tsx",
+        "target": "components/kuchi/gather-lockup/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/gather-lockup/data.ts",
+        "target": "components/kuchi/gather-lockup/data.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "hello-zoom",
+    "type": "registry:component",
+    "title": "Hello Zoom",
+    "description": "Words flicker in place, one line types on, then the camera dives through its own letters into the next card",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/hello-zoom/index.tsx",
+        "target": "components/kuchi/hello-zoom/index.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "hero-launch",
+    "type": "registry:component",
+    "title": "Product Hero",
+    "description": "Product launch hero scene for a SaaS launch video intro. Cinematic product-launch hero — two cards slide into formation as the headline reveals above.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/hero-launch.tsx",
+        "target": "components/kuchi/hero-launch.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "input",
+    "type": "registry:component",
+    "title": "UI Input",
+    "description": "A text input whose idle/hover/active/typing/invalid state is a pure function of the timeline; the focus ring, border, caret, and value reveal are keyframed presets.",
+    "category": "library",
+    "dependencies": [
+      "remotion",
+      "class-variance-authority"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui",
+      "caret",
+      "utils"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/input.tsx",
+        "target": "components/kuchi/input.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/use-input-transition.ts",
+        "target": "components/kuchi/use-input-transition.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "karaoke-captions",
+    "type": "registry:component",
+    "title": "Karaoke Captions",
+    "description": "Karaoke captions: word-by-word highlighted subtitles synced to speech. A caption line that fills word by word as it is spoken — heavy outlined type that reads on any footage.",
+    "category": "captions",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/karaoke-captions.tsx",
+        "target": "components/kuchi/karaoke-captions.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "kuchi-ui",
+    "type": "registry:lib",
+    "title": "kuchi UI Core",
+    "description": "Shared timeline-fold hook, theme context, and color math for kuchi UI primitives.",
+    "category": "library",
+    "dependencies": [
+      "remotion",
+      "culori",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [
+      "@types/culori"
+    ],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/lib/kuchi-ui/timeline.ts",
+        "target": "lib/kuchi-ui/timeline.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-ui/theme.ts",
+        "target": "lib/kuchi-ui/theme.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-ui/fonts.ts",
+        "target": "lib/kuchi-ui/fonts.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-ui/color.ts",
+        "target": "lib/kuchi-ui/color.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-ui/motion.ts",
+        "target": "lib/kuchi-ui/motion.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-ui/item.tsx",
+        "target": "lib/kuchi-ui/item.tsx",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-ui/types.ts",
+        "target": "lib/kuchi-ui/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-ui/index.ts",
+        "target": "lib/kuchi-ui/index.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "laptop-frame",
+    "type": "registry:component",
+    "title": "Laptop Frame",
+    "description": "MacBook laptop mockup animation that opens and zooms into your screenshot or video. MacBook-style laptop that opens, runs a dynamic-island notch notification, then dives the camera into the screen until an image or video fills the frame.",
+    "category": "screens",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/laptop-frame.tsx",
+        "target": "components/kuchi/laptop-frame.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "logo-assemble",
+    "type": "registry:component",
+    "title": "Logo Assemble",
+    "description": "Logo reveal animation: image cards orbit and collapse into your logo and brand name. A single ring of image cards revolves around a centred title, then spins inward and drains to the middle — giving birth to a simple logo that slides left as the brand name reveals to its right.",
+    "category": "logos",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/logo-assemble.tsx",
+        "target": "components/kuchi/logo-assemble.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "logo-collapse",
+    "type": "registry:component",
+    "title": "Logo Collapse",
+    "description": "Logo reveal intro: a stack of photos flicks through and collapses into your logo. A stack of shots flicked through, collapsing into your mark, and the wordmark landing beside it.",
+    "category": "logos",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/logo-collapse.tsx",
+        "target": "components/kuchi/logo-collapse.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "logo-drift",
+    "type": "registry:component",
+    "title": "Logo Drift",
+    "description": "Logo wall animation: a logo cloud of integrations drifting behind a headline. A field of tiles drifting past a headline while the camera pulls steadily back, so the wall of things-it-works-with keeps arriving from every edge.",
+    "category": "logos",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/logo-drift.tsx",
+        "target": "components/kuchi/logo-drift.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "logo-flicker",
+    "type": "registry:component",
+    "title": "Logo Flicker",
+    "description": "Logo reveal intro: a fast image flicker that settles on your logo. Images flip across a central card very fast, the flicker decelerates and fades, and the logo and brand name resolve underneath — a strobe of imagery settling onto the mark.",
+    "category": "logos",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/logo-flicker.tsx",
+        "target": "components/kuchi/logo-flicker.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "moodboard-reveal",
+    "type": "registry:component",
+    "title": "Moodboard Reveal",
+    "description": "Photo gallery reveal: a moodboard fly-through that lands on a hero image. A kinetic headline with a swapping inline image, then a scattered gallery of photos flies in, the camera pushes through it as the background lifts from near-black to off-white, and it lands on a single hero image.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/moodboard-reveal.tsx",
+        "target": "components/kuchi/moodboard-reveal.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "orb-swarm",
+    "type": "registry:component",
+    "title": "Orb Swarm",
+    "description": "Kinetic typography scene with glass orbs: a sentence told one beat at a time while four orbs burst out of it, split into eight and sixteen, wind into a clockwise vortex, collapse into a knot, pay out as a chain, loop around the closing words and shrink away bead by bead. Every phase was measured frame by frame off a 24fps reference and is replayed on the same clock; the orbs are shaded per pixel into a canvas (a scrolling band texture bowed like latitude lines, a soft glass edge) and the type is drawn into the same canvas four times finer than the frame so its baselines land between pixels.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/orb-swarm.tsx",
+        "target": "components/kuchi/orb-swarm.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "orbit-gallery",
+    "type": "registry:component",
+    "title": "Orbit Gallery",
+    "description": "Image gallery intro: photos spiral into the centre around a title. An image-universe hero: a continuous stream of photos flows along an Archimedean spiral (a vortex) from the frame edges into the center — evenly spaced by arc length, shrinking and rotating to follow the coil, with the title held in the clear middle.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/orbit-gallery.tsx",
+        "target": "components/kuchi/orbit-gallery.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "phone-frame",
+    "type": "registry:component",
+    "title": "Phone Frame",
+    "description": "iPhone mockup animation: phone device frame for app screenshots and screen recordings. iPhone-style device frame with a dynamic island and a screen slot — flat or lightly 3D-tilted, with rise, rotate-in, or float entrances and a subtle float loop.",
+    "category": "screens",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/phone-frame.tsx",
+        "target": "components/kuchi/phone-frame.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "phone-stack",
+    "type": "registry:component",
+    "title": "Phone Stack",
+    "description": "Stacked phone screens with video. Phone screens rise out of a blur from below one after another, and each new one pushes the stack back: the older screens shrink and step up so only their tops peek out above the newest.",
+    "category": "screens",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/phone-stack.tsx",
+        "target": "components/kuchi/phone-stack.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "portal-intro",
+    "type": "registry:component",
+    "title": "Portal Intro",
+    "description": "Sentence-to-picture intro. The lead words fade up one at a time, the line re-sets with a small rounded picture chip inside it and leans in until the chip takes the frame; a title types itself over the picture, lifts away, and the mark and the name arrive.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/portal-intro.tsx",
+        "target": "components/kuchi/portal-intro.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "prompt-send",
+    "type": "registry:component",
+    "title": "Prompt Send",
+    "description": "AI prompt typing animation: a chat input types a prompt and a cursor clicks send. A composer that unrolls from a hairline, writes a brief into itself while the camera cuts in and rides the caret, then cuts back out to the send button as a pointer arrives and clicks it.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui",
+      "input"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/prompt-send.tsx",
+        "target": "components/kuchi/prompt-send.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "prompt-zoom",
+    "type": "registry:component",
+    "title": "Prompt Zoom",
+    "description": "AI prompt zoom: an assistant home screen that cuts into the chat input as the prompt types. An assistant landing screen that offers its suggestions, then cuts — hard, in a single frame — into the caret, where the prompt types itself.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui",
+      "input"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/prompt-zoom.tsx",
+        "target": "components/kuchi/prompt-zoom.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "pulsing-border",
+    "type": "registry:component",
+    "title": "Pulsing Border",
+    "description": "AI glow border: a pulsing thinking frame around the screen. Glowing 'AI is working' frame — a soft pulsing border overlay that breathes around the scene edges while a response streams.",
+    "category": "effects",
+    "dependencies": [
+      "remotion",
+      "@paper-design/shaders-react"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/pulsing-border.tsx",
+        "target": "components/kuchi/pulsing-border.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "punch-lines",
+    "type": "registry:component",
+    "title": "Punch Lines",
+    "description": "Kinetic typography title cards: bold statements that cut hard between beats. A run of full-frame title cards that cut hard between beats.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/punch-lines.tsx",
+        "target": "components/kuchi/punch-lines.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "reel-collage",
+    "type": "registry:component",
+    "title": "Reel Collage",
+    "description": "Photo reel that shuts into a collage. A picture cuts through a quick reel between two captions and slowly zooms, then shuts like an eyelid while the captions fold into one stacked line; the copy swaps, the lines split, and a scattered collage blooms in around them on a peach flush.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/reel-collage.tsx",
+        "target": "components/kuchi/reel-collage.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "reel-wall",
+    "type": "registry:component",
+    "title": "Reel Wall",
+    "description": "Curved video wall for Remotion. A ring of vertical clips turns past in the dark: it eases in from rest on twos, then keeps turning at an even speed.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/reel-wall.tsx",
+        "target": "components/kuchi/reel-wall.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "roster-grant",
+    "type": "registry:component",
+    "title": "Roster Grant",
+    "description": "Access granted animation: a cursor clicks a CTA and team avatars switch on. Three rows of roster cards stream past a call to action, a pointer walks in and clicks it, and the monograms start turning to the accent one every seven frames — top row, middle, bottom, top, bottom, middle, so it reads as a system granting rather than a list iterating.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/roster-grant.tsx",
+        "target": "components/kuchi/roster-grant.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "screen-recording",
+    "type": "registry:component",
+    "title": "Screen Recording",
+    "description": "Screen recording zoom: crop and auto-zoom a product demo capture. The treatment that turns a raw screen capture into a shot: crop the browser and OS chrome off each edge as a fraction, fit what is left to the frame, and run a keyframed camera that pushes in on whatever matters at a given frame and holds until the next move.",
+    "category": "screens",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/screen-recording.tsx",
+        "target": "components/kuchi/screen-recording.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "search-typing",
+    "type": "registry:component",
+    "title": "Search Typing",
+    "description": "Search bar typing animation for AI search and command palette demos. A search field wider than the shot: two thirds in frame, then it comes forward, types across its left half, pages to its right half, and goes back.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui",
+      "caret",
+      "input"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/search-typing.tsx",
+        "target": "components/kuchi/search-typing.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "sky-lockup",
+    "type": "registry:component",
+    "title": "Sky Lockup",
+    "description": "Logo outro in under two seconds. A one-line promise takes itself apart word by word, the white page washes off to a soft sky, and the mark in the middle of the sentence slides over, turns white and picks up your wordmark.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/sky-lockup/index.tsx",
+        "target": "components/kuchi/sky-lockup/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/sky-lockup/data.ts",
+        "target": "components/kuchi/sky-lockup/data.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "spec-sweep",
+    "type": "registry:component",
+    "title": "Spec Sweep",
+    "description": "A one-line spec slides in word by word while a highlight runs along it and an icon charges up",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/spec-sweep/index.tsx",
+        "target": "components/kuchi/spec-sweep/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/spec-sweep/data.ts",
+        "target": "components/kuchi/spec-sweep/data.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "status-cycle",
+    "type": "registry:component",
+    "title": "Status Cycle",
+    "description": "Status badge animation: a pill whose label cycles through states. A centred line whose status pill cycles: the label rolls up behind a hard clip while the pill's width springs past its target and back, and the line re-centres around it.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/status-cycle.tsx",
+        "target": "components/kuchi/status-cycle.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "terminal-simulator",
+    "type": "registry:component",
+    "title": "Terminal Simulator",
+    "description": "Terminal animation: CLI demo that types commands and prints output. Terminal window with chunked command playback, freeze-frame pauses, step scrolling, and an optional cursor-pinned zoom camera.",
+    "category": "screens",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/terminal-simulator.tsx",
+        "target": "components/kuchi/terminal-simulator.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "text-build",
+    "type": "registry:component",
+    "title": "Text Build",
+    "description": "Word-by-word text build animation that keeps the line centred. Words enter one at a time while already-placed words physically reflow to stay centered — a growing line on the x axis or a growing stack on the y axis.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/text-build.tsx",
+        "target": "components/kuchi/text-build.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "text-highlight",
+    "type": "registry:component",
+    "title": "Text Highlight",
+    "description": "Text highlight animation: marker highlighter, underline, strikethrough and shimmer on a word. Animated emphasis on one span inside a static sentence — marker sweep, color shift, underline, strikethrough-replace, or shimmer.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/text-highlight.tsx",
+        "target": "components/kuchi/text-highlight.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "text-reveal",
+    "type": "registry:component",
+    "title": "Text Reveal",
+    "description": "Text reveal animation: word-by-word and letter-by-letter kinetic typography with blur-in, fade, slide, scale and tracking-in presets. One staggered enter/exit text animator: fade, slide, blur, scale, mask and tracking effects over character, word, line or block units, with 14 classic looks as presets.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/text-reveal.tsx",
+        "target": "components/kuchi/text-reveal.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "text-rewrite",
+    "type": "registry:component",
+    "title": "Text Rewrite",
+    "description": "Text rewrite animation, a typewriter line that deletes and retypes its ending. A line that writes itself a word at a time, comes forward and gets selected — then its opening is swept away by a clip that cuts letters in half as it passes, and a new ending is written on while the line slides to its new centre.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/text-rewrite.tsx",
+        "target": "components/kuchi/text-rewrite.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "text-select",
+    "type": "registry:component",
+    "title": "Text Select",
+    "description": "Typewriter with text selection: a line types word by word, then gets highlighted. A line that writes itself a word at a time — each one arriving in the accent and cooling to the foreground a beat later, so exactly one word is ever coloured — then pushes forward to full size on a baseline-pivoted scale and gets selected, the drag sweeping across under a gradient sheen with a hard caret edge.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/text-select.tsx",
+        "target": "components/kuchi/text-select.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "text-swap",
+    "type": "registry:component",
+    "title": "Text Swap",
+    "description": "Text swap animation, rotating headline that replaces one line with another. Replaces one line of text with another using exit-then-enter scheduling, with five transition presets: fade-through, crossfade, shared-axis-y, shared-axis-z, and cut.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/text-swap.tsx",
+        "target": "components/kuchi/text-swap.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "text-swell",
+    "type": "registry:component",
+    "title": "Text Swell",
+    "description": "Kinetic typography title with a bouncing letter wave. A title reveal where the lead word floats toward the viewer and hangs there while the sentence assembles around it — each trailing word pushes in and its letters bounce up off the baseline in a wave — before the whole line falls back to size.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/text-swell.tsx",
+        "target": "components/kuchi/text-swell.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "title-sweep",
+    "type": "registry:component",
+    "title": "Title Sweep",
+    "description": "An end title lit by a gradient that travels through the letters, cuts in the dark, and a second title takes over",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/title-sweep/index.tsx",
+        "target": "components/kuchi/title-sweep/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/title-sweep/data.ts",
+        "target": "components/kuchi/title-sweep/data.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "type-morph",
+    "type": "registry:component",
+    "title": "Type Morph",
+    "description": "Typewriter effect: a headline types with a blinking caret, then morphs letter by letter. A headline that types itself under a glowing caret, sheds its lead, morphs letter by letter, and ends under a colour flood.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui",
+      "text-reveal"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/type-morph.tsx",
+        "target": "components/kuchi/type-morph.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/type-morph-timeline.ts",
+        "target": "components/kuchi/type-morph-timeline.ts",
+        "type": "registry:file"
+      }
+    ]
+  },
+  {
+    "name": "word-captions",
+    "type": "registry:component",
+    "title": "Word Captions",
+    "description": "TikTok-style captions: animated subtitles with word pop, Hormozi and MrBeast styles for Reels and Shorts. Burned-in captions in the styles big channels actually use — heavy Montserrat, a real outside outline so they read on any footage, and the spoken word springing to an accent.",
+    "category": "captions",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/word-captions.tsx",
+        "target": "components/kuchi/word-captions.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "word-flip",
+    "type": "registry:component",
+    "title": "Word Flip",
+    "description": "Word flip text rotator: a typewriter headline with a 3D rotating word. A headline types itself out, then one word cycles on a 3D flip — it sinks into an anticipation dip, throws up and away about its baseline under motion blur, and the next word unfurls from below.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/word-flip.tsx",
+        "target": "components/kuchi/word-flip.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "word-gather",
+    "type": "registry:component",
+    "title": "Word Gather",
+    "description": "Word-by-word sentence animation: words fly in out of order and settle into the line. A sentence that arrives one word at a time, out of order, and gathers.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/word-gather.tsx",
+        "target": "components/kuchi/word-gather.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "word-wheel",
+    "type": "registry:component",
+    "title": "Word Wheel",
+    "description": "Rotating words text: a slot machine word wheel that spins and stops on one word. A column of words that spins like a reel and stops on one of them.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/word-wheel.tsx",
+        "target": "components/kuchi/word-wheel.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "wordmark-cut",
+    "type": "registry:component",
+    "title": "Wordmark Cut",
+    "description": "Wordmark reveal end card: a huge brand name with a hard cut to a close-up. A wordmark twice the width of the frame, cooling from a lit gradient to ink while it settles, and then a hard cut onto its last letters and the dot — 1.71× nearer, with a shallow depth of field the wide shot does not have, which is the only thing that says the second shot is closer rather than just bigger.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-ui"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/wordmark-cut.tsx",
+        "target": "components/kuchi/wordmark-cut.tsx",
+        "type": "registry:component"
+      }
+    ]
+  }
+]

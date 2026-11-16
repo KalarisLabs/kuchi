@@ -200,25 +200,24 @@ export const KUCHI_MARK = {
   ],
 } as const;
 
-const SHOWCASE = "https://media.kuchi.kalarislabs.com/demos/showcase";
 
 /** The art from our own showcase: seven on the wall, four in the row, four they swap to. */
 export const IMAGES = [
-  `${SHOWCASE}/stock-830.webp`,
-  `${SHOWCASE}/937438c560ada1c83317f2c11b3454b0.jpg`,
-  `${SHOWCASE}/98f89cb9994f5c382ab964062c4039db.jpg`,
-  `${SHOWCASE}/stock-716.webp`,
-  `${SHOWCASE}/stock-906.webp`,
-  `${SHOWCASE}/b25b82db2892efff9be3204e860d30ee.jpg`,
-  `${SHOWCASE}/stock-896.webp`,
-  `${SHOWCASE}/821d815affa6496c39cbdeeec7a84603.jpg`,
-  `${SHOWCASE}/stock-903.webp`,
-  `${SHOWCASE}/stock-901.webp`,
-  `${SHOWCASE}/stock-564.webp`,
-  `${SHOWCASE}/stock-888.webp`,
-  `${SHOWCASE}/stock-857.webp`,
-  `${SHOWCASE}/stock-402.webp`,
-  `${SHOWCASE}/stock-953.webp`,
+  "https://kuchi-media.kalarislabs.com/components/art/art-08.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-10.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-09.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-09.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-06.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-09.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-04.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-02.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-09.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-07.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-06.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-05.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-07.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-11.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-10.svg",
 ] as const;
 
 /** A caption under each tile on the wall: what people cut with kuchi. */

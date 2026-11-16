@@ -202,7 +202,7 @@ export const DEFAULT_CARDS: readonly RailCard[] = (
     ["announce-title", "Announce Title", 170],
   ] as const
 ).map(([slug, title, frames]) => ({
-  image: `${POSTERS}${slug}.webp`,
+  image: `${POSTERS}art-${String((slug.length % 12) + 1).padStart(2, '0')}.svg`,
   title,
   note: `Scene · ${frames} frames`,
   tag: `@kuchi/${slug}`,

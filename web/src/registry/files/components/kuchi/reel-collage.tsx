@@ -84,7 +84,7 @@ const FONT_FAMILY =
  *  just copied into. Pass your own — root-relative or remote, both resolve. */
 const POSTER = (slug: string) =>
   `https://kuchi-media.kalarislabs.com/components/art/art-01.svg?${slug}`;
-const DEMO = (slug: string) => `https://media.kuchi.kalarislabs.com/demos/${slug}.mp4`;
+const DEMO = (slug: string) => `https://kuchi-media.kalarislabs.com/components/clips/clip-${(slug.length % 6) + 1}.mp4`;
 const DEFAULT_SLIDES = [
   "orbit-gallery",
   "card-rail",

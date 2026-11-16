@@ -145,7 +145,7 @@ export const SAMPLE_FOLLOWERS: Follower[] = [
 ].map((name, i) => ({
   name,
   // Slice, not `padStart` (ES2017) — a stock Remotion project types ES2015.
-  avatar: `/avatars/${`0${(i % SAMPLE_AVATAR_COUNT) + 1}`.slice(-2)}.jpg`,
+  avatar: `https://kuchi-media.kalarislabs.com/components/art/avatar-${`0${(i % SAMPLE_AVATAR_COUNT) + 1}`.slice(-2)}.svg`,
 }));
 
 // --- Pure helpers (unit-tested) -------------------------------------------

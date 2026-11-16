@@ -288,7 +288,7 @@ export const DEFAULT_MESSAGES: readonly ThreadMessage[] = [
 ].map(([author, time, face, text]) => ({
   author,
   time,
-  avatar: `/avatars/${face}.jpg`,
+  avatar: `https://kuchi-media.kalarislabs.com/components/art/avatar-${face}.svg`,
   text: text ?? "",
 }));
 

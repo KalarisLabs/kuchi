@@ -20,7 +20,9 @@ const MEDIA = 'https://kuchi-media.kalarislabs.com/components';
 
 export const items = manifest as RegistryItem[];
 /** Everything except the shared library items, which install automatically. */
-export const components = items.filter((item) => item.category !== 'library');
+/** Needs children or shader setup to show anything on its own, so it has no preview card. */
+const noPreview = new Set(['pulsing-border']);
+export const components = items.filter((item) => item.category !== 'library' && !noPreview.has(item.name));
 
 export const categoryLabels: Record<string, string> = {
   text: 'Text',

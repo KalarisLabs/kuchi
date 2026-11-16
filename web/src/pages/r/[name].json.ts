@@ -12,6 +12,11 @@ const sources = import.meta.glob('../../registry/files/**/*', {
   eager: true,
 }) as Record<string, string>;
 
+// Shown by the shadcn CLI after install. The components draw on a transparent layer, so a
+// bare render is black unless the composition supplies a background.
+const NOTE =
+  'Needs a Remotion project. These components draw on a transparent layer, so a render is black unless you put a background behind them, e.g. <AbsoluteFill style={{ background: "#faf9f6" }}><Component /></AbsoluteFill>. Pass mode="dark" for dark frames.';
+
 const source = (vendored: string) => {
   const hit = sources[`../../registry/${vendored}`];
   if (hit === undefined) throw new Error(`missing vendored file: ${vendored}`);
@@ -30,6 +35,7 @@ export const GET: APIRoute = ({ props }) => {
     title: item.title,
     description: item.description,
     dependencies: item.dependencies,
+    docs: NOTE,
     ...(item.devDependencies.length ? { devDependencies: item.devDependencies } : {}),
     ...(item.registryDependencies.length
       ? { registryDependencies: item.registryDependencies.map((dep) => `${SITE}/r/${dep}.json`) }

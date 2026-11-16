@@ -53,7 +53,7 @@ export interface PhoneStackProps {
  *  becomes `staticFile()` in a render and 404s in the project this file was
  *  just copied into. */
 const DEFAULT_VIDEOS = [2, 3, 4, 5, 6].map(
-  (n) => `https://media.kuchi.kalarislabs.com/demos/stock/wall-${n}.mp4`,
+  (n) => `https://kuchi-media.kalarislabs.com/components/clips/clip-${n}.mp4`,
 );
 
 // ─── Geometry, in reference pixels ────────────────────────────────────────────

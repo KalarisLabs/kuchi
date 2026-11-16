@@ -50,7 +50,7 @@ export interface ReelWallProps {
  *  was just copied into. Ceiling: a clip shorter than the composition stops on
  *  its last frame — pass clips at least as long as the scene runs. */
 const DEFAULT_VIDEOS = [1, 2, 3, 4, 5, 6].map(
-  (n) => `https://media.kuchi.kalarislabs.com/demos/stock/wall-${n}.mp4`,
+  (n) => `https://kuchi-media.kalarislabs.com/components/clips/clip-${n}.mp4`,
 );
 
 // ─── Geometry, in reference pixels ────────────────────────────────────────────

@@ -180,7 +180,7 @@ export function LogoCollapse({
   images = "https://kuchi-media.kalarislabs.com/components/art/art-08.svg|https://kuchi-media.kalarislabs.com/components/art/art-01.svg|https://kuchi-media.kalarislabs.com/components/art/art-07.svg|https://kuchi-media.kalarislabs.com/components/art/art-04.svg|https://kuchi-media.kalarislabs.com/components/art/art-04.svg|https://kuchi-media.kalarislabs.com/components/art/art-01.svg",
   sizes = "0.82x0.461,0.72x0.405,0.63x0.354,0.55x0.309,0.46x0.259,0.36x0.203",
   holds = "1,5,5,4,2,5",
-  mark = "/logo/kuchi.png",
+  mark = "https://kuchi-media.kalarislabs.com/components/art/mark.svg",
   wordmark = "kuchi",
   background = "",
   accent = "",

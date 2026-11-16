@@ -74,8 +74,8 @@ const placeholder = (t: KuchiTheme) =>
 // component they just installed. Swap them for your own media, root-relative or
 // not; `resolveSrc` handles both.
 const SHOWCASE = [
-  "https://kuchi-media.kalarislabs.com/components/art/art-09.svg",
-  "https://kuchi-media.kalarislabs.com/components/art/art-05.svg",
+  "https://kuchi-media.kalarislabs.com/components/clips/clip-3.mp4",
+  "https://kuchi-media.kalarislabs.com/components/clips/clip-5.mp4",
 ];
 
 const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)(\?|$)/i.test(src);

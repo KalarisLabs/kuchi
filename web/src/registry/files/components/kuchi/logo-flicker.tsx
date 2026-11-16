@@ -60,14 +60,14 @@ const FONT_FAMILY =
  *  `staticFile()` in a render and 404s in the project this file was just
  *  copied into. Pass your own — root-relative or remote, both resolve. */
 const DEFAULT_IMAGES = [
-  "https://kuchi.kalarislabs.com/showcase-assets/438b9e6b50654a44d404fbf358c26e9f.webp",
-  "https://kuchi.kalarislabs.com/showcase-assets/5e5305b05bd405a0d89570725434099e.webp",
-  "https://kuchi.kalarislabs.com/showcase-assets/767d99bb371a54d0d36751e8cecae43c.jpg",
-  "https://kuchi.kalarislabs.com/showcase-assets/821d815affa6496c39cbdeeec7a84603.jpg",
-  "https://kuchi.kalarislabs.com/showcase-assets/937438c560ada1c83317f2c11b3454b0.jpg",
-  "https://kuchi.kalarislabs.com/showcase-assets/98f89cb9994f5c382ab964062c4039db.jpg",
-  "https://kuchi.kalarislabs.com/showcase-assets/b25b82db2892efff9be3204e860d30ee.jpg",
-  "https://kuchi.kalarislabs.com/showcase-assets/c9ebc6337aa2268ac4b357f9cb1ac547.jpg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-11.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-11.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-02.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-08.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-08.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-07.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-07.svg",
+  "https://kuchi-media.kalarislabs.com/components/art/art-02.svg",
 ];
 
 // ─── Timeline (frames @ 30fps; ~3.5s) ──────────────────────────────────────────
@@ -131,7 +131,7 @@ function resolveSrc(src: string): string {
 }
 
 export function LogoFlicker({
-  logoSrc = "https://kuchi.kalarislabs.com/logo/kuchi-white.png",
+  logoSrc = "https://kuchi-media.kalarislabs.com/components/art/mark-white.svg",
   brandName = "kuchi",
   images = DEFAULT_IMAGES,
   flipInterval = FLIP_INTERVAL,

@@ -10,7 +10,7 @@ import {StreamableHTTPClientTransport as LegacyHTTP} from '@modelcontextprotocol
 
 const url = process.argv[2] ?? 'https://kuchi.kalarislabs.com/mcp';
 const QUIET = {'User-Agent':'kuchi-verify/1.2'};
-const TOOLS = ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'kuchi_suggest_templates', 'search'];
+const TOOLS = ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_component', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_components', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'kuchi_suggest_templates', 'search'];
 const parse = r => r.structuredContent ?? JSON.parse(r.content[0].text);
 const head = async link => (await fetch(link, {method:'HEAD', headers:QUIET})).status;
 
@@ -46,6 +46,11 @@ for (const [name, Client, Transport] of [['modern', Modern, ModernHTTP], ['legac
     assert.ok(withSheet.content.some(part => part.type === 'image' && part.data.length > 1000), 'the storyboard sheet arrives as an image');
     const filters = await call('kuchi_list_filters', {});
     assert.ok(filters.paces.length && filters.themes.length && filters.shot_kinds.length);
+    // The components come from the site's published registry, not this Worker.
+    const componentPage = await call('kuchi_list_components', {limit:1});
+    assert.ok(componentPage.total > 0 && componentPage.components[0].install.startsWith('npx shadcn@latest add https://kuchi.kalarislabs.com/r/'));
+    const component = await call('kuchi_get_component', {name:componentPage.components[0].name});
+    assert.ok(component.file.content.length > 0, 'a component arrives with its source');
 
     // The common instruction layer: the workflow as a tool result, and the shot analysis handed to the agent.
     const workflow = (await c.callTool({name:'kuchi_get_workflow', arguments:{}})).content[0].text;

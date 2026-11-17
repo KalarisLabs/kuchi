@@ -72,6 +72,8 @@ Call `kuchi_plan_remake` again with the answers until `ready` is true and `bluep
 
 Build one shot at a time, in order, from the blueprint.
 
+If you build in Remotion, check `kuchi_list_components` for a ready-made component that fits a shot (kinetic type, captions, prompt and chat UI, cursors, logo lockups, transitions). `kuchi_get_component` returns its source, dependencies and install command. Pass the user's own text, colors and assets in its props, then time it to the shot's frames.
+
 - **Timing.** Start and end each shot on its `start_frame` and `end_frame`. Render at the blueprint's `fps`. Don't round a shot to a tidy half second.
 - **Entrance.** A `cut` changes the whole picture on the shot's first frame. A `transition` finishes on the shot's first frames: look at the detail sheets to see whether it wipes, zooms, morphs or dissolves, and for how long. A `hold` freezes the previous picture, then moves. A blank entrance passes through an empty black or white frame.
 - **Amount of motion.** Match the shot's motion level. `still` means nothing moves. `low` means one small thing moves. `medium` means a panel or a block of text moves. `high` means the whole frame moves. Put your biggest moves on the seconds where `motion_per_second` peaks, scaled to your length.

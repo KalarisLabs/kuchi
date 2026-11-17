@@ -37,14 +37,14 @@ async function connect(load = async () => archive, options) {
 const call = (client, name, args) => client.callTool({name, arguments:args});
 const data = result => result.structuredContent ?? JSON.parse(result.content[0].text);
 
-test('the server advertises ten read-only tools, two prompts, a resource, an icon and instructions', async () => {
+test('the server advertises twelve read-only tools, two prompts, a resource, an icon and instructions', async () => {
   const {client, close} = await connect();
   try {
     assert.match(client.getInstructions(), /inspiration templates/);
     assert.equal(client.getInstructions(), INSTRUCTIONS);
     assert.match(client.getServerVersion().icons[0].src, /^https:\/\/kuchi\.kalarislabs\.com\/.+\.png$/);
     const {tools} = await client.listTools();
-    assert.deepEqual(tools.map(t => t.name).sort(), ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'kuchi_suggest_templates', 'search']);
+    assert.deepEqual(tools.map(t => t.name).sort(), ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_component', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_components', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'kuchi_suggest_templates', 'search']);
     for (const t of tools) {
       // What the Claude and ChatGPT directories check on every tool.
       assert.ok(t.title && t.description && t.name.length <= 64, t.name);
@@ -353,12 +353,15 @@ test('analytics keeps tool schemas intact and never receives the user\'s product
   const {client, close} = await connect(undefined, {posthog, properties:{country:'IN'}});
   try {
     const {tools} = await client.listTools();
-    assert.equal(tools.length, 11);
+    assert.equal(tools.length, 13);
     const feedback = tools.find(t => t.name === FEEDBACK_TOOL);
     assert.ok(feedback, 'agents can report gaps and failures');
     // The one tool that writes says so, and has the title directories require.
     assert.deepEqual([feedback.title, feedback.annotations.title, feedback.annotations.readOnlyHint, feedback.annotations.destructiveHint, feedback.annotations.openWorldHint],
       ['Send feedback to Kuchi', 'Send feedback to Kuchi', false, false, false]);
+    // Its examples describe Kuchi, not the analytics library's own product.
+    assert.doesNotMatch(JSON.stringify(feedback.inputSchema), /cohort|query-trends/);
+    assert.match(feedback.inputSchema.properties.summary.description, /kuchi_get_breakdown/);
     assert.ok(tools.every(t => t.title), 'every tool has a title');
     assert.deepEqual(Object.keys(tools.find(t => t.name === 'search').inputSchema.properties), ['query']);
     assert.deepEqual(tools.find(t => t.name === 'fetch').inputSchema.required, ['id']);

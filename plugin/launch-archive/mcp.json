@@ -3,7 +3,14 @@
   "mcpServers": {
     "kuchi": {
       "type": "streamable-http",
-      "url": "https://kuchi.kalarislabs.com/mcp"
+      "url": "https://kuchi.kalarislabs.com/mcp",
+      "extensions": {
+        "com.openai": {
+          "auth": {
+            "type": "none"
+          }
+        }
+      }
     }
   }
 }

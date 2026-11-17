@@ -3,3 +3,10 @@ interface:
   short_description: Find launch, demo, teaser and motion-design references.
 policy:
   allow_implicit_invocation: true
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "kuchi"
+      description: "Kuchi MCP server"
+      transport: "streamable_http"
+      url: "https://kuchi.kalarislabs.com/mcp"

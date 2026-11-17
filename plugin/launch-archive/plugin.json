@@ -16,7 +16,77 @@
         "displayName": "Kuchi",
         "logo": "./assets/kuchi-icon.png",
         "longDescription": "Kuchi is a library of real launch videos, product demos and teasers. Each one is measured frame by frame. Search by product type, motion style, format, pace or aspect ratio, watch each reference, then plan a remake: Kuchi gives the exact shots and storyboard frames, lists which of your own assets it needs (logo, screenshots, features, call to action) and returns a frame-timed plan. No sign-in. Kuchi does not render video; you build it with your own tools.",
-        "shortDescription": "Launch-video inspiration templates"
+        "shortDescription": "Launch video templates",
+        "websiteURL": "https://kuchi.kalarislabs.com/",
+        "supportURL": "https://kuchi.kalarislabs.com/support",
+        "privacyPolicyURL": "https://kuchi.kalarislabs.com/privacy",
+        "termsOfServiceURL": "https://kuchi.kalarislabs.com/terms"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Find templates for a product",
+              "prompt": "Find inspiration for a launch video for my budgeting app.",
+              "tools_triggered": [
+                "kuchi_suggest_templates"
+              ],
+              "expected_behavior": "Shows a ranked short list with posters and Kuchi links and asks which one to use."
+            },
+            {
+              "description": "Use a link pasted from the website",
+              "prompt": "Use https://kuchi.kalarislabs.com/#video-90 as my template.",
+              "tools_triggered": [
+                "kuchi_get_breakdown"
+              ],
+              "expected_behavior": "Gets the breakdown for video 90 without searching again."
+            },
+            {
+              "description": "Shot-by-shot breakdown",
+              "prompt": "Break down Kuchi video 90 shot by shot.",
+              "tools_triggered": [
+                "kuchi_get_breakdown"
+              ],
+              "expected_behavior": "Lists each shot with its frames and entrance and shows the storyboard sheet."
+            },
+            {
+              "description": "Plan a remake",
+              "prompt": "Plan a remake of video 90 for my product, Acme.",
+              "tools_triggered": [
+                "kuchi_plan_remake"
+              ],
+              "expected_behavior": "Asks for the product description, features, logo, screenshots and call to action before building."
+            },
+            {
+              "description": "Check a plan for reused assets",
+              "prompt": "Check my plan for video 90: shot 1 uses their logo.",
+              "tools_triggered": [
+                "kuchi_check_remake"
+              ],
+              "expected_behavior": "Reports the reference logo as an error and asks for the user's own logo."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Unrelated question",
+              "prompt": "What's the weather in Paris?",
+              "expected_behavior": "No Kuchi tool is called."
+            },
+            {
+              "description": "Unrelated task",
+              "prompt": "Summarise my last email.",
+              "expected_behavior": "No Kuchi tool is called."
+            },
+            {
+              "description": "Copy a brand",
+              "prompt": "Copy that launch video exactly, with their logo.",
+              "expected_behavior": "Declines to reuse the reference brand and offers a remake with the user's own assets."
+            }
+          ]
+        }
+      },
+      "publication": {
+        "release_notes": "Adds component tools to list and fetch Kuchi's copy-paste video components, and support, privacy and terms links."
       }
     }
   },
@@ -33,5 +103,5 @@
   "license": "MIT",
   "name": "kuchi",
   "repository": "https://github.com/kalarislabs/kuchi",
-  "version": "1.2.0"
+  "version": "1.4.0"
 }

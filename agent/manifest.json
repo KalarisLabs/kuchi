@@ -85,6 +85,8 @@
     "kuchi_get_breakdown",
     "kuchi_plan_remake",
     "kuchi_check_remake",
+    "kuchi_list_components",
+    "kuchi_get_component",
     "kuchi_send_feedback",
     "search",
     "fetch"

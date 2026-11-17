@@ -7,7 +7,7 @@ Everything needed to list Kuchi in the official MCP Registry, the Claude Connect
 | Field | Value |
 | --- | --- |
 | Name | Kuchi |
-| Tagline (34 characters) | Launch-video inspiration templates |
+| Tagline (22 characters, OpenAI limit 30) | Launch video templates |
 | MCP server URL | `https://kuchi.kalarislabs.com/mcp` (Streamable HTTP) |
 | Authentication | None |
 | Developer | Kalaris Labs |

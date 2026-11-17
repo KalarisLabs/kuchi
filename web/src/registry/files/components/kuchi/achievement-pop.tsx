@@ -1,0 +1,616 @@
+/*! Portions Copyright (c) 2026 Remocn. MIT License. See THIRD_PARTY_LICENSES. */
+"use client";
+
+import { loadFont as loadGeist } from "@remotion/google-fonts/Geist";
+import { loadFont as loadMono } from "@remotion/google-fonts/GeistMono";
+import { loadFont as loadManrope } from "@remotion/google-fonts/Manrope";
+import type React from "react";
+import {
+  AbsoluteFill,
+  Easing,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
+import type { GradientParams } from "@/lib/kuchi/gsh/gradient-engine";
+import { GshGround } from "@/lib/kuchi/gsh/gsh-ground";
+import type { GshPresetId } from "@/lib/kuchi/gsh/presets";
+
+const { fontFamily: geist } = loadGeist("normal", {
+  weights: ["300", "400"],
+  subsets: ["latin"],
+});
+const { fontFamily: mono } = loadMono("normal", {
+  weights: ["400"],
+  subsets: ["latin"],
+});
+const manrope = loadManrope("normal", {
+  weights: ["600"],
+  subsets: ["latin"],
+});
+
+
+function KuchiLogo({ fontSize, color }: { fontSize: number; color: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        color,
+        fontFamily: manrope.fontFamily,
+        fontWeight: 600,
+        fontSize,
+        letterSpacing: "-0.025em",
+        lineHeight: 1,
+      }}
+    >
+      <span>Acme</span>
+    </div>
+  );
+}
+
+export type AchievementIcon = "trophy" | "bolt" | "star";
+
+export interface Achievement {
+  label: string;
+  title: string;
+  points: number;
+  icon?: AchievementIcon;
+}
+
+export interface AchievementPopProps {
+  achievements?: Achievement[];
+  accent?: string;
+  theme?: "dark" | "light";
+  ground?: GshPresetId;
+  groundParams?: Partial<GradientParams>;
+  /** Small caps label above the running total (portrait only). */
+  totalLabel?: string;
+  /** Unit after each points value and the total. */
+  unit?: string;
+  /** Replaces the acme mark under the stack. */
+  logo?: React.ReactNode;
+  /** Text color of the titles and total; overrides the theme ink. */
+  ink?: string;
+  /** Solid fill in place of the gradient ground; "transparent" drops it. */
+  background?: string;
+  /** Typeface for the titles and numbers. Load it yourself; Geist by default. */
+  fontFamily?: string;
+  /** Size of the stack, around the frame's center. */
+  scale?: number;
+  /** Frames to hold the first frame before anything moves. */
+  delay?: number;
+  speed?: number;
+}
+
+const BEATS = {
+  starts: [4, 34, 58],
+  open: 6,
+  shiftLead: 6,
+  poster: 30,
+  logo: 10,
+} as const;
+
+const ENTER = Easing.bezier(0.32, 0.72, 0, 1);
+const CLAMP = {
+  extrapolateLeft: "clamp",
+  extrapolateRight: "clamp",
+} as const;
+
+const CHIP = { mass: 0.5, damping: 12, stiffness: 200 };
+const CARD = { mass: 0.8, damping: 18, stiffness: 160 };
+const HEAVY = { mass: 1, damping: 26, stiffness: 120 };
+const MORPH = { damping: 200 };
+
+const KILN = ["#5C0A02", "#E2340C", "#FF9A3A", "#FFE9C7"] as const;
+const RARE_FILL = `linear-gradient(104deg, #2A0903 0%, ${KILN[0]} 30%, #A8260A 68%, ${KILN[1]} 100%)`;
+
+const DARK_GROUND: Partial<GradientParams> = {
+  colors: ["#2A0601", "#7A1404", "#E2340C", "#FF9A3A"],
+};
+
+const LIGHT_GROUND: Partial<GradientParams> = {
+  kind: "mist",
+  colors: ["#F08A4B", "#F7C39A", "#F3E3D3", "#7A2E12"],
+  background: "#F2EEE8",
+  speed: 0.8,
+  loopSeconds: 14,
+  scale: 0.8,
+  warp: 0.4,
+  blur: 0.65,
+  grain: 0.3,
+  seed: 4,
+};
+
+const THEMES = {
+  dark: {
+    base: "#060201",
+    scrim:
+      "radial-gradient(64% 58% at 50% 44%, rgba(6,3,2,0.7) 0%, rgba(6,3,2,0) 100%)",
+    pill: "#141112",
+    depth:
+      "inset 0 1px 0 rgba(255,255,255,0.07), 0 0 0 1px rgba(255,255,255,0.08), 0 18px 40px -14px rgba(0,0,0,0.7)",
+    badge: "#1D191A",
+    ring: "rgba(255,255,255,0.12)",
+    ink: "#F4F1EC",
+    dim: "#9A928C",
+    rule: "rgba(255,255,255,0.1)",
+    flash: KILN[3],
+    logo: "#1A0803",
+  },
+  light: {
+    base: "#F2EEE8",
+    scrim:
+      "radial-gradient(64% 58% at 50% 44%, rgba(246,243,238,0.7) 0%, rgba(246,243,238,0.2) 100%)",
+    pill: "#FFFFFF",
+    depth:
+      "0 0 0 1px rgba(40,24,12,0.06), 0 1px 3px rgba(40,24,12,0.06), 0 16px 32px -14px rgba(90,40,10,0.22)",
+    badge: "#F6F3EE",
+    ring: "rgba(40,24,12,0.1)",
+    ink: "#17120F",
+    dim: "#857B73",
+    rule: "rgba(40,24,12,0.1)",
+    flash: KILN[1],
+    logo: "#17120F",
+  },
+} as const;
+
+/** The foreground at `scale`, around the frame's center; nothing extra at 1. */
+function ScaleLayer({
+  scale,
+  children,
+}: {
+  scale: number;
+  children: React.ReactNode;
+}) {
+  if (scale === 1) return children;
+  return (
+    <AbsoluteFill style={{ transform: `scale(${scale})` }}>
+      {children}
+    </AbsoluteFill>
+  );
+}
+
+function Icon({
+  name,
+  size,
+  color,
+}: {
+  name: AchievementIcon;
+  size: number;
+  color: string;
+}) {
+  const common = {
+    fill: "none",
+    stroke: color,
+    strokeWidth: 1.5,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+      {name === "trophy" ? (
+        <g {...common}>
+          <path d="M7.5 4h9v4.5a4.5 4.5 0 0 1-9 0V4Z" />
+          <path d="M7.5 6H5.2a2 2 0 0 0 0 4h2.6M16.5 6h2.3a2 2 0 0 1 0 4h-2.6" />
+          <path d="M12 13v4M9 20h6M10 17h4" />
+        </g>
+      ) : name === "bolt" ? (
+        <path {...common} d="M13.5 3 6 13.4h5.4L10.5 21 18 10.6h-5.4L13.5 3Z" />
+      ) : (
+        <path
+          {...common}
+          d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8L12 3.6Z"
+        />
+      )}
+    </svg>
+  );
+}
+
+export function AchievementPop({
+  achievements = [
+    {
+      label: "Unlocked · 64% of makers",
+      title: "Shipped in one day",
+      points: 100,
+      icon: "trophy",
+    },
+    {
+      label: "Unlocked · 23% of makers",
+      title: "Zero keyframes by hand",
+      points: 50,
+      icon: "bolt",
+    },
+    {
+      label: "Rare · 1.8% of makers",
+      title: "Launch video shipped",
+      points: 250,
+      icon: "star",
+    },
+  ],
+  theme = "dark",
+  ground,
+  groundParams,
+  totalLabel = "Launch week",
+  unit = "XP",
+  logo,
+  ink: inkProp,
+  background,
+  fontFamily = geist,
+  scale = 1,
+  delay = 0,
+  speed = 1,
+}: AchievementPopProps) {
+  const t = Math.max(0, useCurrentFrame() - delay) * speed;
+  const { width: W, height: H, fps } = useVideoConfig();
+  const tall = H > W;
+  const dark = theme === "dark";
+  const c = THEMES[theme];
+  const fg = inkProp ?? c.ink;
+  const u = tall ? (W * 0.88) / 820 : Math.min(W / 1280, H / 720);
+  const resolvedGround: GshPresetId | undefined =
+    ground ?? (groundParams ? undefined : dark ? "kiln" : undefined);
+  const resolvedParams = groundParams ?? (dark ? DARK_GROUND : LIGHT_GROUND);
+
+  const list = achievements.slice(0, BEATS.starts.length);
+  const n = list.length;
+  const starts = BEATS.starts.slice(0, n);
+  const lastStart = starts[n - 1] ?? BEATS.starts[0];
+
+  const ph = 116 * u;
+  const D = ph;
+  const pw = 820 * u;
+  const gap = ph + 20 * u;
+  const cy = tall ? 0.4 * H : 0.46 * H;
+
+  const sp = (from: number, config: Partial<typeof CARD>, dur?: number) =>
+    spring({
+      frame: t - from,
+      fps,
+      config,
+      durationInFrames: dur,
+    });
+
+  const kf =
+    1 + starts.slice(1).reduce((a, s) => a + sp(s - BEATS.shiftLead, CARD), 0);
+  const posterAt = lastStart + BEATS.poster;
+  const poster = sp(posterAt, HEAVY);
+  const stackK = interpolate(kf, [1, 2, 3], [1.26, 1.1, 1], CLAMP);
+  const groupK = stackK * interpolate(poster, [0, 1], [1, tall ? 1.04 : 1.12]);
+  const logoP = interpolate(
+    t,
+    [posterAt + BEATS.logo, posterAt + BEATS.logo + 14],
+    [0, 1],
+    { ...CLAMP, easing: ENTER },
+  );
+
+  const total = list.reduce(
+    (a, item, i) =>
+      a +
+      item.points *
+        interpolate(t, [starts[i] + 10, starts[i] + 22], [0, 1], {
+          ...CLAMP,
+          easing: ENTER,
+        }),
+    0,
+  );
+  const totalIn = interpolate(t, [starts[0] + 8, starts[0] + 22], [0, 1], {
+    ...CLAMP,
+    easing: ENTER,
+  });
+
+  return (
+    <AbsoluteFill
+      style={{
+        background:
+          background === undefined
+            ? c.base
+            : background === "transparent"
+              ? undefined
+              : background,
+        overflow: "hidden",
+      }}
+    >
+      {background === undefined ? (
+        <>
+          <GshGround
+            preset={resolvedGround}
+            params={resolvedParams}
+            timeOffset={dark ? 5 : 3}
+            timeScale={0.45}
+          />
+          <AbsoluteFill style={{ background: c.scrim }} />
+        </>
+      ) : null}
+
+      <ScaleLayer scale={scale}>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            transform: `scale(${groupK})`,
+            transformOrigin: `50% ${(cy / H) * 100}%`,
+          }}
+        >
+          {list.map((a, i) => {
+            const s = starts[i];
+            if (t < s) return null;
+            const rare = i === n - 1 && n > 1;
+            const y = cy + (i - (kf - 1) / 2) * gap;
+            const pop = sp(s, CHIP);
+            const badgeK = 0.5 + 0.5 * pop;
+            const open = sp(s + BEATS.open, MORPH, 16);
+            const pillW = D + (pw - D) * open;
+            const left = W / 2 - pillW / 2;
+            const textP = interpolate(
+              t,
+              [s + BEATS.open + 4, s + BEATS.open + 16],
+              [0, 1],
+              { ...CLAMP, easing: ENTER },
+            );
+            const ptsP = interpolate(
+              t,
+              [s + BEATS.open + 8, s + BEATS.open + 20],
+              [0, 1],
+              { ...CLAMP, easing: ENTER },
+            );
+            const flashP = interpolate(t, [s + 2, s + 16], [0, 1], {
+              ...CLAMP,
+              easing: ENTER,
+            });
+            const sheen = interpolate(
+              t,
+              [s + BEATS.open + 14, s + BEATS.open + 32],
+              [0, 1],
+              { ...CLAMP, easing: Easing.bezier(0.65, 0, 0.35, 1) },
+            );
+            const ink = rare ? "#FFF4E8" : fg;
+            const dim = rare ? "rgba(255,233,199,0.72)" : c.dim;
+            const bx = left + D / 2;
+            const R = D / 2;
+            const appear = interpolate(t, [s, s + 3], [0, 1], CLAMP);
+            return (
+              <div key={`${a.title}-${s}`}>
+                <div
+                  style={{
+                    position: "absolute",
+                    left,
+                    top: y - ph / 2,
+                    width: pillW,
+                    height: ph,
+                    borderRadius: ph / 2,
+                    overflow: "hidden",
+                    background: rare ? RARE_FILL : c.pill,
+                    boxShadow: rare
+                      ? `inset 0 1px 0 rgba(255,233,199,0.28), 0 0 0 1px rgba(255,154,58,0.28), 0 22px 48px -14px rgba(120,24,4,${dark ? 0.8 : 0.45})`
+                      : c.depth,
+                    opacity: appear,
+                  }}
+                >
+                  {rare && sheen > 0 && sheen < 1 ? (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        bottom: 0,
+                        width: 160 * u,
+                        left: interpolate(
+                          sheen,
+                          [0, 1],
+                          [-200 * u, pw + 40 * u],
+                        ),
+                        background:
+                          "linear-gradient(100deg, transparent 0%, rgba(255,233,199,0.32) 50%, transparent 100%)",
+                        transform: "skewX(-20deg)",
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: D + 22 * u,
+                      top: 0,
+                      bottom: 0,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      gap: 10 * u,
+                      opacity: textP,
+                      transform: `translateX(${(1 - textP) * -24 * u}px)`,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: mono,
+                        fontWeight: 400,
+                        fontSize: 17 * u,
+                        lineHeight: 1,
+                        letterSpacing: "0.04em",
+                        textTransform: "uppercase",
+                        color: dim,
+                      }}
+                    >
+                      {a.label}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily,
+                        fontWeight: 400,
+                        fontSize: 40 * u,
+                        lineHeight: 1,
+                        letterSpacing: "-0.03em",
+                        color: ink,
+                      }}
+                    >
+                      {a.title}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: pw - 220 * u,
+                      width: 180 * u,
+                      top: 0,
+                      bottom: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                      gap: 8 * u,
+                      opacity: ptsP,
+                      transform: `translateX(${(1 - ptsP) * -16 * u}px)`,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily,
+                        fontWeight: 300,
+                        fontSize: 40 * u,
+                        lineHeight: 1,
+                        letterSpacing: "-0.03em",
+                        fontVariantNumeric: "tabular-nums",
+                        color: ink,
+                      }}
+                    >
+                      +{a.points}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: mono,
+                        fontWeight: 400,
+                        fontSize: 17 * u,
+                        letterSpacing: "0.04em",
+                        color: dim,
+                        transform: `translateY(${4 * u}px)`,
+                      }}
+                    >
+                      {unit}
+                    </span>
+                  </div>
+                </div>
+
+                {flashP > 0 && flashP < 1 ? (
+                  <svg
+                    width={W}
+                    height={H}
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      overflow: "visible",
+                    }}
+                    aria-hidden
+                  >
+                    <circle
+                      cx={bx}
+                      cy={y}
+                      r={R * interpolate(flashP, [0, 1], [0.9, 1.7])}
+                      fill="none"
+                      stroke={rare ? KILN[2] : c.flash}
+                      strokeWidth={interpolate(flashP, [0, 1], [5, 0.5]) * u}
+                      opacity={(1 - flashP) * 0.9}
+                    />
+                  </svg>
+                ) : null}
+
+                <div
+                  style={{
+                    position: "absolute",
+                    left: bx - R,
+                    top: y - R,
+                    width: D,
+                    height: D,
+                    transform: `scale(${badgeK})`,
+                    opacity: appear,
+                  }}
+                >
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 10 * u,
+                      borderRadius: "50%",
+                      background: rare ? "rgba(255,233,199,0.12)" : c.badge,
+                      boxShadow: rare
+                        ? "inset 0 0 0 1px rgba(255,233,199,0.45)"
+                        : `inset 0 0 0 1px ${c.ring}`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Icon name={a.icon ?? "trophy"} size={40 * u} color={ink} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {tall ? (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: 0.66 * H,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 18 * u,
+              opacity: totalIn,
+              transform: `translateY(${(1 - totalIn) * 24 * u}px)`,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: mono,
+                fontWeight: 400,
+                fontSize: 20 * u,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: c.dim,
+              }}
+            >
+              {totalLabel}
+            </div>
+            <div
+              style={{
+                fontFamily,
+                fontWeight: 300,
+                fontSize: 170 * u,
+                lineHeight: 1,
+                letterSpacing: "-0.05em",
+                fontVariantNumeric: "tabular-nums",
+                color: fg,
+              }}
+            >
+              {Math.round(total)}
+              <span
+                style={{ fontSize: 56 * u, letterSpacing: "0", color: c.dim }}
+              >
+                {" "}
+                {unit}
+              </span>
+            </div>
+          </div>
+        ) : null}
+
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            width: W,
+            top: tall ? 0.88 * H : 0.885 * H,
+            display: "flex",
+            justifyContent: "center",
+            opacity: logoP,
+            transform: `translateY(${(1 - logoP) * 14 * u}px)`,
+          }}
+        >
+          {logo ?? <KuchiLogo fontSize={30 * u} color={c.logo} />}
+        </div>
+      </ScaleLayer>
+    </AbsoluteFill>
+  );
+}

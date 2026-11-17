@@ -8,13 +8,33 @@ import ogImage from '../assets/og-image.jpg';
 interface Props {
   title: string;
   description?: string;
+  /** Absolute link-preview image; defaults to the site card. */
+  image?: string;
+  imageAlt?: string;
+  imageType?: string;
+  imageWidth?: number;
+  imageHeight?: number;
+  ogType?: string;
+  /** Structured data (schema.org), emitted as JSON-LD. */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 const DEFAULT_DESCRIPTION = 'Launch-video references, updated daily. Watch launch videos and connect your agent to the latest references with MCP.';
-const { title, description = DEFAULT_DESCRIPTION } = Astro.props;
+const {
+  title,
+  description = DEFAULT_DESCRIPTION,
+  imageAlt = 'Kuchi by Kalaris Labs: AI for viral launch videos',
+  imageType = 'image/jpeg',
+  imageWidth = 1200,
+  imageHeight = 630,
+  ogType = 'website',
+  jsonLd,
+} = Astro.props;
 // Absolute URLs (astro.config.mjs `site`). The canonical drops ".html" so /privacy and
 // /privacy.html (both served, see build.format) count as one page.
 const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/'), Astro.site).href;
-const image = new URL(ogImage.src, Astro.site).href;
+// JSON-LD with '<' escaped so no string in it can close the script element.
+const ldJson = jsonLd ? JSON.stringify(jsonLd).replaceAll('<', '\\u003c') : null;
+const image = Astro.props.image ?? new URL(ogImage.src, Astro.site).href;
 ---
 <!doctype html>
 <html lang="en">
@@ -27,22 +47,23 @@ const image = new URL(ogImage.src, Astro.site).href;
     <meta name="description" content={description}>
     <title>{title}</title>
     <link rel="canonical" href={canonical}>
-    <meta property="og:type" content="website">
+    <meta property="og:type" content={ogType}>
     <meta property="og:site_name" content="Kuchi by Kalaris Labs">
     <meta property="og:title" content={title}>
     <meta property="og:description" content={description}>
     <meta property="og:url" content={canonical}>
     <meta property="og:image" content={image}>
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:type" content="image/jpeg">
-    <meta property="og:image:alt" content="Kuchi by Kalaris Labs: AI for viral launch videos">
+    <meta property="og:image:width" content={String(imageWidth)}>
+    <meta property="og:image:height" content={String(imageHeight)}>
+    <meta property="og:image:type" content={imageType}>
+    <meta property="og:image:alt" content={imageAlt}>
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content={title}>
     <meta name="twitter:description" content={description}>
     <meta name="twitter:image" content={image}>
-    <meta name="twitter:image:alt" content="Kuchi by Kalaris Labs: AI for viral launch videos">
+    <meta name="twitter:image:alt" content={imageAlt}>
     <link rel="sitemap" href="/sitemap.xml">
+    {ldJson && <script type="application/ld+json" set:html={ldJson} />}
     <link rel="icon" href="/favicon.ico?v=popcorn-2" sizes="any">
     <link rel="icon" href="/favicon-32.png?v=popcorn-2" type="image/png" sizes="32x32">
     <link rel="icon" href="/favicon.svg?v=popcorn-2" type="image/svg+xml">

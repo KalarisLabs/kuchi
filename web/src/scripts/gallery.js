@@ -5,6 +5,9 @@
 // those in sync (web/test/pages.test.mjs checks them).
 import {dailyChanges} from './daily-stats.mjs';
 import {escapeHTML, pad, full, compact, timecode, launchDate, displayDuration} from '../lib/format.js';
+import {playVideo} from '../lib/play-video.js';
+import {videoPath, remakeBrief} from '../lib/video-links.js';
+import {favButtonsHTML, isFavorite, onFavoritesChange} from '../lib/favorites.js';
 const telemetry = import('./analytics.mjs').catch(() => null);
 const track = (...args) => telemetry.then(api => api?.track(...args) ?? false).catch(() => false);
 
@@ -16,6 +19,7 @@ let tableView = false;
 let toastTimer;
 let lastTrigger;
 let filterTimer;
+let mine = 'all';
 const playedReferences = new Set();
 const engagedReferences = new Set();
 const dialog = $('#video-dialog');
@@ -31,11 +35,11 @@ function card(video) {
   const v = video;
   return `<article class="video-card">
     <div class="thumb inline-player">
-      <video controls playsinline preload="none" data-reference-id="${v.id}" data-surface="grid" poster="${v.poster}" src="${v.video}" aria-label="${escapeHTML(v.title)} inline video"></video>
-      <button class="inline-play play-icon" data-play="${v.id}" aria-label="Play ${escapeHTML(v.title)}">▶</button>
+      <video playsinline preload="none" data-reference-id="${v.id}" data-surface="grid" poster="${v.poster}" aria-hidden="true" tabindex="-1"></video>
+      <button class="inline-play play-icon" data-play-ref="${v.id}" data-surface="grid" aria-label="Play ${escapeHTML(v.title)}">▶</button>
       ${v.excerpt ? '<span class="excerpt-label">Excerpt</span>' : ''}<span class="timecode">${timecode(v.clipSeconds)}</span>
     </div>
-    <div class="card-title-row"><h3><button class="video-title" data-open="${v.id}" aria-label="View ${escapeHTML(v.title)} details">${escapeHTML(v.title)}</button></h3></div>
+    <div class="card-title-row"><h3><a class="video-title" href="${videoPath(v)}">${escapeHTML(v.title)}</a></h3>${favButtonsHTML('video', v.id, v.title)}</div>
     <div class="byline">${escapeHTML(v.account)}</div>
     <div class="launch-date" title="Date of the original launch post (PT)">Launch date · <time datetime="${escapeHTML(v.date)}">${launchDate(v.date)}</time></div>
     <div class="card-metrics"><div><strong title="${full(v.impressions)} impressions">${compact(v.impressions)} ${v.flag ? '<span class="flag-mark" title="Video plays are below 3% of impressions">△</span>' : ''}</strong><span>Impressions</span></div><div><strong title="${full(v.views)} plays">${compact(v.views)}</strong><span>Video plays</span></div></div>
@@ -47,6 +51,7 @@ function table() {
 }
 
 function renderCollection() {
+  if (!$('#collection') || !$('#search')) return;
   document.querySelectorAll('.inline-player video').forEach(player => player.pause());
   const query = $('#search').value.trim().toLowerCase();
   const category = $('#category').value;
@@ -54,37 +59,45 @@ function renderCollection() {
   const sort = $('#sort').value;
   filtered = videos.filter(v => {
     const haystack = [v.title,v.originalTitle,v.account,v.category,...v.styles,...v.notes,...v.originalNotes].join(' ').toLowerCase();
-    return (!query || haystack.includes(query)) && (category === 'all' || category === v.category) && (style === 'all' || v.styles.includes(style));
+    return (mine === 'all' || isFavorite(mine, 'video', v.id)) && (!query || haystack.includes(query)) && (category === 'all' || category === v.category) && (style === 'all' || v.styles.includes(style));
   }).sort((a,b) => sort === 'date' ? b.date.localeCompare(a.date) : sort === 'oldest' ? a.date.localeCompare(b.date) : b[sort] - a[sort]);
   $('#result-count').textContent = filtered.length;
   $('#result-count').setAttribute('aria-label', `${filtered.length} videos`);
   $('#collection').classList.toggle('table-view', tableView);
   $('#collection').innerHTML = filtered.length ? (tableView ? table() : filtered.map(card).join('')) : '';
   $('#empty').hidden = filtered.length > 0;
+  const emptyText = $('#empty p');
+  if (emptyText) emptyText.textContent = mine === 'saved' ? 'Nothing saved yet. Press the bookmark on any video to keep it here.' : mine === 'liked' ? 'No liked videos yet. Press the heart on any video.' : 'No matching references.';
 }
 
 function setFeature(id) {
   const v = videos.find(v => v.id === id);
   if (!v) return;
   const player = $('#featured-video');
+  if (!player) return;
   player.dataset.referenceId = String(id);
   player.dataset.surface = 'featured';
   player.pause();
   player.poster = v.poster;
-  player.src = v.video;
-  player.setAttribute('aria-label', `${v.title} launch video`);
+  $('#featured-play').dataset.playRef = String(id);
+  $('#featured-play').setAttribute('aria-label', `Play ${v.title}`);
   $('#featured-duration').textContent = displayDuration(v);
-  $('#featured-info').innerHTML = `<h3>${escapeHTML(v.title)}</h3><div class="byline">${escapeHTML(v.account)}</div><div class="launch-date" title="Date of the original launch post (PT)">Launch date · <time datetime="${escapeHTML(v.date)}">${launchDate(v.date)}</time></div><div class="featured-stats"><div><strong>${compact(v.impressions)}</strong><span>Impressions</span></div><div><strong>${compact(v.views)}</strong><span>Video plays</span></div></div><button class="text-link" data-open="${v.id}">View details ↗</button>`;
+  $('#featured-info').innerHTML = `<h3>${escapeHTML(v.title)}</h3><div class="byline">${escapeHTML(v.account)}</div><div class="launch-date" title="Date of the original launch post (PT)">Launch date · <time datetime="${escapeHTML(v.date)}">${launchDate(v.date)}</time></div><div class="featured-stats"><div><strong>${compact(v.impressions)}</strong><span>Impressions</span></div><div><strong>${compact(v.views)}</strong><span>Video plays</span></div></div>${detailCard(v)}`;
   document.querySelectorAll('[data-feature]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.feature) === id)));
 }
 
-function brief(v) {
-  return `Use this Kuchi video as the template for my launch video: https://kuchi.kalarislabs.com/#video-${v.id}\nRemake its motion and vibe for my product, with my own logo, screens and copy. Original post: ${v.source}`;
+const brief = remakeBrief;
+
+// Boxed link to the video's own page (DetailCard.astro renders the same markup).
+function detailCard(v, label = 'View details', hint = 'Stats, shot notes and the remake prompt') {
+  return `<a class="detail-card" href="${videoPath(v)}"><span class="detail-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg></span><span class="detail-card-text"><span class="detail-card-label">${label}</span><span class="detail-card-hint">${hint}</span></span><svg class="detail-card-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>`;
 }
 
 function openVideo(id, trigger) {
   const v = videos.find(v => v.id === id);
   if (!v) return;
+  // Pages without the details dialog (home) go to the video's own page instead.
+  if (!dialog) { location.href = videoPath(v); return; }
   track('reference_opened',{reference_id:id,surface:trigger ? 'collection' : 'reference_link'});
   document.querySelectorAll('video').forEach(player => player.pause());
   const oldPlayer = $('#dialog-video');
@@ -94,11 +107,12 @@ function openVideo(id, trigger) {
   $('#dialog-ref').textContent = v.title;
   const metrics = [['impressions','Impressions'],['views','Video plays'],['likes','Likes'],['bookmarks','Bookmarks'],['reposts','Reposts'],['replies','Replies'],['quotes','Quotes'],['followers','Followers']];
   $('#dialog-content').innerHTML = `<div class="dialog-main"><div class="dialog-left">
-    <video id="dialog-video" controls playsinline preload="metadata" data-reference-id="${v.id}" data-surface="detail" poster="${v.poster}" src="${v.video}" aria-label="${escapeHTML(v.title)} video"></video>
+    <div class="kp-frame"><video id="dialog-video" playsinline preload="none" data-reference-id="${v.id}" data-surface="detail" poster="${v.poster}" aria-hidden="true" tabindex="-1"></video><button class="play-icon" data-play-ref="${v.id}" data-surface="detail" aria-label="Play ${escapeHTML(v.title)}">▶</button></div>
     <p class="video-error" id="media-error" hidden>Unable to play this file. <a href="${v.source}" target="_blank" rel="noopener">Watch the original post ↗</a></p>
     <div class="clip-note"><span>${displayDuration(v)}</span><a href="${v.source}" target="_blank" rel="noopener">Original post ↗</a></div>
     <h2 id="dialog-title">${escapeHTML(v.title)}</h2>
     <div class="byline">${escapeHTML(v.account)} · Posted ${v.date}</div>
+    ${favButtonsHTML('video', v.id, v.title, 'fav-labeled')}
     <div class="dialog-tags">${v.styles.map(s => escapeHTML(s)).join(' / ')}</div>
     <div class="reference-feedback" aria-label="Was this reference useful?"><span>Useful reference?</span><button data-feedback="helpful" aria-label="Helpful reference">Yes</button><button data-feedback="not_helpful" aria-label="Not a helpful reference">No</button></div>
     <h3>What to borrow</h3><ul class="notes-list">${v.notes.map(note => `<li>${escapeHTML(note)}</li>`).join('')}</ul>
@@ -109,10 +123,9 @@ function openVideo(id, trigger) {
     <details class="file-details"><summary>File & post metadata</summary><table class="metadata-table"><tbody>
       <tr><td title="Date of the original launch post (PT)">Launch date</td><td>${v.date}</td></tr><tr><td>Original duration</td><td>${timecode(v.originalSeconds)}</td></tr><tr><td>Included footage</td><td>${timecode(v.clipSeconds)}${v.excerpt ? ' / Excerpt' : ' / Full clip'}</td></tr><tr><td>Aspect ratio</td><td>${v.ratio}</td></tr><tr><td>Reference resolution</td><td>${v.width} × ${v.height}</td></tr><tr><td>Audio track</td><td>${v.hasAudio ? 'Yes' : 'None'}</td></tr><tr><td>Plays / impressions</td><td>${v.views == null || !v.impressions ? '—' : `${(v.views / v.impressions * 100).toFixed(2)}%`}</td></tr><tr><td>Data snapshot</td><td>${escapeHTML(v.snapshotDate || '2026-10-27')} PT</td></tr>
     </tbody></table></details>
-    <details class="brief-details"><summary>AI remake brief</summary><label class="sr-only" for="remake-brief">Editable AI remake brief</label><textarea id="remake-brief" class="brief-text" spellcheck="false">${escapeHTML(brief(v))}</textarea><button id="copy-brief" class="solid-button">Copy AI remake brief <span aria-hidden="true">↗</span></button></details>
+    ${detailCard(v, 'Open the full page', 'A shareable page for this video')}
+    <details class="brief-details" open><summary>AI remake brief</summary><label class="sr-only" for="remake-brief">Editable AI remake brief</label><textarea id="remake-brief" class="brief-text" spellcheck="false">${escapeHTML(brief(v))}</textarea><button id="copy-brief" class="solid-button">Copy AI remake brief <span aria-hidden="true">↗</span></button></details>
   </aside></div>`;
-  $('#dialog-video').addEventListener('error', () => { $('#media-error').hidden = false; });
-  $('#dialog-video').addEventListener('play', () => $('#featured-video').pause());
   if (!dialog.open) dialog.showModal();
   dialog.scrollTop = 0;
   document.body.classList.add('modal-open');
@@ -145,14 +158,36 @@ async function copyBrief() {
   }
 }
 
+// Every reference plays in the site player (components/KuchiPlayer.tsx): the full video
+// in an animated modal, with the title, a details link and the original post under it.
+// The player's <video> carries the reference id and surface, so the play and
+// engagement analytics below keep working.
+function playReference(id, surface) {
+  const v = videos.find(v => v.id === id);
+  if (!v) return;
+  playVideo({
+    src: v.video,
+    title: v.title,
+    subtitle: `${v.account} · ${displayDuration(v)}`,
+    link: {href: v.source, label: 'Original post on X ↗'},
+    prompt: {label: 'Remake prompt', hint: 'Paste into your agent', text: brief(v)},
+    onCopy: (ok, what) => {
+      if (ok && what === 'prompt') track('reference_prompt_copied',{reference_id:id});
+      notify(ok ? 'Prompt copied. Paste it into your agent.' : 'Copy failed. Select the prompt and copy it.');
+    },
+    action: surface === 'page' ? undefined : {label: 'View details', hint: 'Stats, shot notes and the full page', href: videoPath(v)},
+    favorite: {kind: 'video', id: String(id)},
+    videoAttributes: {'data-reference-id': String(id), 'data-surface': surface},
+  });
+}
+
 document.addEventListener('click', (event) => {
-  const play = event.target.closest('[data-play]');
-  if (play) {
-    const player = play.closest('.inline-player').querySelector('video');
-    play.disabled = true;
-    player.play().catch(() => {
-      notify('Unable to start playback. Try the player controls.');
-    }).finally(() => { play.disabled = false; });
+  // A poster that is pressed directly plays too, not only its play button.
+  const play = event.target.closest('[data-play-ref]')
+    || event.target.closest('.inline-player, .kp-frame')?.querySelector('[data-play-ref]');
+  if (play && !event.target.closest('.media-01')) {
+    playReference(Number(play.dataset.playRef), play.dataset.surface || 'grid');
+    return;
   }
   const open = event.target.closest('[data-open]');
   if (open) openVideo(Number(open.dataset.open), open);
@@ -195,6 +230,7 @@ document.addEventListener('timeupdate', event => {
 ['pause', 'ended'].forEach(type => document.addEventListener(type, (event) => {
   if (event.target instanceof HTMLVideoElement) event.target.closest('.inline-player')?.classList.remove('is-playing');
 }, true));
+if (dialog) {
 $('#close-dialog').addEventListener('click', () => dialog.close());
 $('#prev-video').addEventListener('click', () => navigateVideo(-1));
 $('#next-video').addEventListener('click', () => navigateVideo(1));
@@ -211,8 +247,11 @@ dialog.addEventListener('close', () => {
   history.replaceState(null, '', '#archive');
   if (lastTrigger?.isConnected) lastTrigger.focus({preventScroll:true});
 });
+}
 document.addEventListener('keydown', (event) => {
-  if (!dialog.open || /INPUT|TEXTAREA|SELECT|VIDEO/.test(event.target.tagName)) return;
+  // The site player sits above the dialog and owns the keyboard while it is open.
+  if (document.querySelector('dialog.kp-layer[open]')) return;
+  if (!dialog?.open || /INPUT|TEXTAREA|SELECT|VIDEO/.test(event.target.tagName)) return;
   if (event.key === 'ArrowRight') {event.preventDefault();navigateVideo(1);}
   if (event.key === 'ArrowLeft') {event.preventDefault();navigateVideo(-1);}
 });
@@ -221,9 +260,21 @@ function filterChanged() {
   clearTimeout(filterTimer);
   filterTimer = setTimeout(() => track('collection_filtered',{query_length:$('#search').value.trim().length,result_count:filtered.length,category:$('#category').value,style:$('#style').value,sort:$('#sort').value}),500);
 }
+if ($('#search')) {
 $('#search').addEventListener('input', filterChanged);
 ['category','style','sort'].forEach(id => $(`#${id}`).addEventListener('change', filterChanged));
+for (const tab of document.querySelectorAll('[data-mine]')) {
+  tab.addEventListener('click', () => {
+    mine = tab.dataset.mine;
+    for (const other of document.querySelectorAll('[data-mine]')) other.setAttribute('aria-pressed', String(other === tab));
+    renderCollection();
+  });
+}
+// Un-liking or un-saving while that view is open takes the card out of it.
+onFavoritesChange(() => { if (mine !== 'all') renderCollection(); });
 $('#reset-filters').addEventListener('click', () => {
+  mine = 'all';
+  for (const tab of document.querySelectorAll('[data-mine]')) tab.setAttribute('aria-pressed', String(tab.dataset.mine === 'all'));
   $('#search').value = '';
   $('#category').value = 'all';
   $('#style').value = 'all';
@@ -236,19 +287,19 @@ $('#view-toggle').addEventListener('click', () => {
   $('#view-toggle').title = tableView ? 'Switch to grid view' : 'Switch to table view';
   renderCollection();
 });
-$('#featured-video').addEventListener('error', () => notify('Unable to play the reference file. Open the original post.'));
+}
 
-fetch('videos.json').then(response => {
+fetch('/videos.json').then(response => {
   if (!response.ok) throw new Error('Unable to load metadata');
   return response.json();
 }).then(data => {
   videos = data;
   for (const [id, values, label] of [['category',videos.map(v=>v.category),'All categories'],['style',videos.flatMap(v=>v.styles),'All styles']]) {
-    document.getElementById(id).innerHTML = `<option value="all">${label}</option>` + [...new Set(values)].sort().map(value=>`<option>${escapeHTML(value)}</option>`).join('');
+    if (document.getElementById(id)) document.getElementById(id).innerHTML = `<option value="all">${label}</option>` + [...new Set(values)].sort().map(value=>`<option>${escapeHTML(value)}</option>`).join('');
   }
-  $('#total-videos').textContent = videos.length;
-  $('#total-impressions').textContent = compact(videos.reduce((n,v) => n + (v.impressions ?? 0), 0));
-  fetch('daily-stats.json').then(r => { if (!r.ok) throw new Error('No daily snapshot'); return r.json(); }).then(history => {
+  if ($('#total-videos')) $('#total-videos').textContent = videos.length;
+  if ($('#total-impressions')) $('#total-impressions').textContent = compact(videos.reduce((n,v) => n + (v.impressions ?? 0), 0));
+  if ($('#delta-videos')) fetch('/daily-stats.json').then(r => { if (!r.ok) throw new Error('No daily snapshot'); return r.json(); }).then(history => {
     const comparison = dailyChanges(videos, history);
     if (!comparison) return;
     for (const [metric, change] of Object.entries(comparison.changes)) {
@@ -263,10 +314,13 @@ fetch('videos.json').then(response => {
   }).catch(() => {});
   setFeature(87);
   renderCollection();
+  // Kuchi links in remake briefs (/#video-<id>, the form the MCP resolves) land people on
+  // the video's own page.
   const match = location.hash.match(/^#video-(\d+)$/);
-  if (match) openVideo(Number(match[1]));
+  const linked = match && videos.find(v => v.id === Number(match[1]));
+  if (linked) location.replace(videoPath(linked));
 }).catch(() => {
-  $('#collection').innerHTML = '<p class="video-error">The collection could not load. Refresh the page, or <a href="videos.json">open the metadata file</a>.</p>';
+  if ($('#collection')) $('#collection').innerHTML = '<p class="video-error">The collection could not load. Refresh the page, or <a href="/videos.json">open the metadata file</a>.</p>';
 });
 
 document.addEventListener('error',event=>{

@@ -1493,5 +1493,3141 @@
         "type": "registry:component"
       }
     ]
+  },
+  {
+    "name": "glass-code-block",
+    "type": "registry:component",
+    "title": "Glass Code Block",
+    "description": "A premium frosted-glass code editor window with a regex tokenizer and line-by-line stagger reveal.",
+    "category": "code",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/glass-code-block.tsx",
+        "target": "components/kuchi/glass-code-block.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "glass-code-walk",
+    "type": "registry:component",
+    "title": "Glass Code Walk",
+    "description": "A camera that scans a glass code block top to bottom as it types, then pulls back to a centered hold.",
+    "category": "code",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "glass-code-block"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/glass-code-walk.tsx",
+        "target": "components/kuchi/glass-code-walk.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "code-morph",
+    "type": "registry:component",
+    "title": "Code Morph",
+    "description": "A flat code editor that morphs between versions of a file, gliding each surviving token to its new line and column while removed code dissolves and new code fades in.",
+    "category": "code",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/code-morph.tsx",
+        "target": "components/kuchi/code-morph.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "terminal-session",
+    "type": "registry:component",
+    "title": "Terminal Simulator",
+    "description": "Terminal window that types out commands and rolls old lines off the top.",
+    "category": "code",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/terminal-session.tsx",
+        "target": "components/kuchi/terminal-session.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "terminal-cursor-zoom",
+    "type": "registry:component",
+    "title": "Terminal Cursor Zoom",
+    "description": "Camera locked to the typing cursor, dollying across a terminal as a command types at high zoom.",
+    "category": "code",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "terminal-session"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/terminal-cursor-zoom.tsx",
+        "target": "components/kuchi/terminal-cursor-zoom.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "gradient-ground",
+    "type": "registry:lib",
+    "title": "Gradient Ground",
+    "description": "Animated gradient grounds for Remotion: the free gradients.sh engine (WebGL2) with 39 presets, driven by the current frame.",
+    "category": "library",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/backend.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/backend.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/color.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/color.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/export.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/export.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/fallback.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/fallback.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/index.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/index.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/kind.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/kind.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/kinds.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/kinds.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/loop.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/loop.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/mount.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/mount.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/params.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/params.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/pool.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/pool.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/renderer.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/renderer.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/scheduler.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/scheduler.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/aurora.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/aurora.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/beam.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/beam.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/chrome.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/chrome.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/common.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/common.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/dither-burst.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/dither-burst.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/dither-field.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/dither-field.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/fluted.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/fluted.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/grain.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/grain.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/halo.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/halo.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/horizon.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/horizon.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/limb.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/limb.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/linear-flow.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/linear-flow.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/mesh.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/mesh.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/mist.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/mist.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/pixel-glass.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/pixel-glass.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/radial-glow.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/radial-glow.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/ribbon.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/ribbon.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/rise.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/rise.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/silk.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/silk.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/smear.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/smear.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/spectrum.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/spectrum.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/swirl.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/swirl.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/void.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/void.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/waves.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/waves.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl-common.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl-common.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/aurora.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/aurora.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/beam.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/beam.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/chrome.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/chrome.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/dither-burst.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/dither-burst.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/dither-field.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/dither-field.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/fluted.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/fluted.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/grain.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/grain.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/halo.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/halo.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/horizon.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/horizon.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/limb.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/limb.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/linear-flow.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/linear-flow.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/mesh.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/mesh.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/mist.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/mist.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/pixel-glass.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/pixel-glass.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/radial-glow.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/radial-glow.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/ribbon.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/ribbon.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/rise.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/rise.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/silk.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/silk.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/smear.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/smear.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/spectrum.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/spectrum.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/swirl.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/swirl.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/void.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/void.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/shaders/wgsl/waves.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/shaders/wgsl/waves.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/types.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/uniforms.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/uniforms.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/webgpu-device.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/webgpu-device.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gradient-engine/webgpu.ts",
+        "target": "lib/kuchi/gsh/gradient-engine/webgpu.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/gsh-ground.tsx",
+        "target": "lib/kuchi/gsh/gsh-ground.tsx",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi/gsh/presets.ts",
+        "target": "lib/kuchi/gsh/presets.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "achievement-pop",
+    "type": "registry:component",
+    "title": "Achievement Pop",
+    "description": "Stacked achievement toasts unlock one by one, the last a rare gradient-filled card.",
+    "category": "cards",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/achievement-pop.tsx",
+        "target": "components/kuchi/achievement-pop.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "border-beam",
+    "type": "registry:component",
+    "title": "Border Beam",
+    "description": "A beam laps the border of a dark card, then reveals 'kuchi 2.0' with a logo and description.",
+    "category": "cards",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/border-beam.tsx",
+        "target": "components/kuchi/border-beam.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "card-fan",
+    "type": "registry:component",
+    "title": "Card Fan",
+    "description": "Colourful format cards fan out of a stack with a \"Your top formats\" caption.",
+    "category": "cards",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/card-fan.tsx",
+        "target": "components/kuchi/card-fan.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "glow-born-card",
+    "type": "registry:component",
+    "title": "Glow Born Card",
+    "description": "A glow condenses into an \"Import from repository\" dialog beside split headline text.",
+    "category": "cards",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/glow-born-card.tsx",
+        "target": "components/kuchi/glow-born-card.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "launch-days",
+    "type": "registry:component",
+    "title": "Launch Days",
+    "description": "Vertical day tabs expand one into a big card, '03 Templates', under a Launch Week header.",
+    "category": "cards",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/launch-days.tsx",
+        "target": "components/kuchi/launch-days.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "pill-morph",
+    "type": "registry:component",
+    "title": "Pill Morph",
+    "description": "A logo pill opens into a product card, splits into feature pills and becomes an app tile.",
+    "category": "cards",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/pill-morph.tsx",
+        "target": "components/kuchi/pill-morph.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "rim-draw-card",
+    "type": "registry:component",
+    "title": "Rim Draw Card",
+    "description": "A settings card gets its rim drawn in light, revealing a brand-voice toggle and text field.",
+    "category": "cards",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/rim-draw-card.tsx",
+        "target": "components/kuchi/rim-draw-card.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "search-reveal",
+    "type": "registry:component",
+    "title": "Search Reveal",
+    "description": "Expanding construction circles snap into a search pill, type editable text, and reveal an abstract graphic panel.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/search-reveal.tsx",
+        "target": "components/kuchi/search-reveal.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "card-push-line",
+    "type": "registry:component",
+    "title": "Card Push Line",
+    "description": "A prompt card with a slash command pushes forward as its text line types.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/card-push-line.tsx",
+        "target": "components/kuchi/card-push-line.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "caret-dolly",
+    "type": "registry:component",
+    "title": "Caret Dolly",
+    "description": "A prompt box types a request while the camera dollies along the caret.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/caret-dolly.tsx",
+        "target": "components/kuchi/caret-dolly.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "ghost-complete",
+    "type": "registry:component",
+    "title": "Ghost Complete",
+    "description": "Grey ghost suggestions autocomplete a sentence, each accepted with a Tab keypress.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/ghost-complete.tsx",
+        "target": "components/kuchi/ghost-complete.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "multi-file-drop",
+    "type": "registry:component",
+    "title": "Multi File Drop",
+    "description": "Files drop into a prompt box as chips, then a cursor presses send.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/multi-file-drop.tsx",
+        "target": "components/kuchi/multi-file-drop.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "query-cascade",
+    "type": "registry:component",
+    "title": "Query Cascade",
+    "description": "Search queries rush past until the hero query lands and its answer line resolves.",
+    "category": "ai-input",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/query-cascade.tsx",
+        "target": "components/kuchi/query-cascade.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "drop-upload",
+    "type": "registry:component",
+    "title": "Drop Upload",
+    "description": "A file card drops in and fills an upload bar until a check confirms it.",
+    "category": "cursor",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/drop-upload.tsx",
+        "target": "components/kuchi/drop-upload.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "macro-tab-name",
+    "type": "registry:component",
+    "title": "Macro Tab Name",
+    "description": "A macro-zoomed tab chip reads \"Launch Assets\" as a cursor moves in and clicks.",
+    "category": "cursor",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/macro-tab-name.tsx",
+        "target": "components/kuchi/macro-tab-name.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "animated-line-chart",
+    "type": "registry:component",
+    "title": "Animated Line Chart",
+    "description": "Line chart whose SVG path draws on from left to right with a leading dot.",
+    "category": "ui",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/animated-line-chart.tsx",
+        "target": "components/kuchi/animated-line-chart.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "animated-bar-chart",
+    "type": "registry:component",
+    "title": "Animated Bar Chart",
+    "description": "Bars spring up from the baseline in a staggered cascade.",
+    "category": "ui",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/animated-bar-chart.tsx",
+        "target": "components/kuchi/animated-bar-chart.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "stop-motion",
+    "type": "registry:lib",
+    "title": "Stop Motion Clock",
+    "description": "Quantized stop-motion clock for Remotion. Stepped frames, stepped springs, deterministic hashing, and per-pose paper jitter.",
+    "category": "library",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/lib/kuchi/stop-motion.ts",
+        "target": "lib/kuchi/stop-motion.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "paper-sticker",
+    "type": "registry:component",
+    "title": "Paper Sticker",
+    "description": "A taped paper chip that slaps onto the scene over two stop-motion poses, keeping a hand-placed tilt and per-pose wobble.",
+    "category": "ui",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "stop-motion"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/paper-sticker.tsx",
+        "target": "components/kuchi/paper-sticker.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "handwrite",
+    "type": "registry:component",
+    "title": "Handwrite",
+    "description": "Handwritten text laid down letter by letter on a quantized stop-motion clock, each glyph keeping its own slant and baseline wobble.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "stop-motion"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/handwrite.tsx",
+        "target": "components/kuchi/handwrite.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "polaroid",
+    "type": "registry:component",
+    "title": "Polaroid",
+    "description": "An instant-photo frame with a handwritten caption for video, images, or live compositions.",
+    "category": "ui",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "stop-motion",
+      "handwrite"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/polaroid.tsx",
+        "target": "components/kuchi/polaroid.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "check-list",
+    "type": "registry:component",
+    "title": "Check List",
+    "description": "A handwritten checklist that writes itself out in full, then ticks and strikes through every done item, one at a time.",
+    "category": "ui",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "stop-motion",
+      "handwrite"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/check-list.tsx",
+        "target": "components/kuchi/check-list.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "reel",
+    "type": "registry:component",
+    "title": "Reel",
+    "description": "A fixed centered card where images stack on the z-axis and each blooms open over the last via a centre-out mask.",
+    "category": "ui",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/reel.tsx",
+        "target": "components/kuchi/reel.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "keycap-press",
+    "type": "registry:component",
+    "title": "Keycap Press",
+    "description": "Two 3D keycaps press Cmd and K under the line Everything, one shortcut away.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/keycap-press.tsx",
+        "target": "components/kuchi/keycap-press.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "rotary-dial",
+    "type": "registry:component",
+    "title": "Rotary Dial",
+    "description": "A knurled dial turns to 10 while its arc heats up and 10x render speed counts up.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/rotary-dial.tsx",
+        "target": "components/kuchi/rotary-dial.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "toggle-on",
+    "type": "registry:component",
+    "title": "Toggle on",
+    "description": "A large switch flips on and lights the stage as the Auto-captions label turns On.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/toggle-on.tsx",
+        "target": "components/kuchi/toggle-on.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "menu-pick",
+    "type": "registry:component",
+    "title": "Menu Pick",
+    "description": "A choose-your-launch menu dims two options and highlights the third on a red bar.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/menu-pick.tsx",
+        "target": "components/kuchi/menu-pick.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "ui-callout",
+    "type": "registry:component",
+    "title": "UI Callout",
+    "description": "Callout cards route to targets on a product screen with connecting leader lines.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/ui-callout.tsx",
+        "target": "components/kuchi/ui-callout.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "toolbar-unfurl",
+    "type": "registry:component",
+    "title": "Toolbar Unfurl",
+    "description": "A round tap button unfurls into a tool strip while captions list each tool over a glowing ribbon.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/toolbar-unfurl.tsx",
+        "target": "components/kuchi/toolbar-unfurl.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "url-bar-cta",
+    "type": "registry:component",
+    "title": "URL Bar CTA",
+    "description": "A browser window with a landing page where the cursor clicks the Get started button.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/url-bar-cta.tsx",
+        "target": "components/kuchi/url-bar-cta.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "type-caret",
+    "type": "registry:component",
+    "title": "UI Caret",
+    "description": "A blinking text caret — a controlled vertical bar, or a pure motion atom that blinks deterministically from useCurrentFrame.",
+    "category": "ui",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/type-caret.tsx",
+        "target": "components/kuchi/type-caret.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "kuchi-kit",
+    "type": "registry:lib",
+    "title": "kuchi UI Core",
+    "description": "Shared timeline-fold hook, theme context, and color math for kuchi UI primitives.",
+    "category": "library",
+    "dependencies": [
+      "remotion",
+      "culori"
+    ],
+    "devDependencies": [
+      "@types/culori"
+    ],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/lib/kuchi-kit/timeline.ts",
+        "target": "lib/kuchi-kit/timeline.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-kit/theme.ts",
+        "target": "lib/kuchi-kit/theme.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-kit/color.ts",
+        "target": "lib/kuchi-kit/color.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-kit/motion.ts",
+        "target": "lib/kuchi-kit/motion.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-kit/types.ts",
+        "target": "lib/kuchi-kit/types.ts",
+        "type": "registry:lib"
+      },
+      {
+        "vendored": "files/lib/kuchi-kit/index.ts",
+        "target": "lib/kuchi-kit/index.ts",
+        "type": "registry:lib"
+      }
+    ]
+  },
+  {
+    "name": "claude-chat",
+    "type": "registry:component",
+    "title": "Claude Chat",
+    "description": "Animated Claude chat input — types a prompt character-by-character and the waveform button morphs into a terracotta send button the moment text appears. Warm light/dark themes.",
+    "category": "ai-chat",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "type-caret",
+      "kuchi-kit"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/claude-chat.tsx",
+        "target": "components/kuchi/claude-chat.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "chat-gpt",
+    "type": "registry:component",
+    "title": "ChatGPT",
+    "description": "Animated ChatGPT composer — types a prompt into the pill input, the blue voice button morphs into a send button, and the suggestion chips fade out. Light/dark themes.",
+    "category": "ai-chat",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "type-caret",
+      "kuchi-kit"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/chat-gpt.tsx",
+        "target": "components/kuchi/chat-gpt.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "v0",
+    "type": "registry:component",
+    "title": "v0",
+    "description": "Animated Vercel v0 composer — types a prompt into the dark textarea and the mic button morphs into a send button. Dark/light themes.",
+    "category": "ai-chat",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "type-caret",
+      "kuchi-kit"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/v0.tsx",
+        "target": "components/kuchi/v0.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "claude-code",
+    "type": "registry:component",
+    "title": "Claude Code",
+    "description": "Animated Claude Code CLI welcome screen — terminal window with a dashed welcome box, recent activity and what's new panels, and a prompt line that types a command with a block cursor. Dark/light themes.",
+    "category": "ai-chat",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "type-caret",
+      "kuchi-kit"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/claude-code.tsx",
+        "target": "components/kuchi/claude-code.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "opencode",
+    "type": "registry:component",
+    "title": "OpenCode",
+    "description": "Animated OpenCode TUI welcome screen — two-tone wordmark, an input box with a blue accent bar that types a query, a model status line, and command hints. Dark/light themes.",
+    "category": "ai-chat",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "type-caret",
+      "kuchi-kit"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/opencode.tsx",
+        "target": "components/kuchi/opencode.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "agent-run",
+    "type": "registry:component",
+    "title": "Agent Run",
+    "description": "Animated brand-neutral AI agent run — a Thinking status and short plan, tool calls whose spinners close into checks while a timer counts real seconds, then a markdown answer with citations and a code block that streams in irregular token bursts. Light/dark themes.",
+    "category": "ai-chat",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/agent-run.tsx",
+        "target": "components/kuchi/agent-run.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "echo-stack",
+    "type": "registry:component",
+    "title": "Echo Stack",
+    "description": "A word focuses in at the center while outline copies of it unfold above and below and keep drifting, like the one clear line on a spinning drum.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/echo-stack.tsx",
+        "target": "components/kuchi/echo-stack.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "word-insert",
+    "type": "registry:component",
+    "title": "Word Insert",
+    "description": "A sentence edits itself, opening a gap and inserting a new word with a gradient.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/word-insert.tsx",
+        "target": "components/kuchi/word-insert.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "focus-blur-resolve",
+    "type": "registry:component",
+    "title": "Focus Blur Resolve",
+    "description": "A premium focus pull from heavy blur to crisp text, then a soft blur-out exit.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/focus-blur-resolve.tsx",
+        "target": "components/kuchi/focus-blur-resolve.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "word-pullback",
+    "type": "registry:component",
+    "title": "Word Pullback",
+    "description": "The camera pulls back from a big word to reveal \"The cinematic toolkit for every launch\".",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/word-pullback.tsx",
+        "target": "components/kuchi/word-pullback.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "depth-headline",
+    "type": "registry:component",
+    "title": "Depth Headline",
+    "description": "A huge serif headline sits behind a gradient sphere that slides through it for depth.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/depth-headline.tsx",
+        "target": "components/kuchi/depth-headline.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "strikethrough-replace",
+    "type": "registry:component",
+    "title": "Strikethrough Replace",
+    "description": "Draws a strike line across old text then reveals new text in its place.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/strikethrough-replace.tsx",
+        "target": "components/kuchi/strikethrough-replace.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "inline-word-roll",
+    "type": "registry:component",
+    "title": "Inline Word Roll",
+    "description": "Roll through words beside a fixed prefix with accelerating timing and smoothly centered width.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/inline-word-roll.tsx",
+        "target": "components/kuchi/inline-word-roll.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "slot-machine-roll",
+    "type": "registry:component",
+    "title": "Slot Machine Roll",
+    "description": "Vertical reel scrolls characters from one value to another.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/slot-machine-roll.tsx",
+        "target": "components/kuchi/slot-machine-roll.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "word-stream",
+    "type": "registry:component",
+    "title": "Word Stream",
+    "description": "Voiceover-paced phrases that build word by word — the next word looms as a blurred ghost before it resolves, then the phrase cuts away.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/word-stream.tsx",
+        "target": "components/kuchi/word-stream.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "centered-word-build",
+    "type": "registry:component",
+    "title": "Centered Word Build",
+    "description": "Words appear sharply from below while the centered phrase pushes cumulatively closer on every beat, then clears through a soft left-to-right opacity wipe.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/centered-word-build.tsx",
+        "target": "components/kuchi/centered-word-build.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "zoom-words",
+    "type": "registry:component",
+    "title": "Zoom Words",
+    "description": "A close-up word reveal: huge words fade into a long line while the camera rides the write head, the line streaming off-frame as the shot eases into focus.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/zoom-words.tsx",
+        "target": "components/kuchi/zoom-words.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "rubberband-word",
+    "type": "registry:component",
+    "title": "Rubberband Word",
+    "description": "A cursor grabs a word by its last letter, stretches it and snaps it into a new word.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/rubberband-word.tsx",
+        "target": "components/kuchi/rubberband-word.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "kinetic-morph-text",
+    "type": "registry:component",
+    "title": "Kinetic Morph Text",
+    "description": "Letters lift, rotate, and softly reshape into editable phrases with sampled outline trails.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/kinetic-morph-text.tsx",
+        "target": "components/kuchi/kinetic-morph-text.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "intelligence-glow",
+    "type": "registry:component",
+    "title": "Intelligence Glow",
+    "description": "An AI-style answer types under a question while a soft glow breathes along an underline.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/intelligence-glow.tsx",
+        "target": "components/kuchi/intelligence-glow.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "lights-out",
+    "type": "registry:component",
+    "title": "Lights Out",
+    "description": "Five lights go out and a heavy italic headline slams in, with a blue period.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/lights-out.tsx",
+        "target": "components/kuchi/lights-out.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "full-bleed-type",
+    "type": "registry:component",
+    "title": "Full Bleed Type",
+    "description": "Huge condensed caps words slam in one at a time, the last lit by a sunrise gradient.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/full-bleed-type.tsx",
+        "target": "components/kuchi/full-bleed-type.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "strobe-words",
+    "type": "registry:component",
+    "title": "Strobe Words",
+    "description": "Big words strobe in at a set rhythm over a dark horizon glow, ending on the logo.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/strobe-words.tsx",
+        "target": "components/kuchi/strobe-words.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "glass-capsule",
+    "type": "registry:component",
+    "title": "Glass Capsule",
+    "description": "A glass capsule slides over the focus word of a two-line headline, magnifying it in italic.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/glass-capsule.tsx",
+        "target": "components/kuchi/glass-capsule.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "version-hero",
+    "type": "registry:component",
+    "title": "Version Hero",
+    "description": "A chrome 2.0 version numeral rises inside a glowing ring with Now available beneath.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/version-hero.tsx",
+        "target": "components/kuchi/version-hero.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "countdown",
+    "type": "registry:component",
+    "title": "Countdown",
+    "description": "A monumental countdown numeral inside a ring resolves into a Live lockup.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/countdown.tsx",
+        "target": "components/kuchi/countdown.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "t-minus",
+    "type": "registry:component",
+    "title": "T Minus",
+    "description": "A mission clock ticks T-minus with rolling characters, then slams 'LIFTOFF' over a sunrise glow.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/t-minus.tsx",
+        "target": "components/kuchi/t-minus.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "live-code-compilation",
+    "type": "registry:component",
+    "title": "Live Code Compilation",
+    "description": "Split-screen where typed code on the left snaps a live UI preview on the right, HMR-style.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/live-code-compilation.tsx",
+        "target": "components/kuchi/live-code-compilation.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "grid-montage",
+    "type": "registry:component",
+    "title": "Grid Montage",
+    "description": "One shot splits into a 2x2 then a 3x3 montage, cutting on the beat.",
+    "category": "scenes",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/grid-montage.tsx",
+        "target": "components/kuchi/grid-montage.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "prompt-to-app",
+    "type": "registry:component",
+    "title": "Prompt to App",
+    "description": "A prompt types into a chat and a site preview builds as files are written.",
+    "category": "ai-chat",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/prompt-to-app.tsx",
+        "target": "components/kuchi/prompt-to-app.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "file-dropzone",
+    "type": "registry:component",
+    "title": "File Dropzone",
+    "description": "Files drop into a knowledge base list and an upload toast confirms.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/file-dropzone.tsx",
+        "target": "components/kuchi/file-dropzone.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "reels-feed",
+    "type": "registry:component",
+    "title": "Reels Feed",
+    "description": "A vertical reels feed with a double-tap heart over a launch story frame.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/reels-feed.tsx",
+        "target": "components/kuchi/reels-feed.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "phone-scroll",
+    "type": "registry:component",
+    "title": "Phone Scroll",
+    "description": "A phone app screen flicks through stops while a headline sits beside it.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/phone-scroll.tsx",
+        "target": "components/kuchi/phone-scroll.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "grid-to-app",
+    "type": "registry:component",
+    "title": "Grid to App",
+    "description": "A product grid expands into a store admin app with sidebar and product catalogue.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/grid-to-app.tsx",
+        "target": "components/kuchi/grid-to-app.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "money-send",
+    "type": "registry:component",
+    "title": "Money Send",
+    "description": "A phone payment screen confirms Sent to Maya with a receipt.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/money-send.tsx",
+        "target": "components/kuchi/money-send.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "mobile-paywall",
+    "type": "registry:component",
+    "title": "Mobile Paywall",
+    "description": "A phone paywall selects a plan and shows a Welcome to Pro confirmation.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/mobile-paywall.tsx",
+        "target": "components/kuchi/mobile-paywall.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "phone-trio",
+    "type": "registry:component",
+    "title": "Phone Trio",
+    "description": "Three phones side by side show a notification, a photo feed and a profile.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/phone-trio.tsx",
+        "target": "components/kuchi/phone-trio.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "screenshot-tour",
+    "type": "registry:component",
+    "title": "Screenshot Tour",
+    "description": "The camera tours a product screenshot, zooming in on regions of an issue tracker.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/screenshot-tour.tsx",
+        "target": "components/kuchi/screenshot-tour.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "device-morph",
+    "type": "registry:component",
+    "title": "Device Morph",
+    "description": "A design canvas switches a frame between desktop, tablet and phone layouts.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/device-morph.tsx",
+        "target": "components/kuchi/device-morph.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "ai-image-grid",
+    "type": "registry:component",
+    "title": "AI Image Grid",
+    "description": "An AI image generator fills a result with a generated render and Download button.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/ai-image-grid.tsx",
+        "target": "components/kuchi/ai-image-grid.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "channel-reactions",
+    "type": "registry:component",
+    "title": "Channel Reactions",
+    "description": "A team chat channel where a launch message collects emoji reactions and replies.",
+    "category": "screens",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/channel-reactions.tsx",
+        "target": "components/kuchi/channel-reactions.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "logo-construct",
+    "type": "registry:component",
+    "title": "Logo Construct",
+    "description": "A blueprint grid draws the logo construction lines and the wordmark inks in.",
+    "category": "logos",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/logo-construct.tsx",
+        "target": "components/kuchi/logo-construct.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "live-ticker",
+    "type": "registry:component",
+    "title": "Live Ticker",
+    "description": "A big comma-separated counter rolls its digits up like a live ticker with a feed above.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/live-ticker.tsx",
+        "target": "components/kuchi/live-ticker.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "chart-morph",
+    "type": "registry:component",
+    "title": "Chart Morph",
+    "description": "A line chart with an area fill morphs between points up to a 46k value.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/chart-morph.tsx",
+        "target": "components/kuchi/chart-morph.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "led-ticker",
+    "type": "registry:component",
+    "title": "Led Ticker",
+    "description": "KUCHI IS LIVE scrolls on a retro LED dot-matrix with a gradient on the last word.",
+    "category": "ui",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/led-ticker.tsx",
+        "target": "components/kuchi/led-ticker.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "spec-sheet",
+    "type": "registry:component",
+    "title": "Spec Sheet",
+    "description": "A tech spec table with hairline rows reveals values like 4K, 60 fps and 1 command.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/spec-sheet.tsx",
+        "target": "components/kuchi/spec-sheet.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "dot-map",
+    "type": "registry:component",
+    "title": "Dot Map",
+    "description": "A dotted world map lights up city by city, ending on 142 countries.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/dot-map.tsx",
+        "target": "components/kuchi/dot-map.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "world-signups",
+    "type": "registry:component",
+    "title": "World Signups",
+    "description": "A dotted world map pings signup locations next to a rolling signup counter and live feed.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/world-signups.tsx",
+        "target": "components/kuchi/world-signups.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "hex-fill",
+    "type": "registry:component",
+    "title": "Hex Fill",
+    "description": "A hexagonal grid fills with gradient cells up to an 86% reading.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/hex-fill.tsx",
+        "target": "components/kuchi/hex-fill.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "growth-line",
+    "type": "registry:component",
+    "title": "Growth Line",
+    "description": "An exponential growth curve draws through milestones to a 100k endpoint.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/growth-line.tsx",
+        "target": "components/kuchi/growth-line.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "quadrant-plot",
+    "type": "registry:component",
+    "title": "Quadrant Plot",
+    "description": "Competitors scatter on a quadrant plot and the Kuchi marker lands in the best corner.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/quadrant-plot.tsx",
+        "target": "components/kuchi/quadrant-plot.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "beeswarm",
+    "type": "registry:component",
+    "title": "Beeswarm",
+    "description": "Two dot swarms, before and after, settle on an axis showing 3.4 versus 10.6.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/beeswarm.tsx",
+        "target": "components/kuchi/beeswarm.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "rolling-number",
+    "type": "registry:component",
+    "title": "Rolling Number",
+    "description": "Odometer where every place rolls at its own speed, new places rising into view, settling exactly on the target value.",
+    "category": "ui",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/rolling-number.tsx",
+        "target": "components/kuchi/rolling-number.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "soft-blur-in",
+    "type": "registry:component",
+    "title": "Soft Blur In",
+    "description": "Per-character fade-in with a gentle blur and upward motion. Apple's signature hero-title reveal.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/soft-blur-in.tsx",
+        "target": "components/kuchi/soft-blur-in.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "blur-out-up",
+    "type": "registry:component",
+    "title": "Blur Out Up",
+    "description": "Words arrive clean and depart upward with increasing blur for airy exits.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/blur-out-up.tsx",
+        "target": "components/kuchi/blur-out-up.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "github-sponsors",
+    "type": "registry:component",
+    "title": "GitHub Sponsors",
+    "description": "Self-drawing Sponsors heart that docks to a header, every sponsor avatar blur-staggering into a grid, then a thank-you headline and a CTA. Single seek-safe timeline, 270 frames at 30fps.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "soft-blur-in",
+      "blur-out-up"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/github-sponsors.tsx",
+        "target": "components/kuchi/github-sponsors.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "upvote-burst",
+    "type": "registry:component",
+    "title": "Upvote Burst",
+    "description": "A launch leaderboard climbs and a #1 Product of the Day badge stamps in.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/upvote-burst.tsx",
+        "target": "components/kuchi/upvote-burst.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "number-wheel",
+    "type": "registry:component",
+    "title": "Number Wheel",
+    "description": "Mechanical odometer that rolls an integer up or down to its target, direction inferred from the values.",
+    "category": "text",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/number-wheel.tsx",
+        "target": "components/kuchi/number-wheel.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "github-stars",
+    "type": "registry:component",
+    "title": "GitHub Stars",
+    "description": "Inertial fly-through of a repo's stargazers with a synced count-up odometer that locks on the total. Horizontal 16:9 or vertical 9:16.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "date-fns",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "number-wheel"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/github-stars.tsx",
+        "target": "components/kuchi/github-stars.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "cursor",
+    "type": "registry:component",
+    "title": "UI Cursor",
+    "description": "An animated cursor that moves between waypoints, clicks (ripple), and drags. The Cursor renderer is a pure function of a numeric CursorStyle channel; useCursorPath reads the frame and eases the path, ripple, and press phases.",
+    "category": "cursor",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "kuchi-kit"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/cursor.tsx",
+        "target": "components/kuchi/cursor.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/use-cursor-path.ts",
+        "target": "components/kuchi/use-cursor-path.ts",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "x-follow-card",
+    "type": "registry:component",
+    "title": "X Follow Card",
+    "description": "Animated X profile follow card — spring bounce-in, staggered blur-in, a synthetic cursor that clicks Follow and flips it to Following. Light/dark, horizontal or vertical.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "cursor"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/x-follow-card.tsx",
+        "target": "components/kuchi/x-follow-card.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "confetti",
+    "type": "registry:component",
+    "title": "Confetti",
+    "description": "Deterministic confetti burst for Remotion — seeded particles with gravity, spin, and flutter so every render is identical. Fire it on any frame as a celebratory overlay.",
+    "category": "effects",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/confetti.tsx",
+        "target": "components/kuchi/confetti.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "x-followers-overview",
+    "type": "registry:component",
+    "title": "X Followers Overview",
+    "description": "X follow notifications cycle through as 3D flipping text — '<name> followed you · 7h' — then the total follower count pops in with a confetti burst. Hardcoded sample list (X API ready). Light/dark, horizontal or vertical.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "confetti"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/x-followers-overview.tsx",
+        "target": "components/kuchi/x-followers-overview.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "logo-enter",
+    "type": "registry:component",
+    "title": "Logo Enter",
+    "description": "A stacked group of round brand chips that spring in one-by-one, then hold. Swap the logos to feature any set of marks. Horizontal or vertical stacking.",
+    "category": "social",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/logo-enter.tsx",
+        "target": "components/kuchi/logo-enter.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "duet-split",
+    "type": "registry:component",
+    "title": "Duet Split",
+    "description": "A split screen contrasts a slow grey side with a crisp gradient side: '1 day' versus '$0'.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/duet-split.tsx",
+        "target": "components/kuchi/duet-split.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "speedrun-timer",
+    "type": "registry:component",
+    "title": "Speedrun Timer",
+    "description": "A speedrun split table fills row by row and ends on a gold 'WORLD RECORD' time.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/speedrun-timer.tsx",
+        "target": "components/kuchi/speedrun-timer.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "story-text",
+    "type": "registry:component",
+    "title": "Story Text",
+    "description": "Story-style text types in word by word on rounded gradient highlight bubbles.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/story-text.tsx",
+        "target": "components/kuchi/story-text.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "year-in-review",
+    "type": "registry:component",
+    "title": "Year in Review",
+    "description": "A bold story card with 2026 stats is presented with a Share this story button.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/year-in-review.tsx",
+        "target": "components/kuchi/year-in-review.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "milestone-roll",
+    "type": "registry:component",
+    "title": "Milestone Roll",
+    "description": "A counter races through milestones to a 1,000,000 poster over a gradient ground.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/milestone-roll.tsx",
+        "target": "components/kuchi/milestone-roll.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "rating-laurel",
+    "type": "registry:component",
+    "title": "Rating Laurel",
+    "description": "A gold laurel wreath frames a 4.96 rating above scrolling review cards.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/rating-laurel.tsx",
+        "target": "components/kuchi/rating-laurel.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "testimonial-stack",
+    "type": "registry:component",
+    "title": "Testimonial Stack",
+    "description": "A social post card with a highlighted line stacks in with other testimonials.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/testimonial-stack.tsx",
+        "target": "components/kuchi/testimonial-stack.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "waitlist-swarm",
+    "type": "registry:component",
+    "title": "Waitlist Swarm",
+    "description": "Cursors and avatar dots swarm to form an R while the waitlist count rolls up.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts",
+      "@remotion/paths"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/waitlist-swarm.tsx",
+        "target": "components/kuchi/waitlist-swarm.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "crash-zoom",
+    "type": "registry:component",
+    "title": "Crash Zoom",
+    "description": "A calm serif tease crash-zooms into a huge gradient '1 DAY.' with speed lines.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/crash-zoom.tsx",
+        "target": "components/kuchi/crash-zoom.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "hook-punch",
+    "type": "registry:component",
+    "title": "Hook Punch",
+    "description": "A two-beat hook stops the scroll, then a gradient payoff lands: 'This video took 1 day.'.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/hook-punch.tsx",
+        "target": "components/kuchi/hook-punch.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "pov-setup",
+    "type": "registry:component",
+    "title": "POV Setup",
+    "description": "A 'POV:' setup line slides in word by word, then a serif italic punchline lands.",
+    "category": "social",
+    "dependencies": [
+      "remotion",
+      "@remotion/google-fonts"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "gradient-ground"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/pov-setup.tsx",
+        "target": "components/kuchi/pov-setup.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "release-teaser",
+    "type": "registry:component",
+    "title": "Release Teaser",
+    "description": "A 16-second cinematic release teaser with center-out typography, a procedural dimensional mark, moving edge light, and an independent fictional identity.",
+    "category": "templates",
+    "dependencies": [
+      "remotion",
+      "@fontsource/inter"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/templates/release-teaser/index.tsx",
+        "target": "components/kuchi/templates/release-teaser/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/release-teaser/content.ts",
+        "target": "components/kuchi/templates/release-teaser/content.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/release-teaser/motion.ts",
+        "target": "components/kuchi/templates/release-teaser/motion.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/release-teaser/geometry.ts",
+        "target": "components/kuchi/templates/release-teaser/geometry.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/release-teaser/background.tsx",
+        "target": "components/kuchi/templates/release-teaser/background.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/release-teaser/ui.tsx",
+        "target": "components/kuchi/templates/release-teaser/ui.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/release-teaser/scenes/statement.tsx",
+        "target": "components/kuchi/templates/release-teaser/scenes/statement.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/release-teaser/scenes/closing.tsx",
+        "target": "components/kuchi/templates/release-teaser/scenes/closing.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "brand-guidelines",
+    "type": "registry:component",
+    "title": "Brand Guidelines",
+    "description": "An independent 17.9-second identity film with a geometric mark, sliding palette, kinetic type specimens, and original object photography.",
+    "category": "templates",
+    "dependencies": [
+      "remotion",
+      "@fontsource/manrope",
+      "@fontsource/inter"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "type-caret"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/assets.ts",
+        "target": "components/kuchi/templates/brand-guidelines/assets.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/content.ts",
+        "target": "components/kuchi/templates/brand-guidelines/content.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/motion.ts",
+        "target": "components/kuchi/templates/brand-guidelines/motion.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/ui.tsx",
+        "target": "components/kuchi/templates/brand-guidelines/ui.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/index.tsx",
+        "target": "components/kuchi/templates/brand-guidelines/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/scenes/identity.tsx",
+        "target": "components/kuchi/templates/brand-guidelines/scenes/identity.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/scenes/palette.tsx",
+        "target": "components/kuchi/templates/brand-guidelines/scenes/palette.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/scenes/typography.tsx",
+        "target": "components/kuchi/templates/brand-guidelines/scenes/typography.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/scenes/collage.tsx",
+        "target": "components/kuchi/templates/brand-guidelines/scenes/collage.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/brand-guidelines/scenes/closing.tsx",
+        "target": "components/kuchi/templates/brand-guidelines/scenes/closing.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "typed-split-wipe",
+    "type": "registry:component",
+    "title": "Typed Split Wipe",
+    "description": "A centered cursorless type build holds, then exits through opposing fixed-layout glyph wipes that leave the anchor visible longest.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/typed-split-wipe.tsx",
+        "target": "components/kuchi/typed-split-wipe.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "workflow-console",
+    "type": "registry:component",
+    "title": "Workflow Console",
+    "description": "An independent 46.8-second release automation demo with typed commands, environment diagrams, pipeline metrics, and an original node mark.",
+    "category": "templates",
+    "dependencies": [
+      "remotion",
+      "@fontsource/inter",
+      "@fontsource/roboto-mono"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "typed-split-wipe",
+      "type-caret"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/content.ts",
+        "target": "components/kuchi/templates/workflow-console/content.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/countries.ts",
+        "target": "components/kuchi/templates/workflow-console/countries.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/motion.ts",
+        "target": "components/kuchi/templates/workflow-console/motion.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/ui.tsx",
+        "target": "components/kuchi/templates/workflow-console/ui.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/index.tsx",
+        "target": "components/kuchi/templates/workflow-console/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/scenes/intro.tsx",
+        "target": "components/kuchi/templates/workflow-console/scenes/intro.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/scenes/commands.tsx",
+        "target": "components/kuchi/templates/workflow-console/scenes/commands.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/scenes/terminal.tsx",
+        "target": "components/kuchi/templates/workflow-console/scenes/terminal.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/scenes/geography.tsx",
+        "target": "components/kuchi/templates/workflow-console/scenes/geography.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/scenes/tools.tsx",
+        "target": "components/kuchi/templates/workflow-console/scenes/tools.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/scenes/responses.tsx",
+        "target": "components/kuchi/templates/workflow-console/scenes/responses.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/scenes/titles.tsx",
+        "target": "components/kuchi/templates/workflow-console/scenes/titles.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/scenes/chart.tsx",
+        "target": "components/kuchi/templates/workflow-console/scenes/chart.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/workflow-console/scenes/mark.tsx",
+        "target": "components/kuchi/templates/workflow-console/scenes/mark.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "shader-text-reveal",
+    "type": "registry:component",
+    "title": "Shader Text Reveal",
+    "description": "Reveal words through the original OpenShaders hero shader, then settle into white type.",
+    "category": "text",
+    "dependencies": [
+      "remotion"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/shader-text-reveal.tsx",
+        "target": "components/kuchi/shader-text-reveal.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "launch-anything",
+    "type": "registry:component",
+    "title": "Product Showcase",
+    "description": "An independent 26.7-second editorial product film with forest-green accents, original photography, seven editable demos, and geometric marks.",
+    "category": "templates",
+    "dependencies": [
+      "remotion",
+      "@fontsource/manrope"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [
+      "shader-text-reveal"
+    ],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/assets.ts",
+        "target": "components/kuchi/templates/launch-anything/assets.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/content.ts",
+        "target": "components/kuchi/templates/launch-anything/content.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/index.tsx",
+        "target": "components/kuchi/templates/launch-anything/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/motion.ts",
+        "target": "components/kuchi/templates/launch-anything/motion.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/screens.tsx",
+        "target": "components/kuchi/templates/launch-anything/screens.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/ui.tsx",
+        "target": "components/kuchi/templates/launch-anything/ui.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/scenes/opening.tsx",
+        "target": "components/kuchi/templates/launch-anything/scenes/opening.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/scenes/action.tsx",
+        "target": "components/kuchi/templates/launch-anything/scenes/action.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/scenes/portal.tsx",
+        "target": "components/kuchi/templates/launch-anything/scenes/portal.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/scenes/showcase.tsx",
+        "target": "components/kuchi/templates/launch-anything/scenes/showcase.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/scenes/proof.tsx",
+        "target": "components/kuchi/templates/launch-anything/scenes/proof.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/scenes/industry.tsx",
+        "target": "components/kuchi/templates/launch-anything/scenes/industry.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/scenes/space.tsx",
+        "target": "components/kuchi/templates/launch-anything/scenes/space.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/scenes/closing.tsx",
+        "target": "components/kuchi/templates/launch-anything/scenes/closing.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/launch-anything/scenes/action-frame.tsx",
+        "target": "components/kuchi/templates/launch-anything/scenes/action-frame.tsx",
+        "type": "registry:component"
+      }
+    ]
+  },
+  {
+    "name": "fomo-limit-orders",
+    "type": "registry:component",
+    "title": "Order Flow",
+    "description": "An independent 18-second trading-interface demo with fictional market data, graphite and amber styling, an original stepped mark, and editable camera choreography.",
+    "category": "templates",
+    "dependencies": [
+      "remotion",
+      "@fontsource/manrope"
+    ],
+    "devDependencies": [],
+    "registryDependencies": [],
+    "files": [
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/content.ts",
+        "target": "components/kuchi/templates/fomo-limit-orders/content.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/index.tsx",
+        "target": "components/kuchi/templates/fomo-limit-orders/index.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/motion.ts",
+        "target": "components/kuchi/templates/fomo-limit-orders/motion.ts",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/scenes/closing.tsx",
+        "target": "components/kuchi/templates/fomo-limit-orders/scenes/closing.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/scenes/confirmation.tsx",
+        "target": "components/kuchi/templates/fomo-limit-orders/scenes/confirmation.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/scenes/opening.tsx",
+        "target": "components/kuchi/templates/fomo-limit-orders/scenes/opening.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/scenes/phone.tsx",
+        "target": "components/kuchi/templates/fomo-limit-orders/scenes/phone.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/scenes/price.tsx",
+        "target": "components/kuchi/templates/fomo-limit-orders/scenes/price.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/scenes/slider.tsx",
+        "target": "components/kuchi/templates/fomo-limit-orders/scenes/slider.tsx",
+        "type": "registry:component"
+      },
+      {
+        "vendored": "files/components/kuchi/templates/fomo-limit-orders/ui.tsx",
+        "target": "components/kuchi/templates/fomo-limit-orders/ui.tsx",
+        "type": "registry:component"
+      }
+    ]
   }
 ]

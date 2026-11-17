@@ -1,0 +1,22 @@
+---
+// Boxed "View details" card: an icon tile, a label with a hint line, and an arrow that
+// nudges on hover. Replaces the old blue text link. Styles: .detail-card in global.css
+// (the player's dark version is .kp-card).
+interface Props {
+  href: string;
+  label?: string;
+  hint?: string;
+  class?: string;
+}
+const { href, label = 'View details', hint, class: className } = Astro.props;
+---
+<a class:list={['detail-card', className]} href={href}>
+  <span class="detail-card-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+  </span>
+  <span class="detail-card-text">
+    <span class="detail-card-label">{label}</span>
+    {hint && <span class="detail-card-hint">{hint}</span>}
+  </span>
+  <svg class="detail-card-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+</a>

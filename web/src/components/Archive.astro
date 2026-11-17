@@ -11,7 +11,12 @@ interface Props {
 const { videos } = Astro.props;
 ---
 <section class="archive section numbered" id="archive" data-line="005" aria-labelledby="archive-title">
-  <div class="section-heading"><h2 id="archive-title">All videos</h2><span id="result-count" role="status" aria-live="polite">{videos.length}</span></div>
+  <div class="section-heading"><h2 id="archive-title">All videos</h2><span id="result-count" role="status" aria-live="polite">{videos.length}</span>
+    <div class="mine-tabs" role="group" aria-label="Show videos">
+      <button type="button" data-mine="all" aria-pressed="true">All</button>
+      <button type="button" data-mine="saved" aria-pressed="false">Saved <span class="mine-count" data-fav-count="saved:video"></span></button>
+      <button type="button" data-mine="liked" aria-pressed="false">Liked <span class="mine-count" data-fav-count="liked:video"></span></button>
+    </div></div>
   <FilterBar categories={distinct(videos.map((video) => video.category))} styles={distinct(videos.flatMap((video) => video.styles))} />
   <div id="collection" class="video-grid" aria-label="Launch video collection"><p class="loading">Loading videos…</p></div>
   <div id="empty" class="empty" hidden><p>No matching references.</p><button id="reset-filters">Reset filters ↗</button></div>

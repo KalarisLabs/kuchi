@@ -19,16 +19,21 @@ export const SITE = 'https://kuchi.kalarislabs.com';
 const MEDIA = 'https://kuchi-media.kalarislabs.com/components';
 
 export const items = manifest as RegistryItem[];
-/** Everything except the shared library items, which install automatically. */
 /** Needs children or shader setup to show anything on its own, so it has no preview card. */
 const noPreview = new Set(['pulsing-border']);
+/** Everything except the shared library items, which install automatically. */
 export const components = items.filter((item) => item.category !== 'library' && !noPreview.has(item.name));
 
 export const categoryLabels: Record<string, string> = {
+  templates: 'Templates',
   text: 'Text',
   scenes: 'Scenes',
   screens: 'Screens',
+  'ai-chat': 'AI chat',
   'ai-input': 'AI input',
+  code: 'Code & CLI',
+  cards: 'Cards',
+  ui: 'UI blocks',
   captions: 'Captions',
   cursor: 'Cursor',
   logos: 'Logos',
@@ -43,5 +48,6 @@ export const categories = Object.keys(categoryLabels).filter((key) =>
 
 export const installCommand = (name: string) =>
   `npx shadcn@latest add ${SITE}/r/${name}.json`;
+export const pageUrl = (name: string) => `${SITE}/components/${name}`;
 export const posterUrl = (name: string) => `${MEDIA}/posters/${name}.webp`;
 export const videoUrl = (name: string) => `${MEDIA}/${name}.mp4`;

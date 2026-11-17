@@ -1,0 +1,26 @@
+---
+// One launch video card, rendered at build time (home page, related videos). The markup
+// matches card() in scripts/gallery.js, so the same click handlers play it in the site
+// player, and the title is a real link to the video's own page.
+import type { Video } from '../lib/catalog';
+import { compact, full, timecode, launchDate } from '../lib/format.js';
+import { videoPath } from '../lib/video-links.js';
+import { favButtonsHTML } from '../lib/favorites.js';
+
+interface Props {
+  video: Video;
+  surface?: string;
+}
+const { video: v, surface = 'grid' } = Astro.props;
+---
+<article class="video-card">
+  <div class="thumb inline-player">
+    <video playsinline preload="none" data-reference-id={v.id} data-surface={surface} poster={v.poster} aria-hidden="true" tabindex="-1"></video>
+    <button class="inline-play play-icon" data-play-ref={v.id} data-surface={surface} aria-label={`Play ${v.title}`}>▶</button>
+    {v.excerpt && <span class="excerpt-label">Excerpt</span>}<span class="timecode">{timecode(v.clipSeconds)}</span>
+  </div>
+  <div class="card-title-row"><h3><a class="video-title" href={videoPath(v)}>{v.title}</a></h3><Fragment set:html={favButtonsHTML('video', v.id, v.title)} /></div>
+  <div class="byline">{v.account}</div>
+  <div class="launch-date" title="Date of the original launch post (PT)">Launch date · <time datetime={v.date}>{launchDate(v.date)}</time></div>
+  <div class="card-metrics"><div><strong title={`${full(v.impressions)} impressions`}>{compact(v.impressions)} {v.flag && <span class="flag-mark" title="Video plays are below 3% of impressions">△</span>}</strong><span>Impressions</span></div><div><strong title={`${full(v.views)} plays`}>{compact(v.views)}</strong><span>Video plays</span></div></div>
+</article>

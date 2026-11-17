@@ -12,16 +12,23 @@ const sources = import.meta.glob('../../registry/files/**/*', {
   eager: true,
 }) as Record<string, string>;
 
-// Shown by the shadcn CLI after install. The components draw on a transparent layer, so a
-// bare render is black unless the composition supplies a background.
+// Shown by the shadcn CLI after install. Some components draw on a transparent layer, so a
+// bare render can be black unless the composition supplies a background.
 const NOTE =
-  'Needs a Remotion project. These components draw on a transparent layer, so a render is black unless you put a background behind them, e.g. <AbsoluteFill style={{ background: "#faf9f6" }}><Component /></AbsoluteFill>. Pass mode="dark" for dark frames.';
+  'Needs a Remotion project. If a frame renders black, the component is drawing on a transparent layer: put a background behind it, e.g. <AbsoluteFill style={{ background: "#faf9f6" }}><Component /></AbsoluteFill>.';
+const MODE_NOTE = ' Pass mode="dark" for dark frames.';
+// Only components that take a light/dark `mode` prop get the mode hint.
+const HAS_MODE = /\bmode\?:\s*["']light["']\s*\|\s*["']dark["']/;
 
 const source = (vendored: string) => {
   const hit = sources[`../../registry/${vendored}`];
   if (hit === undefined) throw new Error(`missing vendored file: ${vendored}`);
   return hit;
 };
+
+// Kuchi items are linked by URL. Any other name (e.g. `utils`, the shadcn item behind `cn`)
+// stays bare so the CLI resolves it from the default registry.
+const KUCHI = new Set(items.map((item) => item.name));
 
 export const getStaticPaths = (() =>
   items.map((item) => ({ params: { name: item.name }, props: { item } }))) satisfies GetStaticPaths;
@@ -35,10 +42,10 @@ export const GET: APIRoute = ({ props }) => {
     title: item.title,
     description: item.description,
     dependencies: item.dependencies,
-    docs: NOTE,
+    docs: HAS_MODE.test(source(item.files[0].vendored)) ? NOTE + MODE_NOTE : NOTE,
     ...(item.devDependencies.length ? { devDependencies: item.devDependencies } : {}),
     ...(item.registryDependencies.length
-      ? { registryDependencies: item.registryDependencies.map((dep) => `${SITE}/r/${dep}.json`) }
+      ? { registryDependencies: item.registryDependencies.map((dep) => (KUCHI.has(dep) ? `${SITE}/r/${dep}.json` : dep)) }
       : {}),
     files: item.files.map((file) => ({
       path: file.target,

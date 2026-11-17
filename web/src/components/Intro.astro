@@ -5,9 +5,7 @@
 // The totals are rendered at build time; the gallery script refreshes them and fills
 // the day-over-day deltas (#delta-*), so they stay outside the React island.
 // Behind it all, HeroBackground (GradientASCII, follows the theme) fills the hero edge to edge.
-// Phones (under 768px) never hydrate these islands, so React and motion do not load there
-// (Lighthouse mobile went from 51 to the live site's level): the server-rendered HTML is
-// shown as is, made visible by the "Phones" rule in legacy.css. Keep the 768px in step.
+// It hydrates across all screens (desktop, tablets, mobile) with responsive tuning and graceful fallback.
 // CopyDodge is fixed to the viewport (pops up when a visitor copies text); it is mounted
 // here only so it ships with the page.
 import { compact } from '../lib/format.js';
@@ -23,7 +21,7 @@ const { totalVideos, totalImpressions } = Astro.props;
 ---
 <section class="intro numbered" data-line="002" aria-labelledby="main-title">
   <div class="intro-bg" aria-hidden="true">
-    <HeroBackground client:media="(min-width: 768px)" />
+    <HeroBackground client:load />
   </div>
   <!-- The two wrappers are the parallax layers (script below). They exist because the
        elements inside animate their own transform (BlurText, .intro-reveal), which would
@@ -33,7 +31,7 @@ const { totalVideos, totalImpressions } = Astro.props;
   <p class="intro-stats intro-reveal"><span class="summary" aria-label="Collection statistics"><span><strong id="total-videos">{totalVideos}</strong> videos<span class="stat-delta" id="delta-videos" hidden></span></span>, <span><strong id="total-impressions">{compact(totalImpressions)}</strong> impressions<span class="stat-delta" id="delta-impressions" hidden></span></span>, new every day.</span></p>
   <div class="intro-actions intro-reveal">
     <a class="pill pill-primary" href="#connect">Connect your agent</a>
-    <a class="pill pill-secondary" href="#archive">Browse videos <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    <a class="pill pill-secondary" href="/videos">Browse videos <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
   </div>
   </div>
   <CopyDodge client:media="(min-width: 768px) and (hover: hover) and (pointer: fine)" />

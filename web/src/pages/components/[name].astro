@@ -1,0 +1,320 @@
+---
+// /components/<name>: one indexable page per video component, with its preview clip, install
+// command, dependencies, related components and source, plus schema.org data for search.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SkipLink from '../../components/SkipLink.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import Toast from '../../components/Toast.astro';
+import { favButtonsHTML } from '../../lib/favorites.js';
+import {
+  components,
+  categoryLabels,
+  installCommand,
+  posterUrl,
+  videoUrl,
+  pageUrl,
+  SITE,
+  type RegistryItem,
+} from '../../lib/components-catalog';
+
+export const prerender = true;
+
+export function getStaticPaths() {
+  return components.map((item) => ({ params: { name: item.name }, props: { item } }));
+}
+
+const { item } = Astro.props as { item: RegistryItem };
+
+const sources = import.meta.glob('../../registry/files/**/*', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+}) as Record<string, string>;
+// The licence notice travels with the installed copy (/r/<name>.json); the page shows the code
+// without that first line.
+const LICENCE = /^\/\*! Portions Copyright[^\n]*\*\/\n/;
+const files = item.files.map((file) => ({
+  path: file.target,
+  code: (sources[`../../registry/${file.vendored}`] ?? '').replace(LICENCE, ''),
+}));
+
+const category = categoryLabels[item.category] || item.category;
+const cmd = installCommand(item.name);
+const related = components.filter((c) => c.category === item.category && c.name !== item.name).slice(0, 8);
+const npmDeps = item.dependencies;
+const kuchiDeps = item.registryDependencies;
+
+const firstSentence = item.description.split(/(?<=\.)\s/)[0];
+const metaDescription = (() => {
+  const base = `${item.title}: ${item.description}`;
+  return base.length > 158 ? `${base.slice(0, 155).replace(/\s+\S*$/, '')}…` : base;
+})();
+const url = pageUrl(item.name);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareSourceCode',
+    name: `${item.title} (Remotion component)`,
+    description: item.description,
+    url,
+    programmingLanguage: ['TypeScript', 'React'],
+    runtimePlatform: 'Remotion',
+    license: 'https://opensource.org/licenses/MIT',
+    codeSampleType: 'full solution',
+    isAccessibleForFree: true,
+    image: posterUrl(item.name),
+    publisher: { '@type': 'Organization', name: 'Kalaris Labs', url: SITE },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: `${item.title}: Remotion video component preview`,
+    description: firstSentence,
+    thumbnailUrl: posterUrl(item.name),
+    contentUrl: videoUrl(item.name),
+    uploadDate: '2026-11-17',
+    embedUrl: url,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Kuchi', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'Video components', item: `${SITE}/components` },
+      { '@type': 'ListItem', position: 3, name: item.title, item: url },
+    ],
+  },
+];
+---
+<BaseLayout
+  title={`${item.title}: Remotion video component · Kuchi`}
+  description={metaDescription}
+  image={posterUrl(item.name)}
+  imageAlt={`${item.title} video component preview`}
+  imageType="image/webp"
+  imageWidth={640}
+  imageHeight={360}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <SkipLink href="#cd-title" label="Skip to component" />
+  <SiteHeader />
+
+  <main class="cd-page" id="cd-main">
+    <nav class="cd-crumbs" aria-label="Breadcrumb">
+      <a href="/components">Video components</a>
+      <span aria-hidden="true">/</span>
+      <a href={`/components#cat-${item.category}`}>{category}</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{item.title}</span>
+    </nav>
+
+    <div class="cd-grid">
+      <div class="cd-left">
+        <header class="cd-head">
+          <span class="cd-cat">{category}</span>
+          <h1 id="cd-title">{item.title}</h1>
+          <p class="cd-desc">{item.description}</p>
+          <Fragment set:html={favButtonsHTML('component', item.name, item.title, 'fav-labeled')} />
+        </header>
+
+        <figure class="cd-player">
+          <video
+            src={videoUrl(item.name)}
+            poster={posterUrl(item.name)}
+            controls
+            muted
+            loop
+            playsinline
+            preload="none"
+            width="640"
+            height="360"
+          ></video>
+          <figcaption>{item.title} preview, rendered with Remotion.</figcaption>
+        </figure>
+      </div>
+
+      <aside class="cd-side">
+        <section aria-labelledby="cd-install">
+          <h2 id="cd-install">Install</h2>
+          <p>One command copies the source and everything it depends on into your Remotion project.</p>
+          <div class="cd-cmd">
+            <code>{cmd}</code>
+            <button type="button" class="pill pill-secondary" data-copy-cmd={cmd}>Copy</button>
+          </div>
+        </section>
+
+        <section aria-labelledby="cd-deps">
+          <h2 id="cd-deps">Dependencies</h2>
+          <ul class="cd-deps">
+            {npmDeps.map((dep) => <li><code>{dep}</code></li>)}
+            {kuchiDeps.map((dep) => (
+              <li>
+                {components.some((c) => c.name === dep)
+                  ? <a href={`/components/${dep}`}><code>{dep}</code></a>
+                  : <code>{dep}</code>}
+                <span class="cd-dep-note">installed with it</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section aria-labelledby="cd-agents">
+          <h2 id="cd-agents">For agents</h2>
+          <p>
+            Agents connected to the Kuchi MCP server can find this component with
+            <code>kuchi_list_components</code> and read its source with
+            <code>kuchi_get_component</code> (name <code>{item.name}</code>). The raw registry item is at
+            <a href={`/r/${item.name}.json`}>/r/{item.name}.json</a>.
+          </p>
+        </section>
+      </aside>
+    </div>
+
+    <section class="cd-source" aria-labelledby="cd-source-title">
+      <h2 id="cd-source-title">Source</h2>
+      {files.map((file) => (
+        <details class="cd-file" open={file === files[0]}>
+          <summary><code>{file.path}</code></summary>
+          <pre tabindex="0"><code>{file.code}</code></pre>
+        </details>
+      ))}
+    </section>
+
+    {related.length > 0 && (
+      <section class="cd-related" aria-labelledby="cd-related-title">
+        <h2 id="cd-related-title">More {category.toLowerCase()} components</h2>
+        <ul>
+          {related.map((r) => (
+            <li>
+              <a href={`/components/${r.name}`}>
+                <img src={posterUrl(r.name)} alt="" loading="lazy" decoding="async" width="640" height="360" />
+                <span>{r.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </main>
+
+  <Toast />
+  <SiteFooter />
+
+  <script>
+    let timer: number | undefined;
+    const showToast = (message: string) => {
+      const el = document.getElementById('toast');
+      if (!el) return;
+      el.textContent = message;
+      el.classList.add('visible');
+      clearTimeout(timer);
+      timer = window.setTimeout(() => el.classList.remove('visible'), 2500);
+    };
+    for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy-cmd]')) {
+      button.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(button.dataset.copyCmd ?? '');
+          showToast('Install command copied');
+        } catch {
+          showToast('Copy failed. Select the command and copy it.');
+        }
+      });
+    }
+  </script>
+</BaseLayout>
+
+<style>
+  .cd-page {
+    width: 100%;
+    padding: 28px clamp(16px, 2.6vw, 44px) 96px;
+  }
+  .cd-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--k-muted);
+    margin-bottom: 24px;
+  }
+  .cd-crumbs a { color: inherit; text-decoration: none; }
+  .cd-crumbs a:hover { color: var(--k-ink, currentColor); text-decoration: underline; }
+  .cd-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);
+    gap: clamp(24px, 3vw, 48px);
+    align-items: start;
+  }
+  .cd-cat {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--k-muted);
+  }
+  .cd-head h1 {
+    margin: 8px 0 12px;
+    font-size: clamp(30px, 4vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+  .cd-desc { max-width: 70ch; color: var(--k-muted); line-height: 1.6; margin: 0 0 24px; }
+  .cd-player { margin: 0; }
+  .cd-player video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
+    border: 1px solid var(--k-line);
+    background: #000;
+  }
+  .cd-player figcaption { margin-top: 8px; font-size: 13px; color: var(--k-muted); }
+  .cd-side { display: flex; flex-direction: column; gap: 28px; position: sticky; top: 24px; }
+  .cd-side h2, .cd-source h2, .cd-related h2 { font-size: 16px; margin: 0 0 10px; }
+  .cd-side p { margin: 0 0 12px; color: var(--k-muted); line-height: 1.55; font-size: 14px; }
+  .cd-cmd {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    border: 1px solid var(--k-line);
+    border-radius: 10px;
+    padding: 10px 10px 10px 12px;
+    background: var(--k-wash);
+  }
+  .cd-cmd code { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 12.5px; }
+  .cd-deps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+  .cd-dep-note { margin-left: 8px; color: var(--k-muted); font-size: 12px; }
+  .cd-source { margin-top: 56px; }
+  .cd-file { border: 1px solid var(--k-line); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+  .cd-file summary { cursor: pointer; padding: 10px 14px; font-size: 13px; background: var(--k-wash); }
+  .cd-file pre {
+    margin: 0;
+    max-height: 640px;
+    overflow: auto;
+    padding: 16px;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  .cd-related { margin-top: 56px; }
+  .cd-related ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+    gap: 16px;
+  }
+  .cd-related a { display: flex; flex-direction: column; gap: 8px; color: inherit; text-decoration: none; font-size: 14px; }
+  .cd-related img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--k-line); transition: opacity 160ms ease-out; }
+  .cd-related a:hover img { opacity: 0.85; }
+  @media (max-width: 900px) {
+    .cd-grid { grid-template-columns: 1fr; }
+    .cd-side { position: static; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cd-related img { transition: none; }
+  }
+</style>

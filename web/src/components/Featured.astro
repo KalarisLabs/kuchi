@@ -25,7 +25,10 @@ if (!first) throw new Error(`Featured reference ${picks[0].id} is not in the cat
   </div></div>
   <div class="featured-layout">
     <div class="featured-media">
-      <video id="featured-video" controls playsinline preload="metadata" poster={first.poster} src={first.video} aria-label={`${first.title} launch video`}></video>
+      <div class="kp-frame">
+        <video id="featured-video" playsinline preload="none" poster={first.poster} aria-hidden="true" tabindex="-1"></video>
+        <button id="featured-play" class="play-icon" type="button" data-play-ref={first.id} data-surface="featured" aria-label={`Play ${first.title}`}>▶</button>
+      </div>
       <div class="media-caption"><span id="featured-duration">{displayDuration(first)}</span></div>
     </div>
     <div class="featured-info" id="featured-info"></div>

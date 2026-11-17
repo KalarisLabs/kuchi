@@ -1,0 +1,390 @@
+---
+// Site search, opened with ⌘K / Ctrl+K, "/" or any [data-cmdk-open] button (the masthead
+// search field). A centred modal dialog: it scales in from 96% with a fade (180 ms,
+// ease-out-strong) and leaves faster than it came (120 ms), transform and opacity only.
+// Reduced motion fades without the scale. The index (/search-index.json: pages, videos,
+// components) loads on first use. Results are links, so Enter, click and middle-click all
+// behave like links do.
+---
+<dialog id="cmdk" class="cp" aria-label="Search Kuchi" data-lenis-prevent>
+  <div class="cp-panel">
+    <div class="cp-field">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input
+        id="cmdk-input"
+        type="text"
+        role="combobox"
+        aria-expanded="true"
+        aria-controls="cmdk-list"
+        aria-autocomplete="list"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Search videos, components and pages…"
+        aria-label="Search videos, components and pages"
+      />
+      <kbd class="cp-esc">Esc</kbd>
+    </div>
+    <div id="cmdk-list" class="cp-list" role="listbox" aria-label="Results"></div>
+    <div class="cp-foot" aria-hidden="true">
+      <span><kbd>↑</kbd><kbd>↓</kbd> to move</span>
+      <span><kbd>↵</kbd> to open</span>
+      <span class="cp-foot-count" id="cmdk-count"></span>
+    </div>
+  </div>
+</dialog>
+
+<style is:global>
+  /* Global: the result rows are written by the script below. */
+  dialog.cp {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    margin: 0;
+    padding: 0 16px;
+    border: 0;
+    background: transparent;
+    overflow: hidden;
+    color: var(--k-ink);
+  }
+  dialog.cp::backdrop { background: transparent; }
+  dialog.cp::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: var(--k-backdrop);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 180ms var(--ease-out-strong);
+  }
+  dialog.cp[data-state="open"]::before { opacity: 1; }
+  .cp-panel {
+    position: relative;
+    width: min(640px, 100%);
+    max-height: min(560px, calc(100dvh - 32px));
+    /* Visually centred for a full panel; it grows downward, so typing never makes it jump. */
+    margin: max(16px, calc(50dvh - 280px)) auto 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--k-raised);
+    border: 1px solid var(--k-line);
+    border-radius: 14px;
+    box-shadow: 0 24px 64px -12px rgb(0 0 0 / 0.35), 0 2px 6px rgb(0 0 0 / 0.08);
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.96);
+    transform-origin: 50% 30%;
+    transition: opacity 180ms var(--ease-out-strong), transform 180ms var(--ease-out-strong);
+  }
+  dialog.cp[data-state="open"] .cp-panel { opacity: 1; transform: none; }
+  dialog.cp[data-state="closing"] .cp-panel,
+  dialog.cp[data-state="closing"]::before { transition-duration: 120ms; }
+  @media (prefers-reduced-motion: reduce) {
+    .cp-panel { transform: none; }
+  }
+  .cp-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px 0 16px;
+    height: 56px;
+    border-bottom: 1px solid var(--k-line);
+    color: var(--k-muted);
+    flex: none;
+  }
+  .cp-field input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--k-ink);
+    font: inherit;
+    font-size: 16px;
+  }
+  .cp-field input::placeholder { color: var(--k-muted); }
+  .cp kbd {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border: 1px solid var(--k-line);
+    border-radius: 5px;
+    background: var(--k-wash);
+    font: 500 11px/1 var(--k-sans);
+    color: var(--k-muted);
+  }
+  .cp-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 6px;
+    scroll-padding: 34px 0 6px;
+  }
+  .cp-group {
+    padding: 10px 10px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--k-muted);
+  }
+  .cp-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--k-ink);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .cp-item:hover { text-decoration: none; }
+  .cp-item[aria-selected="true"] { background: var(--k-wash); }
+  .cp-thumb {
+    flex: none;
+    width: 56px;
+    height: 32px;
+    border-radius: 5px;
+    object-fit: cover;
+    background: var(--k-thumb);
+    border: 1px solid var(--k-line);
+  }
+  .cp-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    background: var(--k-wash);
+    border: 1px solid var(--k-line);
+    color: var(--k-muted);
+  }
+  .cp-item[aria-selected="true"] .cp-icon { background: var(--k-paper); }
+  .cp-text { display: grid; min-width: 0; gap: 1px; }
+  .cp-title { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cp-sub { font-size: 12px; color: var(--k-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cp-go {
+    margin-left: auto;
+    flex: none;
+    color: var(--k-muted);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 120ms ease, transform 160ms var(--ease-out-strong);
+  }
+  .cp-item[aria-selected="true"] .cp-go { opacity: 1; transform: none; }
+  .cp-empty { padding: 36px 16px; text-align: center; color: var(--k-muted); font-size: 14px; }
+  .cp-foot {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 9px 14px;
+    border-top: 1px solid var(--k-line);
+    font-size: 12px;
+    color: var(--k-muted);
+    flex: none;
+  }
+  .cp-foot span { display: inline-flex; align-items: center; gap: 4px; }
+  .cp-foot-count { margin-left: auto; }
+  @media (max-width: 640px) {
+    .cp-panel { margin-top: 12px; max-height: calc(100dvh - 24px); }
+    .cp-foot { display: none; }
+    .cp-esc { display: none !important; }
+  }
+</style>
+
+<script>
+  import { prefersReducedMotion } from '../scripts/motion';
+
+  interface Entry { k: 'page' | 'video' | 'component'; t: string; s: string; h: string; w: string; i?: string }
+
+  const dialog = document.getElementById('cmdk') as HTMLDialogElement | null;
+  const input = document.getElementById('cmdk-input') as HTMLInputElement | null;
+  const list = document.getElementById('cmdk-list') as HTMLElement | null;
+  const count = document.getElementById('cmdk-count');
+
+  const GROUPS: Record<Entry['k'], string> = { page: 'Pages', video: 'Launch videos', component: 'Components' };
+  const ICONS: Record<string, string> = {
+    page: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>',
+  };
+  const ARROW = '<svg class="cp-go" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+
+  let entries: Entry[] | null = null;
+  let loading: Promise<void> | null = null;
+  let shown: Entry[] = [];
+  let active = 0;
+  let closeTimer = 0;
+
+  const esc = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
+
+  function load() {
+    loading ??= fetch('/search-index.json')
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
+      .then((data: Entry[]) => { entries = data; })
+      .catch(() => { loading = null; });
+    return loading;
+  }
+
+  // Every word must match somewhere; titles that start with the query rank first.
+  function score(entry: Entry, words: string[], query: string) {
+    const title = entry.t.toLowerCase();
+    const hay = `${title} ${entry.s} ${entry.w}`.toLowerCase();
+    if (!words.every((word) => hay.includes(word))) return -1;
+    if (title.startsWith(query)) return 4;
+    if (title.split(/[\s—-]+/).some((part) => part.startsWith(words[0]))) return 3;
+    if (title.includes(query)) return 2;
+    return 1;
+  }
+
+  function results(query: string): Entry[] {
+    if (!entries) return [];
+    const q = query.trim().toLowerCase();
+    const take = (kind: Entry['k'], n: number, pool: Entry[]) => pool.filter((e) => e.k === kind).slice(0, n);
+    if (!q) return [...take('page', 4, entries), ...take('video', 5, entries), ...take('component', 5, entries)];
+    const words = q.split(/\s+/);
+    const ranked = entries
+      .map((entry, index) => ({ entry, index, rank: score(entry, words, q) }))
+      .filter((x) => x.rank > 0)
+      .sort((a, b) => b.rank - a.rank || a.index - b.index)
+      .map((x) => x.entry);
+    return [...take('page', 4, ranked), ...take('video', 8, ranked), ...take('component', 8, ranked)];
+  }
+
+  function row(entry: Entry, index: number) {
+    const lead = entry.i
+      ? `<img class="cp-thumb" src="${esc(entry.i)}" alt="" loading="lazy" decoding="async" width="56" height="32">`
+      : `<span class="cp-icon">${ICONS.page}</span>`;
+    return `<a class="cp-item" id="cmdk-opt-${index}" role="option" aria-selected="${index === active}" href="${esc(entry.h)}" data-index="${index}">${lead}<span class="cp-text"><span class="cp-title">${esc(entry.t)}</span><span class="cp-sub">${esc(entry.s)}</span></span>${ARROW}</a>`;
+  }
+
+  function render() {
+    if (!list || !input) return;
+    if (!entries) {
+      list.innerHTML = '<p class="cp-empty">Loading…</p>';
+      return;
+    }
+    shown = results(input.value);
+    active = Math.min(active, Math.max(shown.length - 1, 0));
+    if (!shown.length) {
+      list.innerHTML = `<p class="cp-empty">No results for “${esc(input.value.trim())}”.</p>`;
+      input.removeAttribute('aria-activedescendant');
+      if (count) count.textContent = '';
+      return;
+    }
+    let html = '';
+    let group = '';
+    shown.forEach((entry, index) => {
+      if (entry.k !== group) {
+        group = entry.k;
+        html += `<div class="cp-group" role="presentation">${GROUPS[entry.k]}</div>`;
+      }
+      html += row(entry, index);
+    });
+    list.innerHTML = html;
+    input.setAttribute('aria-activedescendant', `cmdk-opt-${active}`);
+    if (count) count.textContent = input.value.trim() ? `${shown.length} result${shown.length === 1 ? '' : 's'}` : '';
+  }
+
+  function select(index: number) {
+    if (!list || !input || !shown.length) return;
+    active = (index + shown.length) % shown.length;
+    for (const option of list.querySelectorAll<HTMLElement>('[role="option"]')) {
+      option.setAttribute('aria-selected', String(Number(option.dataset.index) === active));
+    }
+    input.setAttribute('aria-activedescendant', `cmdk-opt-${active}`);
+    document.getElementById(`cmdk-opt-${active}`)?.scrollIntoView({ block: 'nearest' });
+  }
+
+  function open() {
+    if (!dialog || !input) return;
+    clearTimeout(closeTimer);
+    if (!dialog.open) {
+      dialog.dataset.state = '';
+      dialog.showModal();
+      // Next frame, so the panel transitions from its closed state.
+      requestAnimationFrame(() => requestAnimationFrame(() => { dialog.dataset.state = 'open'; }));
+    } else {
+      dialog.dataset.state = 'open';
+    }
+    active = 0;
+    input.select();
+    render();
+    if (!entries) load().then(render);
+  }
+
+  function close() {
+    if (!dialog?.open) return;
+    dialog.dataset.state = 'closing';
+    closeTimer = window.setTimeout(() => { dialog.close(); dialog.dataset.state = ''; }, prefersReducedMotion() ? 0 : 120);
+  }
+
+  function go(index: number, newTab = false) {
+    const entry = shown[index];
+    if (!entry) return;
+    if (newTab) { window.open(entry.h, '_blank', 'noopener'); return; }
+    const target = new URL(entry.h, location.href);
+    close();
+    // Same-page anchors scroll; everything else is a normal navigation.
+    if (target.pathname === location.pathname && target.hash) {
+      location.hash = target.hash;
+    } else {
+      location.href = target.href;
+    }
+  }
+
+  if (dialog && input && list) {
+    document.addEventListener('keydown', (event) => {
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        if (dialog.open && dialog.dataset.state !== 'closing') close(); else open();
+        return;
+      }
+      const target = event.target as HTMLElement;
+      const typing = /INPUT|TEXTAREA|SELECT/.test(target.tagName) || target.isContentEditable;
+      if (event.key === '/' && !typing && !dialog.open && !document.querySelector('dialog[open]')) {
+        event.preventDefault();
+        open();
+      }
+    });
+    for (const trigger of document.querySelectorAll('[data-cmdk-open]')) {
+      trigger.addEventListener('click', open);
+      // Warm the index before the click lands.
+      trigger.addEventListener('pointerenter', () => { load(); }, { once: true });
+      trigger.addEventListener('focus', () => { load(); }, { once: true });
+    }
+    input.addEventListener('input', () => { active = 0; render(); });
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown') { event.preventDefault(); select(active + 1); }
+      else if (event.key === 'ArrowUp') { event.preventDefault(); select(active - 1); }
+      else if (event.key === 'Home' && event.ctrlKey) { event.preventDefault(); select(0); }
+      else if (event.key === 'End' && event.ctrlKey) { event.preventDefault(); select(shown.length - 1); }
+      else if (event.key === 'Enter') { event.preventDefault(); go(active, event.metaKey || event.ctrlKey); }
+    });
+    // Pointer movement, not mouseenter: the list scrolling under a still pointer must not
+    // steal the keyboard selection.
+    list.addEventListener('pointermove', (event) => {
+      const option = (event.target as HTMLElement).closest<HTMLElement>('[role="option"]');
+      if (option && Number(option.dataset.index) !== active) select(Number(option.dataset.index));
+    });
+    list.addEventListener('click', (event) => {
+      const option = (event.target as HTMLElement).closest<HTMLAnchorElement>('[role="option"]');
+      if (!option || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      event.preventDefault();
+      go(Number(option.dataset.index));
+    });
+    dialog.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
+    dialog.addEventListener('click', (event) => {
+      if (!(event.target as HTMLElement).closest('.cp-panel')) close();
+    });
+  }
+
+  // Shortcut hint: ⌘K on Apple devices, Ctrl K elsewhere.
+  const apple = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
+  for (const hint of document.querySelectorAll('[data-cmdk-key]')) hint.textContent = apple ? '⌘K' : 'Ctrl K';
+</script>

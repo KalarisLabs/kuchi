@@ -1,0 +1,515 @@
+/*! Portions Copyright (c) 2026 Remocn. MIT License. See THIRD_PARTY_LICENSES. */
+"use client";
+
+import { loadFont as loadSans } from "@remotion/google-fonts/InstrumentSans";
+import { loadFont as loadSerif } from "@remotion/google-fonts/InstrumentSerif";
+import { loadFont as loadManrope } from "@remotion/google-fonts/Manrope";
+import type React from "react";
+import { useId } from "react";
+import {
+  AbsoluteFill,
+  Easing,
+  interpolate,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
+
+const { fontFamily: sans } = loadSans("normal", {
+  weights: ["500"],
+  subsets: ["latin"],
+});
+const { fontFamily: serif } = loadSerif("italic", {
+  weights: ["400"],
+  subsets: ["latin"],
+});
+const manrope = loadManrope("normal", {
+  weights: ["500", "600"],
+  subsets: ["latin"],
+});
+
+export interface IntelligenceGlowProps {
+  /** Asked while the edge glow breathes. */
+  question?: string;
+  /** First word of the answer, set in a serif italic. */
+  answerLead?: string;
+  /** Rest of the answer, resolves word by word after the lead. */
+  answer?: string;
+  /** Show the acme logo under the answer on the poster frame. */
+  showLogo?: boolean;
+  /** Replaces the acme mark. */
+  logo?: React.ReactNode;
+  /** Frames between answer words as they resolve. */
+  stagger?: number;
+  /** Strength of the edge glow; 1 is the default light. */
+  intensity?: number;
+  accent?: string;
+  /** Text color; overrides the theme ink. */
+  ink?: string;
+  background?: string;
+  /** Typeface for the question and answer. Load it yourself; Instrument Sans by default. */
+  fontFamily?: string;
+  /** Size of the foreground, around the frame's center. */
+  scale?: number;
+  /** Frames to hold the first frame before anything moves. */
+  delay?: number;
+  /** Film grain over the scene. */
+  grain?: boolean;
+  theme?: "dark" | "light";
+  speed?: number;
+}
+
+
+/** Full logo as on acme.dev: R mark + "Acme" in Manrope 600. */
+function KuchiLogo({ fontSize, color }: { fontSize: number; color: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        color,
+        fontFamily: manrope.fontFamily,
+        fontWeight: 600,
+        fontSize,
+        letterSpacing: "-0.025em",
+        lineHeight: 1,
+      }}
+    >
+      <span>Acme</span>
+    </div>
+  );
+}
+
+// gradients.sh "halo" on dark (its blue stop becomes the accent), "ribbon"
+// on light. The light is the only gradient in the shot.
+const THEMES = {
+  dark: {
+    bg: "#030306",
+    fg: "#F3F2EF",
+    glow: ["#FFF4EC", "#FFB36B", "#E2457A", ""],
+    haze: 0.85,
+    core: 0.95,
+    grain: 0.06,
+  },
+  light: {
+    bg: "#F5F4F0",
+    fg: "#121214",
+    glow: ["#FFC83D", "#FF8A3D", "#FF3D9A", "#7A5CFF"],
+    haze: 0.7,
+    core: 0.85,
+    grain: 0.04,
+  },
+} as const;
+
+const EASE_OUT = Easing.bezier(0.22, 1, 0.36, 1);
+const EASE_IO = Easing.bezier(0.65, 0, 0.35, 1);
+const CLAMP = {
+  extrapolateLeft: "clamp",
+  extrapolateRight: "clamp",
+} as const;
+
+// Beats (frames at speed 1).
+const Q_IN = 2;
+const THINK = 32;
+const RIPPLES = [36, 54];
+const BLOBS = 16;
+const Q_OUT = 76;
+const SQUEEZE = [80, 100] as const;
+const NARROW = [88, 110] as const;
+const A_IN = 100;
+const A_STAGGER = 4;
+const LOGO_IN = 132;
+
+function Grain({ opacity }: { opacity: number }) {
+  const id = `g${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  return (
+    <svg
+      width="100%"
+      height="100%"
+      style={{ position: "absolute", inset: 0, opacity, pointerEvents: "none" }}
+      aria-hidden
+    >
+      <filter id={id}>
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.9"
+          numOctaves={2}
+          seed={7}
+          stitchTiles="stitch"
+        />
+        <feColorMatrix values="0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0.9 0" />
+      </filter>
+      <rect width="100%" height="100%" filter={`url(#${id})`} />
+    </svg>
+  );
+}
+
+function rw(r: { left: number; right: number }) {
+  return r.right - r.left;
+}
+
+function lerp(a: number, b: number, k: number) {
+  return a + (b - a) * k;
+}
+
+/** The foreground at `scale`, around the frame's center; nothing extra at 1. */
+function ScaleLayer({
+  scale,
+  children,
+}: {
+  scale: number;
+  children: React.ReactNode;
+}) {
+  if (scale === 1) return children;
+  return (
+    <AbsoluteFill style={{ transform: `scale(${scale})` }}>
+      {children}
+    </AbsoluteFill>
+  );
+}
+
+export function IntelligenceGlow({
+  question = "Make a launch film for Friday?",
+  answerLead = "Done.",
+  answer = "14 shots, cut to the beat.",
+  showLogo = true,
+  logo,
+  stagger = A_STAGGER,
+  intensity = 1,
+  accent = "#3B5BFD",
+  ink,
+  background,
+  fontFamily = sans,
+  scale = 1,
+  delay = 0,
+  grain = true,
+  theme = "dark",
+  speed = 1,
+}: IntelligenceGlowProps) {
+  const t = Math.max(0, useCurrentFrame() - delay) * speed;
+  const { width: W, height: H } = useVideoConfig();
+  const u = H / 720;
+  const c = THEMES[theme];
+  const fg = ink ?? c.fg;
+  const stage =
+    background === "transparent" ? "transparent" : (background ?? c.bg);
+  const glow = c.glow.map((col) => col || accent);
+
+  // A looping band of the palette, drifted sideways so the colours travel
+  // around the frame while it breathes.
+  const loop = [glow[3], glow[2], glow[1], glow[2], glow[3]];
+  const band = `linear-gradient(90deg, ${loop.join(", ")})`;
+  const drift = `${((t * 0.45) % 100).toFixed(2)}% 50%`;
+  // Breath: slow swell, deeper and quicker while "thinking".
+  const thinking = interpolate(
+    t,
+    [THINK - 6, THINK + 6, Q_OUT, Q_OUT + 8],
+    [0, 1, 1, 0],
+    CLAMP,
+  );
+  const breath =
+    0.5 +
+    0.5 * Math.sin((t / (44 - thinking * 14)) * Math.PI * 2 - Math.PI / 2);
+  const swell = 1 + breath * (0.18 + thinking * 0.22);
+  const intro = interpolate(t, [0, 14], [0.55, 1], {
+    ...CLAMP,
+    easing: EASE_OUT,
+  });
+
+  // Answer metrics. Lead word in serif italic at 1.14x so the x-heights meet.
+  const aWords = answer.split(" ").filter(Boolean);
+  const estEm = answerLead.length * 0.42 * 1.14 + answer.length * 0.43 + 0.3;
+  const aSize = Math.min(78 * u, (W * 0.86) / estEm);
+  const aY = H * 0.46;
+  const lineY = aY + aSize * 0.78;
+  const lineW = Math.min(W * 0.8, estEm * aSize * 1.02);
+  const lineT = 3 * u;
+
+  // Collapse: top and bottom bands squeeze to the answer rule, then the
+  // strip narrows to the answer's width.
+  const sq = interpolate(t, [SQUEEZE[0], SQUEEZE[1]], [0, 1], {
+    ...CLAMP,
+    easing: EASE_IO,
+  });
+  const nw = interpolate(t, [NARROW[0], NARROW[1]], [0, 1], {
+    ...CLAMP,
+    easing: EASE_IO,
+  });
+  const ring = {
+    top: lerp(0, lineY, sq),
+    bottom: lerp(H, lineY, sq),
+    left: lerp(0, (W - lineW) / 2, nw),
+    right: lerp(W, (W + lineW) / 2, nw),
+  };
+
+  // "Thinking" pulses: the light swells inward, three times.
+  const ripple = RIPPLES.reduce((acc, start) => {
+    const k = interpolate(t, [start, start + 24], [0, 1], CLAMP);
+    return acc + Math.sin(k * Math.PI) ** 1.6;
+  }, 0);
+  // Pools of light riding the ring's perimeter: long and shallow along an
+  // edge, rounder at the corners. Overlapping, they read as one band of light
+  // whose depth and colour keep changing.
+  const rwid = rw(ring);
+  const rhgt = ring.bottom - ring.top;
+  const per = 2 * (rwid + rhgt);
+  const zone = 160 * u;
+  const blobsOut = interpolate(sq, [0.6, 1], [1, 0], CLAMP);
+  const blobs = Array.from({ length: BLOBS }, (_, i) => {
+    const dd = (((i + 0.5) / BLOBS + t * 0.0015) % 1) * per;
+    let x: number;
+    let y: number;
+    let horizontal: boolean;
+    let corner: number;
+    if (dd < rwid) {
+      x = ring.left + dd;
+      y = ring.top;
+      horizontal = true;
+      corner = Math.min(dd, rwid - dd);
+    } else if (dd < rwid + rhgt) {
+      x = ring.right;
+      y = ring.top + dd - rwid;
+      horizontal = false;
+      corner = Math.min(dd - rwid, rwid + rhgt - dd);
+    } else if (dd < 2 * rwid + rhgt) {
+      x = ring.right - (dd - rwid - rhgt);
+      y = ring.bottom;
+      horizontal = true;
+      corner = Math.min(dd - rwid - rhgt, 2 * rwid + rhgt - dd);
+    } else {
+      x = ring.left;
+      y = ring.bottom - (dd - 2 * rwid - rhgt);
+      horizontal = false;
+      corner = Math.min(dd - 2 * rwid - rhgt, per - dd);
+    }
+    const m = 0.5 + 0.5 * Math.min(1, corner / zone);
+    const hw = horizontal ? m : 1 - m;
+    const wob = Math.sin(t / 21 + i * 2.3);
+    const depth =
+      74 * u * swell * (1 + ripple * 0.9) * (0.8 + 0.3 * wob) * (1 - sq * 0.85);
+    const a = lerp(depth, rwid * 0.2 + 40 * u, hw);
+    const b = lerp(rhgt * 0.27 + 20 * u, depth, hw);
+    return {
+      key: i,
+      x,
+      y,
+      a,
+      b,
+      color: glow[[3, 2, 1, 2, 3, 1, 2][i % 7]],
+      opacity:
+        c.haze *
+        intensity *
+        intro *
+        blobsOut *
+        (0.8 + 0.2 * wob) *
+        (1 + ripple * 0.25),
+    };
+  });
+  const rule = interpolate(t, [SQUEEZE[1] - 9, SQUEEZE[1] + 3], [0, 1], {
+    ...CLAMP,
+    easing: EASE_IO,
+  });
+
+  // Question: words rise in, shimmer while thinking, dissolve as the light
+  // collapses.
+  const qWords = question.split(" ").filter(Boolean);
+  const qSize = Math.min(
+    90 * u,
+    (W * 0.74) / Math.max(6, question.length * 0.3),
+  );
+  const qOut = interpolate(t, [Q_OUT, Q_OUT + 16], [0, 1], {
+    ...CLAMP,
+    easing: Easing.bezier(0.5, 0, 0.75, 0),
+  });
+  const shimmerPos = interpolate(t, [THINK, Q_OUT], [-2, qWords.length + 4]);
+
+  const logoIn = interpolate(t, [LOGO_IN, LOGO_IN + 16], [0, 1], {
+    ...CLAMP,
+    easing: EASE_OUT,
+  });
+
+  return (
+    <AbsoluteFill style={{ background: stage, overflow: "hidden" }}>
+      <ScaleLayer scale={scale}>
+        {blobs.map((bl) =>
+          bl.opacity > 0.002 ? (
+            <div
+              key={bl.key}
+              style={{
+                position: "absolute",
+                left: bl.x - bl.a,
+                top: bl.y - bl.b,
+                width: bl.a * 2,
+                height: bl.b * 2,
+                background: `radial-gradient(closest-side, ${bl.color} 0%, color-mix(in oklab, ${bl.color} 62%, transparent) 32%, color-mix(in oklab, ${bl.color} 20%, transparent) 66%, transparent 100%)`,
+                opacity: bl.opacity,
+                mixBlendMode: theme === "dark" ? "screen" : "multiply",
+              }}
+            />
+          ) : null,
+        )}
+
+        {/* The rule the light settles into, with a soft bloom of its own. */}
+        {rule > 0 ? (
+          <>
+            <div
+              style={{
+                position: "absolute",
+                left: ring.left + rw(ring) * 0.05,
+                width: rw(ring) * 0.9,
+                top: lineY - 12 * u,
+                height: 24 * u,
+                borderRadius: 999,
+                backgroundImage: band,
+                backgroundSize: "200% 100%",
+                backgroundPosition: drift,
+                filter: `blur(${16 * u}px)`,
+                opacity: rule * 0.55,
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                left: ring.left,
+                width: rw(ring),
+                top: lineY - lineT / 2,
+                height: lineT,
+                borderRadius: 999,
+                backgroundImage: band,
+                backgroundSize: "200% 100%",
+                backgroundPosition: drift,
+                opacity: rule * c.core,
+              }}
+            />
+          </>
+        ) : null}
+
+        {/* Question */}
+        {qOut < 1 ? (
+          <div
+            style={{
+              position: "absolute",
+              left: W * 0.1,
+              right: W * 0.1,
+              top: 0,
+              bottom: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: 1 - qOut,
+              filter: qOut > 0 ? `blur(${qOut * 14 * u}px)` : undefined,
+              transform: `translateY(${-qOut * 14 * u}px) scale(${1 - qOut * 0.04})`,
+            }}
+          >
+            <div
+              style={{
+                fontFamily,
+                fontWeight: 500,
+                fontSize: qSize,
+                lineHeight: 1.06,
+                letterSpacing: "-0.035em",
+                color: fg,
+                textAlign: "center",
+                textWrap: "balance",
+                maxWidth: W * 0.72,
+              }}
+            >
+              {qWords.map((w, i) => {
+                const k = interpolate(
+                  t,
+                  [Q_IN + i * 3, Q_IN + i * 3 + 14],
+                  [0, 1],
+                  {
+                    ...CLAMP,
+                    easing: EASE_OUT,
+                  },
+                );
+                const d = i - shimmerPos;
+                const shimmer = thinking * (1 - Math.exp(-(d * d) / 2.2));
+                return (
+                  <span
+                    key={`${i}-${w}`}
+                    style={{
+                      display: "inline-block",
+                      marginRight: i < qWords.length - 1 ? "0.24em" : 0,
+                      opacity: k * (1 - shimmer * 0.55),
+                      transform: `translateY(${(1 - k) * 0.28}em)`,
+                      filter: k < 1 ? `blur(${(1 - k) * 8 * u}px)` : undefined,
+                    }}
+                  >
+                    {w}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Answer */}
+        {t >= A_IN - 1 ? (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: aY - aSize * 0.62,
+              height: aSize * 1.1,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "baseline",
+              whiteSpace: "nowrap",
+              color: fg,
+            }}
+          >
+            {[answerLead, ...aWords].map((w, i) => {
+              const lead = i === 0;
+              const s = A_IN + i * stagger;
+              const k = interpolate(t, [s, s + 16], [0, 1], {
+                ...CLAMP,
+                easing: EASE_OUT,
+              });
+              return (
+                <span
+                  key={`${i}-${w}`}
+                  style={{
+                    display: "inline-block",
+                    fontFamily: lead ? serif : fontFamily,
+                    fontStyle: lead ? "italic" : "normal",
+                    fontWeight: lead ? 400 : 500,
+                    fontSize: lead ? aSize * 1.14 : aSize,
+                    letterSpacing: lead ? "-0.02em" : "-0.035em",
+                    lineHeight: 1,
+                    marginRight:
+                      i === aWords.length ? 0 : lead ? "0.26em" : "0.22em",
+                    opacity: k,
+                    transform: `translateY(${(1 - k) * 0.3}em)`,
+                    filter: k < 1 ? `blur(${(1 - k) * 10 * u}px)` : undefined,
+                  }}
+                >
+                  {w}
+                </span>
+              );
+            })}
+          </div>
+        ) : null}
+
+        {showLogo && logoIn > 0 ? (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: H * 0.82,
+              display: "flex",
+              justifyContent: "center",
+              opacity: logoIn,
+              transform: `translateY(${(1 - logoIn) * 10 * u}px)`,
+            }}
+          >
+            {logo ?? <KuchiLogo fontSize={26 * u} color={fg} />}
+          </div>
+        ) : null}
+      </ScaleLayer>
+      {grain ? <Grain opacity={c.grain} /> : null}
+    </AbsoluteFill>
+  );
+}

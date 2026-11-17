@@ -5,6 +5,7 @@ import data from '../../.generated/videos.json';
 
 export interface Video {
   id: number;
+  slug: string;
   title: string;
   originalTitle: string;
   account: string;
@@ -40,5 +41,8 @@ export const videos = data as unknown as Video[];
 
 /** Sorted distinct values, the same way the gallery script builds its filter options. */
 export const distinct = (values: string[]) => [...new Set(values)].sort();
+
+/** Newest launches first (ties: higher impressions first). */
+export const newestFirst = [...videos].sort((a, b) => b.date.localeCompare(a.date) || b.impressions - a.impressions);
 
 export const totalImpressions = videos.reduce((sum, video) => sum + (video.impressions ?? 0), 0);

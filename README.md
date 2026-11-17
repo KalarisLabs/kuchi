@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <a href="#the-collection"><img alt="Video references" src="https://img.shields.io/badge/video_references-84-black"></a>
+  <a href="#the-collection"><img alt="Video references" src="https://img.shields.io/badge/video_references-89-black"></a>
   <a href="agent/README.md"><img alt="MCP server" src="https://img.shields.io/badge/MCP-no_sign--in-blue"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
   <a href="https://awesome.re"><img alt="Awesome" src="https://awesome.re/badge.svg"></a>
@@ -149,6 +149,8 @@ Every reference below has an inline player, the video file, a remake prompt and 
 - [Lifted Finance — Launch Film](#lifted-finance)
 - [Varcyyyy — Do Dots Kinetic Type](#varcyyyy-do-dots-kinetic-type)
 - [Photon — Omnichannel Messaging](#photonhq-omnichannel-kinetic-type)
+- [Allo — Rounded Variable Font](#allo-font)
+- [Figma — 3D Transforms](#figma-3d-transforms)
 
 ### [E. Dark, Gradient & Mixed Media](#dark-gradient-mixed-media)
 
@@ -171,6 +173,9 @@ Every reference below has an inline player, the video file, a remake prompt and 
 - [LandAtlas — Real Estate Workflow](#landatlas-launch)
 - [Vainu — Company Signals](#vainu-company-signals)
 - [Nexo — Claude Opus 3D Scene](#nexo-claude-opus-3d-scene)
+- [Motion — Fable 5.5 for Launch Videos](#motion-fable-5-5)
+- [LottieFiles — Lottie AI](#lottie-ai)
+- [Motionstash — AI Interviewer Launch Film](#motionstash-ai-interviewer)
 
 ### [F. Illustrated Mascot Stories](#illustrated-mascot-stories)
 
@@ -2994,6 +2999,96 @@ https://x.com/PhotonHQ/status/2110789854242218066
 
 ---
 
+<a id="allo-font"></a>
+
+### Allo — Rounded Variable Font
+
+[![▶ Watch Allo — Rounded Variable Font](previews/allo-font.jpg)](https://kuchi.kalarislabs.com/assets/92.mp4)
+
+**0:46 · 16:9 · — impressions · 493.1K plays**
+
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/92.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/92.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-92)
+
+A type-foundry launch built almost entirely from kinetic typography: the wordmark resolves on white, then hard cuts through saturated sticker-style frames of fractions, ligatures and arrows. Glyph construction shots show Bezier outlines on a dark grid, a dial scrubs the roundness axis live, and a glyph-count grid and symbol sheet stagger in on beat. Closes on product-UI and a retro diagnostic screen using the face before landing back on the wordmark.
+
+```text
+Remake this video's motion and vibe for my product:
+https://x.com/joshpuckett/status/2122329345670988258
+```
+
+*Source: [@joshpuckett](https://x.com/joshpuckett/status/2122329345670988258) · 2026-11-16*
+
+<details>
+<summary>Metadata & stats</summary>
+
+| Metadata | Value |
+| --- | --- |
+| Posting account | @joshpuckett |
+| Post date | 2026-11-16 |
+| Stats snapshot (PT) | 2026-11-17 |
+| Post impressions | — |
+| Video plays | 493,135 |
+| Likes | 8,479 |
+| Bookmarks | — |
+| Reposts | 566 |
+| Replies | 426 |
+| Quotes | — |
+| Account followers | — |
+| Original duration | 0:46 |
+| Included file | 0:46 — full clip |
+| Aspect ratio | 16:9 |
+| Reference resolution | 2564 × 1440 |
+| Audio track | Present |
+
+</details>
+
+---
+
+<a id="figma-3d-transforms"></a>
+
+### Figma — 3D Transforms
+
+[![▶ Watch Figma — 3D Transforms](previews/figma-3d-transforms.jpg)](https://kuchi.kalarislabs.com/assets/93.mp4)
+
+**0:35 · 16:9 · — impressions · 139.8K plays**
+
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/93.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/93.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-93)
+
+Type set on tilted 3D planes swings through perspective, with ribbons of words like DEPTH, LIGHT and FORM sweeping diagonally across black. Fast cuts move through a 3D card carousel, chrome cursors, rotating photo stacks, repeating italic Dimension type and op-art tunnels in acid yellow, blue and pink. Lands inside the Figma canvas editing the 3D type, then ends on the logo.
+
+```text
+Remake this video's motion and vibe for my product:
+https://x.com/figma/status/2120926665790681354
+```
+
+*Source: [@figma](https://x.com/figma/status/2120926665790681354) · 2026-11-12*
+
+<details>
+<summary>Metadata & stats</summary>
+
+| Metadata | Value |
+| --- | --- |
+| Posting account | @figma |
+| Post date | 2026-11-12 |
+| Stats snapshot (PT) | 2026-11-17 |
+| Post impressions | — |
+| Video plays | 139,795 |
+| Likes | 2,065 |
+| Bookmarks | — |
+| Reposts | 198 |
+| Replies | 129 |
+| Quotes | — |
+| Account followers | — |
+| Original duration | 0:35 |
+| Included file | 0:35 — full clip |
+| Aspect ratio | 16:9 |
+| Reference resolution | 3840 × 2160 |
+| Audio track | Present |
+
+</details>
+
+---
+
 <a id="dark-gradient-mixed-media"></a>
 
 ## E. Dark, Gradient & Mixed Media
@@ -3849,6 +3944,141 @@ https://x.com/Nexoxh/status/2119823326080065850
 | Included file | 0:19 — full clip |
 | Aspect ratio | 16:9 |
 | Reference resolution | 1024 × 576 |
+| Audio track | Present |
+
+</details>
+
+---
+
+<a id="motion-fable-5-5"></a>
+
+### Motion — Fable 5.5 for Launch Videos
+
+[![▶ Watch Motion — Fable 5.5 for Launch Videos](previews/motion-fable-5-5.jpg)](https://kuchi.kalarislabs.com/assets/94.mp4)
+
+**1:20 · 16:9 · — impressions · 190.1K plays**
+
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/94.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/94.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-94)
+
+Painterly illustrated landscapes carry the story: a serif italic line sits over a sunset sky, then the camera pushes through a forest while asset cards and a prompt bar float in. The scene shrinks into a timeline editor window that builds scenes, typography and transitions, each step labelled by a single italic word. Ends by pulling out of the editor into clouds for the Fable 5.5 title card.
+
+```text
+Remake this video's motion and vibe for my product:
+https://x.com/motion_so/status/2117287037170778544
+```
+
+*Source: [@motion_so](https://x.com/motion_so/status/2117287037170778544) · 2026-11-02*
+
+<details>
+<summary>Metadata & stats</summary>
+
+| Metadata | Value |
+| --- | --- |
+| Posting account | @motion_so |
+| Post date | 2026-11-02 |
+| Stats snapshot (PT) | 2026-11-17 |
+| Post impressions | — |
+| Video plays | 190,149 |
+| Likes | 694 |
+| Bookmarks | — |
+| Reposts | 39 |
+| Replies | 68 |
+| Quotes | — |
+| Account followers | — |
+| Original duration | 1:20 |
+| Included file | 1:20 — full clip |
+| Aspect ratio | 16:9 |
+| Reference resolution | 1920 × 1080 |
+| Audio track | Present |
+
+</details>
+
+---
+
+<a id="lottie-ai"></a>
+
+### LottieFiles — Lottie AI
+
+[![▶ Watch LottieFiles — Lottie AI](previews/lottie-ai.jpg)](https://kuchi.kalarislabs.com/assets/95.mp4)
+
+**1:14 · 16:9 · — impressions · 305.4K plays**
+
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/95.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/95.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-95)
+
+Opens on a sphere of animation thumbnails, then typewriter lines resolve over black with soft green gradient blooms and drifting particles. Alternates dark and white-to-lime scenes: a sketch becomes a coloured vector illustration, a waveform pulses, and short captions such as It's editable land centred. A cursor picks Turbo or Quality in a pill toggle before the closing line types on.
+
+```text
+Remake this video's motion and vibe for my product:
+https://x.com/LottieFiles/status/2119973396192858387
+```
+
+*Source: [@LottieFiles](https://x.com/LottieFiles/status/2119973396192858387) · 2026-11-09*
+
+<details>
+<summary>Metadata & stats</summary>
+
+| Metadata | Value |
+| --- | --- |
+| Posting account | @LottieFiles |
+| Post date | 2026-11-09 |
+| Stats snapshot (PT) | 2026-11-17 |
+| Post impressions | — |
+| Video plays | 305,414 |
+| Likes | 467 |
+| Bookmarks | — |
+| Reposts | 52 |
+| Replies | 61 |
+| Quotes | — |
+| Account followers | — |
+| Original duration | 1:14 |
+| Included file | 1:14 — full clip |
+| Aspect ratio | 16:9 |
+| Reference resolution | 1920 × 1080 |
+| Audio track | Present |
+
+</details>
+
+---
+
+<a id="motionstash-ai-interviewer"></a>
+
+### Motionstash — AI Interviewer Launch Film
+
+[![▶ Watch Motionstash — AI Interviewer Launch Film](previews/motionstash-ai-interviewer.jpg)](https://kuchi.kalarislabs.com/assets/96.mp4)
+
+**0:48 · 16:9 · — impressions · 5.2K plays**
+
+[▶ Watch video](https://kuchi.kalarislabs.com/assets/96.mp4) · [MP4 file](https://kuchi.kalarislabs.com/assets/96.mp4) · [Browse with stats](https://kuchi.kalarislabs.com/#video-96)
+
+A studio-made 48-second B2B SaaS film: big type over black hands off to frosted-glass UI cards floating above an amber and blue gradient horizon. A cursor picks suggested interview questions, candidate rows slide in, and a live interview, transcript and ranked table cut on beat. Ends on glowing glass pills, light-trail lines and an iridescent orb before the Book Demo button.
+
+```text
+Remake this video's motion and vibe for my product:
+https://x.com/motionstashco/status/2120983506230681641
+```
+
+*Source: [@motionstashco](https://x.com/motionstashco/status/2120983506230681641) · 2026-11-12*
+
+<details>
+<summary>Metadata & stats</summary>
+
+| Metadata | Value |
+| --- | --- |
+| Posting account | @motionstashco |
+| Post date | 2026-11-12 |
+| Stats snapshot (PT) | 2026-11-17 |
+| Post impressions | — |
+| Video plays | 5,202 |
+| Likes | 137 |
+| Bookmarks | — |
+| Reposts | 7 |
+| Replies | 3 |
+| Quotes | — |
+| Account followers | — |
+| Original duration | 0:48 |
+| Included file | 0:48 — full clip |
+| Aspect ratio | 16:9 |
+| Reference resolution | 1276 × 718 |
 | Audio track | Present |
 
 </details>

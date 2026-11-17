@@ -71,6 +71,13 @@
       "impressions": 91645282,
       "plays": 12032403,
       "catalogHash": "0337eef8a716474a9ea4c225484a1a73064c9bd6992912754d14edee09e8da4b"
+    },
+    {
+      "date": "2026-11-17",
+      "videos": 89,
+      "impressions": 91645282,
+      "plays": 13166098,
+      "catalogHash": "ea1b5f9229336afb31d2e488bbc77d692e11c236ee3a2891a906fe5c9b7d4bba"
     }
   ],
   "observations": [
@@ -79,6 +86,11 @@
       "videos": 84,
       "impressions": 91645282,
       "sourceRevision": "54047913bb70a2dd0cc0eac44d9470cb6d201d01"
+    },
+    {
+      "recordedAt": "2026-11-17T19:13:58.054536+00:00",
+      "videos": 89,
+      "impressions": 91645282
     }
   ]
 }

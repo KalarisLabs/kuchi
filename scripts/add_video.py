@@ -136,7 +136,7 @@ def main():
         media = {'width': info.get('width') or 0, 'height': info.get('height') or 1,
                  'seconds': info.get('duration') or 0, 'hasAudio': True}
 
-    new_id = str(max(int(v['id']) for v in catalog) + 1)
+    new_id = max(int(v['id']) for v in catalog) + 1  # an int, like every other id in the catalog
     timestamp = info.get('timestamp')
     pacific = ZoneInfo('America/Los_Angeles')
     entry = {

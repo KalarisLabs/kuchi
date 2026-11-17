@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "author": {
-    "email": "support@kalarislabs.com",
+    "email": "hello@kalarislabs.com",
     "name": "Kalaris Labs"
   },
   "description": "Real product-launch videos to use as inspiration templates. Find a reference, then plan a remake for your own product with your own assets.",

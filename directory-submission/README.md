@@ -13,7 +13,7 @@ Everything needed to list Kuchi in the official MCP Registry, the Claude Directo
 | Developer | Kalaris Labs |
 | Website | https://kuchi.kalarislabs.com/ |
 | Documentation | https://github.com/KalarisLabs/kuchi/blob/main/agent/README.md |
-| Support | support@kalarislabs.com · https://kuchi.kalarislabs.com/support |
+| Support | hello@kalarislabs.com · https://kuchi.kalarislabs.com/support |
 | Privacy policy | https://kuchi.kalarislabs.com/privacy |
 | Terms | https://kuchi.kalarislabs.com/terms |
 | Icon | [`plugin/launch-archive/assets/kuchi-icon.png`](../plugin/launch-archive/assets/kuchi-icon.png) (180 x 180), or https://kuchi.kalarislabs.com/favicon.svg |
@@ -55,7 +55,7 @@ No tool takes a context, intent or conversation argument. Every input is needed 
 - `kuchi_send_feedback` stores the note the agent writes.
 - A per-client rate limit (120 requests a minute, 1,500 an hour) is keyed to the connecting IP. Only request counts are kept, and they are deleted after about an hour without requests.
 - A client past 300 requests in an hour is still served but no longer counted in analytics.
-- Video files and posters are third-party content, credited to and owned by their creators, each linked to the original post. Removal requests go to support@kalarislabs.com.
+- Video files and posters are third-party content, credited to and owned by their creators, each linked to the original post. Removal requests go to hello@kalarislabs.com.
 
 ## 1. Official MCP Registry
 
@@ -112,7 +112,7 @@ The plugin is [`plugin/launch-archive`](../plugin/launch-archive) (skill + MCP s
 3. **Source:** repository `KalarisLabs/kuchi`, plugin path `plugin/launch-archive`, branch `main`. Select **Validate** and fix anything marked Blocking.
 4. **Listing details:** read from `.claude-plugin/plugin.json` and the plugin's `README.md`; check them.
 5. **Data handling:** stores no personal data; sends tool calls to the Kuchi server only, which keeps anonymous usage events in PostHog; not aimed at people under 18.
-6. **Compliance:** contact support@kalarislabs.com; accept all 4 acknowledgements.
+6. **Compliance:** contact hello@kalarislabs.com; accept all 4 acknowledgements.
 7. **Review and submit:** choose the GitHub push webhook (needs repo admin) or scheduled checks, then **Submit for review**. After the scan and a human review, a reviewer publishes the first version.
 8. Pair the plugin with the Kuchi connector listing.
 

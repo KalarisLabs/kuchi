@@ -23,6 +23,6 @@ In Claude Code: `/plugin install kuchi --marketplace KalarisLabs/kuchi`
 - Website: https://kuchi.kalarislabs.com/
 - Privacy policy: https://kuchi.kalarislabs.com/privacy
 - Terms: https://kuchi.kalarislabs.com/terms
-- Support: https://kuchi.kalarislabs.com/support (support@kalarislabs.com)
+- Support: https://kuchi.kalarislabs.com/support (hello@kalarislabs.com)
 
 MIT licensed.

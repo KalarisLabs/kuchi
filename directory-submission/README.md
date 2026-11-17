@@ -1,6 +1,6 @@
 # Directory listings
 
-Everything needed to list Kuchi in the official MCP Registry, the Claude Connectors Directory and ChatGPT. All three list the same server. The MCP Registry entry is published (version 1.3.0, 2026-11-13). The Claude and ChatGPT listings have not been submitted yet. Re-check every claim against the live server before submitting: `npm --prefix agent-service run verify:live`.
+Everything needed to list Kuchi in the official MCP Registry, the Claude Directory (connector and plugin bundle) and ChatGPT (plugin). They all list the same server. The MCP Registry entry is version 1.4.0 (2026-11-17). The Claude and ChatGPT listings have not been submitted yet. Re-check every claim against the live server before submitting: `npm --prefix agent-service run verify:live`.
 
 ## Shared details
 
@@ -13,9 +13,9 @@ Everything needed to list Kuchi in the official MCP Registry, the Claude Connect
 | Developer | Kalaris Labs |
 | Website | https://kuchi.kalarislabs.com/ |
 | Documentation | https://github.com/KalarisLabs/kuchi/blob/main/agent/README.md |
-| Support | support@kalarislabs.com · https://kuchi.kalarislabs.com/support.html |
-| Privacy policy | https://kuchi.kalarislabs.com/privacy.html |
-| Terms | https://kuchi.kalarislabs.com/terms.html |
+| Support | support@kalarislabs.com · https://kuchi.kalarislabs.com/support |
+| Privacy policy | https://kuchi.kalarislabs.com/privacy |
+| Terms | https://kuchi.kalarislabs.com/terms |
 | Icon | [`plugin/launch-archive/assets/kuchi-icon.png`](../plugin/launch-archive/assets/kuchi-icon.png) (180 x 180), or https://kuchi.kalarislabs.com/favicon.svg |
 | Category | Creativity / Design |
 
@@ -25,7 +25,7 @@ Everything needed to list Kuchi in the official MCP Registry, the Claude Connect
 
 ## Tools
 
-Eleven tools. Each has a title, and `readOnlyHint`, `destructiveHint`, `idempotentHint` and `openWorldHint` set explicitly. Ten are read-only (`readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`): they don't write data, send messages or store what the user's product is. `kuchi_send_feedback` is the one tool that writes: it stores a note the agent sends to Kuchi's maintainers.
+Thirteen tools. Each has a title, and `readOnlyHint`, `destructiveHint`, `idempotentHint` and `openWorldHint` set explicitly. Twelve are read-only (`readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false`): they don't write data, send messages or store what the user's product is. `kuchi_send_feedback` is the one tool that writes: it stores a note the agent sends to Kuchi's maintainers.
 
 | Tool | Title | Purpose |
 | --- | --- | --- |
@@ -37,6 +37,8 @@ Eleven tools. Each has a title, and `readOnlyHint`, `destructiveHint`, `idempote
 | `kuchi_get_breakdown` | Get a frame-by-frame breakdown | One reference measured frame by frame: exact shots, entrances, motion, colors and storyboard sheets |
 | `kuchi_plan_remake` | Plan a remake for your product | A frame-timed remake plan from the user's product details, assets and the agent's shot analysis, with questions for anything missing |
 | `kuchi_check_remake` | Check a remake before delivering | Checks the agent's shot list for reused brand text, reference assets and invented UI, and its timing against the reference |
+| `kuchi_list_components` | List video components | Copy-paste Remotion video components (kinetic type, captions, UI, transitions), searchable by keyword and category |
+| `kuchi_get_component` | Get a video component | One component's source files, dependencies and install command |
 | `kuchi_send_feedback` | Send feedback to Kuchi | The agent reports a failure or a missing capability (the one tool that writes) |
 | `search` | Search Kuchi | Search for ChatGPT connectors and deep research: returns ids, titles and URLs |
 | `fetch` | Fetch a Kuchi video | One reference by id from `search` |
@@ -59,20 +61,33 @@ No tool takes a context, intent or conversation argument. Every input is needed 
 
 The registry at `registry.modelcontextprotocol.io` is where other catalogs and clients look servers up. The entry is [`server.json`](../server.json), named `io.github.KalarisLabs/kuchi`.
 
-Version 1.3.0 is published and listed. To publish a later version:
+Version 1.4.0 is the current entry. To publish a later version:
 
 1. On GitHub, open **Actions → Publish to the MCP Registry → Run workflow** on `main`. It signs in with the repository's own identity, so no secret or token is needed.
 2. Confirm it is listed: `https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.KalarisLabs/kuchi`.
 
 A published version can't be edited. For a later release, raise `version` in `server.json` together with the server's version (a test keeps them equal), then run the workflow again.
 
-## 2. Claude Connectors Directory
+## 2. Claude Directory: connector
 
-Submit at https://claude.ai/directory/manage, signed in to the Claude account that should own the listing. New listings start as Community.
+Submit at https://claude.ai/directory/manage → **Submit new** → **MCP connector**, signed in on a paid plan (Pro, Max, or Owner on Team/Enterprise) in the organization that should own the listing. New listings start as Community; Anthropic may raise them to Verified. Questions: mcp-review@anthropic.com.
+
+| Portal step | What to enter |
+| --- | --- |
+| 1. Connection | `https://kuchi.kalarislabs.com/mcp` |
+| 2. Tools | Synced from the server: confirm all thirteen load with titles and no flags |
+| 3. Listing | Name "Kuchi" (≤100), one-liner = the short description (≤200), description = the long description (≤2,000; it is about 800), 1–5 categories (Design, Creativity, Video), docs, privacy and support links above, icon `kuchi-icon.png`, slug `kuchi` (permanent) |
+| 4. Use cases | Read-only video references and plans, plus one write: agent feedback |
+| 5. Company | Kalaris Labs, https://kuchi.kalarislabs.com/, primary contact |
+| 6. Authentication | None |
+| 7. Data handling | Own API; no health data; no sponsored content (see Data handling above) |
+| 8. Test & launch | Confirm it was tested (steps below). No credentials are needed |
+| 9. Compliance | Read and accept all 7 acknowledgements |
+| 10. Review | Submit |
 
 | Requirement | Kuchi |
 | --- | --- |
-| Every tool has a title and `readOnlyHint` or `destructiveHint` | Yes, on all eleven |
+| Every tool has a title and `readOnlyHint` or `destructiveHint` | Yes, on all thirteen |
 | Tool names of 64 characters or fewer | Yes |
 | Descriptions say what a tool does and when to use it, with no instructions on how to behave and no promotion | Yes |
 | Errors say what went wrong and what to do | Yes |
@@ -84,18 +99,33 @@ Submit at https://claude.ai/directory/manage, signed in to the Claude account th
 
 Before submitting:
 
-1. In Claude, open **Settings → Connectors → Add custom connector**, name it Kuchi and paste the server URL. Confirm all eleven tools load with their titles.
+1. In Claude, open **Settings → Connectors → Add custom connector**, name it Kuchi and paste the server URL. Confirm all thirteen tools load with their titles.
 2. Run the review cases below in Claude web and desktop.
 3. Check the server with MCP Inspector: `npx @modelcontextprotocol/inspector`, Streamable HTTP, the server URL.
 
-## 3. ChatGPT
+## 3. Claude Directory: plugin bundle
 
-Submit on the OpenAI Platform, under the organization that should own the listing.
+The plugin is [`plugin/launch-archive`](../plugin/launch-archive) (skill + MCP server). `anthropics/claude-plugins-official` takes no direct submissions; the bundle goes through the same portal and is then paired with the connector listing. Validate first: `claude plugin validate --strict ./plugin/launch-archive` (passes as of 1.4.0).
+
+1. On claude.ai, connect the GitHub account that can push to `KalarisLabs/kuchi`, in the same Claude organization as the connector.
+2. https://claude.ai/directory/manage → **Submit new** → **Plugin bundle**.
+3. **Source:** repository `KalarisLabs/kuchi`, plugin path `plugin/launch-archive`, branch `main`. Select **Validate** and fix anything marked Blocking.
+4. **Listing details:** read from `.claude-plugin/plugin.json` and the plugin's `README.md`; check them.
+5. **Data handling:** stores no personal data; sends tool calls to the Kuchi server only, which keeps anonymous usage events in PostHog; not aimed at people under 18.
+6. **Compliance:** contact support@kalarislabs.com; accept all 4 acknowledgements.
+7. **Review and submit:** choose the GitHub push webhook (needs repo admin) or scheduled checks, then **Submit for review**. After the scan and a human review, a reviewer publishes the first version.
+8. Pair the plugin with the Kuchi connector listing.
+
+## 4. ChatGPT plugin
+
+Submit on the OpenAI Platform, under the organization that should own the listing. The plugin is the same folder, uploaded as a ZIP; [`plugin.json`](../plugin/launch-archive/plugin.json) already carries the listing, the four required links, and the 5 positive and 3 negative review cases. The ZIP must include the MCP server from the first upload. Leave `.claude-plugin/` out of the ZIP if the portal objects to it.
 
 1. **Verify the developer.** Complete individual or business verification on the OpenAI Platform. The listing shows that verified name.
 2. **Verify the domain.** The submission form gives a token to serve at `https://kuchi.kalarislabs.com/.well-known/openai-apps-challenge`. The route is already deployed and returns 404 until a token is set. Put the token in `OPENAI_APPS_CHALLENGE` in [`agent-service/wrangler.json`](../agent-service/wrangler.json), push to `main`, and check the URL returns the token as plain text.
 3. **Fill in the listing** with the shared details. Name it "Kuchi", without "MCP" or "Plugin" appended.
-4. **Give the test cases.** The review asks for positive and negative cases; use the ones below.
+4. **Give the test cases.** Already in `plugin.json` (cases 1, 3a, 4, 5, 7 and 11, 12, 9 below).
+5. **Record a demo** of a full run (find, break down, plan, check) and add its URL as `review.demo_recording_url` in `plugin.json`. Required for the first review.
+6. **Upload** at platform.openai.com/plugins → **Upload new or existing plugin** → the ZIP → **MCPs → Connect** → wait for **Scan Tools** → **Submit for review** → **Publish** once approved.
 
 | Requirement | Kuchi |
 | --- | --- |
@@ -124,6 +154,7 @@ Positive: Kuchi should be used.
 | 6 | Answer 5's questions | Calls `kuchi_plan_remake` again with a shot analysis and gets `ready: true` with a blueprint in frames |
 | 7 | "Check my plan: shot 1 uses their logo." | Calls `kuchi_check_remake`, which reports the reference asset as an error |
 | 8 | ChatGPT deep research: "launch videos that use kinetic type" | Uses `search` and `fetch`, cites Kuchi links |
+| 8a | "Is there a ready-made Remotion component for captions?" | Calls `kuchi_list_components`, then `kuchi_get_component` for the pick, and shows its install command |
 
 Negative: Kuchi should not be used, or should decline.
 

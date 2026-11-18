@@ -20,13 +20,20 @@ const strings = value => Array.isArray(value) ? value.filter(v => typeof v === '
 // Registry dependencies are listed as full /r/<name>.json URLs; agents get names.
 const depName = dep => String(dep).match(/\/r\/([a-z0-9-]+)\.json$/)?.[1] ?? String(dep);
 
-async function readJson(fetcher, url, limit) {
-  const response = await fetcher(url, {headers:{'User-Agent':'KuchiMCP/1.0', Accept:'application/json'}, cache:'no-store', signal:AbortSignal.timeout(12000)});
-  return JSON.parse(await readBounded(response, limit));
+// Reads a registry file, revalidating the copy already held: the site answers
+// 304 with no body when it hasn't changed, and that copy is kept as is.
+// Returns {value, etag} with value null when `previous` is still current.
+async function readJson(fetcher, url, limit, previous = null) {
+  const headers = {'User-Agent':'KuchiMCP/1.0', Accept:'application/json'};
+  if (previous?.etag) headers['If-None-Match'] = previous.etag;
+  const response = await fetcher(url, {headers, cache:'no-store', signal:AbortSignal.timeout(12000)});
+  if (response.status === 304 && previous) { await response.body?.cancel().catch(() => {}); return {value:null, etag:previous.etag}; }
+  return {value:JSON.parse(await readBounded(response, limit)), etag:response.headers.get('etag')};
 }
 
-export async function loadIndex(fetcher = fetch) {
-  const registry = await readJson(fetcher, REGISTRY_URL, LIMITS.index);
+export async function loadIndex(fetcher = fetch, previous = null) {
+  const {value:registry, etag} = await readJson(fetcher, REGISTRY_URL, LIMITS.index, previous);
+  if (!registry) return previous;
   const items = registry?.items;
   if (!Array.isArray(items) || !items.length || items.length > MAX_ITEMS) throw new Error('Published component registry schema unavailable');
   if (items.some(i => !NAME.test(i?.name ?? '') || typeof i.title !== 'string' || typeof i.description !== 'string')) throw new Error('Published component registry is invalid');
@@ -38,31 +45,35 @@ export async function loadIndex(fetcher = fetch) {
       registry_dependencies:strings(i.registryDependencies).map(depName),
       files:(Array.isArray(i.files) ? i.files : []).map(f => f?.target ?? f?.path).filter(p => typeof p === 'string')
     })),
-    fetchedAt:new Date().toISOString()
+    etag, fetchedAt:new Date().toISOString()
   };
 }
 
-export async function loadItem(name, fetcher = fetch) {
-  const item = await readJson(fetcher, registryUrl(name), LIMITS.item);
+export async function loadItem(name, fetcher = fetch, previous = null) {
+  const {value:item, etag} = await readJson(fetcher, registryUrl(name), LIMITS.item, previous);
+  if (!item) return previous;
   if (item?.name !== name || !Array.isArray(item.files) || item.files.some(f => typeof f?.content !== 'string' || typeof (f.target ?? f.path) !== 'string'))
     throw new Error('Published component is invalid');
   return {
     docs:typeof item.docs === 'string' ? item.docs : null,
     dev_dependencies:strings(item.devDependencies),
-    files:item.files.map(f => ({path:f.target ?? f.path, type:f.type ?? null, content:f.content}))
+    files:item.files.map(f => ({path:f.target ?? f.path, type:f.type ?? null, content:f.content})),
+    etag
   };
 }
 
-// The index and each component are cached with the catalog's fresh/stale
-// policy. Only names in the index are ever fetched, so the cache stays bounded.
+// The index and each component are cached with the catalog's policy: fresh for
+// a minute, then served while a background revalidation runs. Revalidating an
+// unchanged file costs a 304 with no body. Only names in the index are ever
+// fetched, so the cache stays bounded. `options` carries the request's waitUntil.
 export function componentRegistry({fetcher = (...args) => fetch(...args), now = Date.now} = {}) {
-  const index = cachedLoader(() => loadIndex(fetcher), now);
+  const index = cachedLoader(previous => loadIndex(fetcher, previous), now);
   const items = new Map();
   return {
     index,
-    item:name => {
-      if (!items.has(name)) items.set(name, cachedLoader(() => loadItem(name, fetcher), now));
-      return items.get(name)();
+    item:(name, options) => {
+      if (!items.has(name)) items.set(name, cachedLoader(previous => loadItem(name, fetcher, previous), now));
+      return items.get(name)(options);
     }
   };
 }

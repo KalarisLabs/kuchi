@@ -29,5 +29,16 @@
 		"enabled": true,
 		"logs": { "enabled": true, "head_sampling_rate": 0.1 },
 		"traces": { "enabled": true, "head_sampling_rate": 0.01 }
+	},
+	// Pull-request Previews (npx wrangler preview, run by Workers Builds on
+	// branches). Previews inherit none of the settings above, so the variables
+	// are repeated here; analytics stays off so preview traffic never reaches
+	// PostHog. Previews are served on workers.dev, never on the production routes.
+	"previews": {
+		"vars": {
+			"KUCHI_MEDIA_URL": "https://kuchi-media.kalarislabs.com",
+			"POSTHOG_PROJECT_TOKEN": "",
+			"POSTHOG_HOST": "https://us.i.posthog.com"
+		}
 	}
 }

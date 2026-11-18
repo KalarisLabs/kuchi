@@ -17,6 +17,7 @@ CLOUDFLARE_ACCOUNT_ID in CI.
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urlparse
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 import argparse
 import json
@@ -33,15 +34,24 @@ ATTEMPTS = 6
 NPX = 'npx.cmd' if os.name == 'nt' else 'npx'
 
 
-def live_size(key):
+def live_size(key, attempts=3):
     # A unique query string misses the edge cache, so this reads R2 itself.
-    request = Request(f'{MEDIA_URL}/{key}?check={uuid.uuid4().hex}', method='HEAD',
-                      headers={'User-Agent': 'kuchi-media-sync'})
-    try:
-        with urlopen(request, timeout=20) as response:
-            return int(response.headers.get('Content-Length', -1))
-    except Exception:
-        return None
+    # A 404 means the file is not there. Any other failure (timeout, reset,
+    # 5xx) is retried: one network blip must not fail the whole check.
+    for attempt in range(attempts):
+        request = Request(f'{MEDIA_URL}/{key}?check={uuid.uuid4().hex}', method='HEAD',
+                          headers={'User-Agent': 'kuchi-media-sync'})
+        try:
+            with urlopen(request, timeout=20) as response:
+                return int(response.headers.get('Content-Length', -1))
+        except HTTPError as error:
+            if error.code == 404:
+                return None
+        except Exception:
+            pass
+        if attempt + 1 < attempts:
+            time.sleep(2 * (attempt + 1))
+    return None
 
 
 def files():

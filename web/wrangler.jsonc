@@ -35,6 +35,9 @@
 	// are repeated here; analytics stays off so preview traffic never reaches
 	// PostHog. Previews are served on workers.dev, never on the production routes.
 	"previews": {
+		// The Astro adapter adds a SESSION KV binding. Production's namespace is
+		// created on deploy; Previews need one named, and get their own.
+		"kv_namespaces": [{ "binding": "SESSION", "id": "0811d94fcd6443378371b3076b9f22ea" }],
 		"vars": {
 			"KUCHI_MEDIA_URL": "https://kuchi-media.kalarislabs.com",
 			"POSTHOG_PROJECT_TOKEN": "",

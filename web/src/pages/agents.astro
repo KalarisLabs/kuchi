@@ -1,0 +1,115 @@
+---
+// /agents: the hub for the per-harness guides (/agents/<slug>). Targets "make a launch video
+// with an AI agent" and links every harness page, so each one is two clicks from home.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SkipLink from '../components/SkipLink.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Toast from '../components/Toast.astro';
+import { SITE_URL } from '../lib/video-links.js';
+import { harnesses, harnessPath, MCP_URL, SETUP_PROMPT } from '../lib/harnesses';
+
+export const prerender = true;
+
+const groups = [
+  { title: 'Coding agents', sub: 'Choose a template, plan, then build and render the video in your project.', items: harnesses.filter((h) => h.kind === 'coding') },
+  { title: 'Chat apps', sub: 'Choose a template, study it and get a frame-timed plan to hand to a coding agent.', items: harnesses.filter((h) => h.kind === 'chat') },
+];
+
+const description = 'Make a product launch video with your AI agent. Step-by-step guides to connect Kuchi to Claude Code, Codex, Cursor, VS Code, Gemini CLI, Claude, ChatGPT and Grok.';
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Make launch videos with your AI agent',
+    description,
+    url: `${SITE_URL}/agents`,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: harnesses.map((h, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}${harnessPath(h)}`, name: `Launch videos with ${h.name}` })),
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Kuchi', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Agents', item: `${SITE_URL}/agents` },
+    ],
+  },
+];
+const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+---
+<BaseLayout title="Make launch videos with your AI agent — Kuchi" description={description} jsonLd={jsonLd}>
+  <SkipLink href="#agents-title" label="Skip to the agents" />
+  <SiteHeader />
+  <main class="document ah">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Kuchi</a><span aria-hidden="true">/</span><span aria-current="page">Agents</span></nav>
+
+    <header class="ah-hero">
+      <h1 id="agents-title">Make launch videos with your AI agent</h1>
+      <p>Kuchi is a library of real product-launch videos, each measured frame by frame. Connect it to the agent you already use and it picks a template that fits your product, studies every shot and plans your remake. Pick your agent for the steps.</p>
+    </header>
+
+    {groups.map((group) => (
+      <section class="ah-group" aria-labelledby={`g-${group.title}`}>
+        <div class="ah-group-head"><h2 id={`g-${group.title}`}>{group.title}</h2><p>{group.sub}</p></div>
+        <ul class="ah-grid">
+          {group.items.map((h) => (
+            <li>
+              <a class="ah-card" href={harnessPath(h)}>
+                <span class="ah-card-top"><img class:list={['brand-icon', { 'brand-color': h.brandColor }]} src={h.logo} alt="" width="24" height="24"><span class="ah-maker">{h.maker}</span></span>
+                <strong>Launch videos with {h.name}</strong>
+                <span class="ah-tag">{h.tagline}</span>
+                <span class="ah-go">Read the guide →</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+
+    <section class="ah-any" aria-labelledby="any-title">
+      <h2 id="any-title">Any other MCP client</h2>
+      <p>Raft, Windsurf, Antigravity and any app that speaks MCP over Streamable HTTP can use Kuchi. Add this URL with no authentication, then paste the setup prompt.</p>
+      <div class="ah-code"><code>{MCP_URL}</code><button type="button" class="ag-copy" data-copy-text={MCP_URL} aria-label="Copy MCP server URL" title="Copy" set:html={copyIcon} /></div>
+      <button type="button" class="ah-copy-wide ag-copy-wide" data-copy-text={SETUP_PROMPT}><Fragment set:html={copyIcon} /><span>Copy setup prompt</span></button>
+    </section>
+  </main>
+  <Toast />
+  <SiteFooter />
+  <script>
+    import '../scripts/agent-page';
+  </script>
+</BaseLayout>
+
+<style>
+  .ah { padding-top: 28px; }
+  .crumbs { display: flex; gap: 8px; font-size: 13px; color: var(--k-muted); margin-bottom: 28px; }
+  .crumbs a { color: var(--k-muted); text-decoration: none; }
+  .crumbs [aria-current] { color: var(--k-ink); }
+  .ah-hero { max-width: 760px; margin-bottom: 48px; }
+  .ah-hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -0.04em; margin: 0 0 18px; }
+  .ah-hero p { font-size: 17px; line-height: 1.6; color: var(--k-soft); margin: 0; }
+  .ah-group { margin-bottom: 52px; }
+  .ah-group-head { margin-bottom: 16px; }
+  .ah-group-head h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .ah-group-head p { margin: 0; color: var(--k-muted); font-size: 14px; }
+  .ah-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+  .ah-card { display: grid; gap: 8px; height: 100%; padding: 18px; border: 1px solid var(--k-line); border-radius: 14px; background: var(--k-paper); color: var(--k-ink); text-decoration: none; transition: background-color 150ms ease, border-color 150ms ease; }
+  .ah-card:hover { background: var(--k-wash); text-decoration: none; }
+  .ah-card-top { display: flex; align-items: center; justify-content: space-between; }
+  .ah-maker { font-size: 12px; color: var(--k-muted); }
+  .ah-card strong { font-size: 16px; letter-spacing: -0.01em; }
+  .ah-tag { font-size: 13.5px; color: var(--k-soft); line-height: 1.5; }
+  .ah-go { font-size: 13px; color: var(--k-muted); margin-top: 4px; }
+  .ah-any { max-width: 640px; padding: 20px; border: 1px solid var(--k-line); border-radius: 14px; margin-bottom: 24px; }
+  .ah-any h2 { font-size: 18px; margin: 0 0 8px; }
+  .ah-any p { margin: 0 0 14px; color: var(--k-soft); line-height: 1.6; font-size: 14.5px; }
+  .ah-code { position: relative; padding: 12px 44px 12px 12px; border-radius: 10px; background: var(--k-wash); border: 1px solid var(--k-line); font-family: var(--k-mono); font-size: 13px; overflow-wrap: anywhere; }
+  .ag-copy { position: absolute; top: 7px; right: 7px; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--k-muted); cursor: pointer; }
+  .ag-copy:hover { background: var(--k-paper); color: var(--k-ink); }
+  .ah-copy-wide { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 40px; margin-top: 12px; border: 0; border-radius: 10px; background: var(--k-ink); color: var(--k-on-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, scale 160ms var(--ease-out-strong); }
+  .ah-copy-wide:hover { background: var(--k-ink-hover); }
+  .ah-copy-wide:active { scale: 0.98; }
+</style>

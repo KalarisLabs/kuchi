@@ -389,3 +389,32 @@ test('every registry dependency resolves: Kuchi items by an existing URL, shadcn
     }
   }
 });
+
+test('every agent harness has an indexable guide: canonical, HowTo/FAQ JSON-LD, install steps, sitemap, search, links', async () => {
+  const sitemap = await read(dist, 'sitemap.xml');
+  const search = JSON.parse(await read(dist, 'search-index.json'));
+  const hrefs = new Set(search.map((e) => e.h));
+  const hub = await read(dist, 'agents.html');
+  assert.ok(hub.includes('<link rel="canonical" href="https://kuchi.kalarislabs.com/agents">'), 'hub canonical');
+  assert.ok(sitemap.includes('<loc>https://kuchi.kalarislabs.com/agents</loc>'), 'hub not in the sitemap');
+  const slugs = [...hub.matchAll(/href="\/agents\/([\w-]+)"/g)].map((m) => m[1]);
+  assert.ok(new Set(slugs).size >= 8, 'the hub lost harness links');
+  const titles = new Set();
+  for (const slug of new Set(slugs)) {
+    const html = await read(dist, `agents/${slug}.html`);
+    const url = `https://kuchi.kalarislabs.com/agents/${slug}`;
+    assert.ok(html.includes(`<link rel="canonical" href="${url}">`), `${slug}: canonical`);
+    const title = html.match(/<title>([^<]+)<\/title>/)[1];
+    assert.ok(!titles.has(title), `${slug}: duplicate title`);
+    titles.add(title);
+    const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    assert.deepEqual(ld.map((x) => x['@type']), ['HowTo', 'FAQPage', 'ItemList', 'BreadcrumbList'], `${slug}: JSON-LD types`);
+    assert.ok(html.includes('https://kuchi.kalarislabs.com/mcp'), `${slug}: MCP URL`);
+    assert.ok(html.includes('id="install"'), `${slug}: install section`);
+    assert.ok((html.match(/class="video-card"/g) ?? []).length >= 6, `${slug}: featured videos`);
+    assert.ok(sitemap.includes(`<loc>${url}</loc>`), `${slug}: not in the sitemap`);
+    assert.ok(hrefs.has(`/agents/${slug}`), `${slug}: not in search`);
+    assert.ok(!html.includes('github.com') || !/<a[^>]+github\.com/.test(html.replace(/<footer[\s\S]*<\/footer>/, '')), `${slug}: links GitHub`);
+  }
+  assert.ok(/href="\/agents"/.test(index), 'the home page does not link the agent guides');
+});

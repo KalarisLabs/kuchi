@@ -1,0 +1,279 @@
+---
+// /agents/<slug>: how to make a launch video with one agent harness (Claude Code, Codex,
+// Cursor...). Prerendered for search: install steps, setup prompt, prompts to try, the
+// five-step workflow, launch videos and components that suit the harness, and an FAQ,
+// with HowTo, FAQPage, ItemList and BreadcrumbList JSON-LD. Content lives in lib/harnesses.ts.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SkipLink from '../../components/SkipLink.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import Toast from '../../components/Toast.astro';
+import VideoCard from '../../components/VideoCard.astro';
+import { SITE_URL, videoPath } from '../../lib/video-links.js';
+import { posterUrl } from '../../lib/components-catalog';
+import {
+  harnesses, harnessPath, videosFor, componentsFor, faqFor, SETUP_PROMPT, MCP_URL, type Harness,
+} from '../../lib/harnesses';
+
+export const prerender = true;
+
+export function getStaticPaths() {
+  return harnesses.map((h) => ({ params: { slug: h.slug }, props: { h } }));
+}
+
+const { h } = Astro.props as { h: Harness };
+const url = `${SITE_URL}${harnessPath(h)}`;
+const featured = videosFor(h);
+const parts = componentsFor(h);
+const faq = faqFor(h);
+const others = harnesses.filter((other) => other.slug !== h.slug);
+const coding = h.kind === 'coding';
+
+const workflow = [
+  { tool: 'kuchi_suggest_templates', title: 'Choose a template', text: 'A short list of real launch videos ranked for your product, with posters and links.' },
+  { tool: 'kuchi_get_breakdown', title: 'Study it', text: 'Every shot\'s exact frames, how it enters, how much moves, its colours and a sheet of real frames.' },
+  { tool: 'kuchi_plan_remake', title: 'Plan the remake', text: 'Your product details mapped onto the reference\'s frames, with a list of anything still missing.' },
+  { tool: coding ? 'kuchi_get_component' : 'your coding agent', title: 'Build', text: coding ? `${h.name} writes the scenes shot by shot, using Kuchi components where they fit, and renders the video.` : `Hand the blueprint to a coding agent such as Claude Code or Codex, which builds and renders it.` },
+  { tool: 'kuchi_check_remake', title: 'Check', text: 'Compare your frames with the reference at the times it returns, and fix what differs.' },
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: `How to make a launch video with ${h.name}`,
+    description: h.description,
+    url,
+    tool: [{ '@type': 'HowToTool', name: h.name }, { '@type': 'HowToTool', name: 'Kuchi MCP server' }],
+    step: [
+      ...h.install.map((s, i) => ({ '@type': 'HowToStep', position: i + 1, name: i === 0 ? `Connect Kuchi to ${h.name}` : `Install option ${i + 1}`, text: s.code ? `${s.text} ${s.code}` : s.text })),
+      ...workflow.map((w, i) => ({ '@type': 'HowToStep', position: h.install.length + i + 1, name: w.title, text: w.text })),
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Launch video templates for ${h.name}`,
+    itemListElement: featured.map((v, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}${videoPath(v)}`, name: v.title })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Kuchi', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Agents', item: `${SITE_URL}/agents` },
+      { '@type': 'ListItem', position: 3, name: h.name, item: url },
+    ],
+  },
+];
+const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+---
+<BaseLayout title={h.title} description={h.description} jsonLd={jsonLd}>
+  <SkipLink href="#agent-title" label="Skip to the guide" />
+  <SiteHeader />
+  <main class="document ag">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">Kuchi</a><span aria-hidden="true">/</span>
+      <a href="/agents">Agents</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{h.name}</span>
+    </nav>
+
+    <header class="ag-hero">
+      <div class="ag-mark"><img class:list={['brand-icon', { 'brand-color': h.brandColor }]} src={h.logo} alt="" width="28" height="28"></div>
+      <p class="ag-kicker">{h.maker} · {coding ? 'Builds and renders the video' : 'Chooses, studies and plans'}</p>
+      <h1 id="agent-title">Launch videos with {h.name}</h1>
+      {h.intro.map((p) => <p class="ag-lede">{p}</p>)}
+      <div class="ag-actions">
+        <a class="ag-btn ag-btn-primary" href="#install">Connect {h.name}</a>
+        <a class="ag-btn" href="/videos">Browse launch videos</a>
+      </div>
+    </header>
+
+    <div class="ag-layout">
+      <div class="ag-body">
+        <section class="ag-section" id="install" aria-labelledby="install-title">
+          <h2 id="install-title">Connect Kuchi to {h.name}</h2>
+          <p class="ag-note">No sign-in, no API key. The server is <code>{MCP_URL}</code>.</p>
+          <ol class="ag-steps">
+            {h.install.map((step) => (
+              <li>
+                <p>{step.text}</p>
+                {step.code && (
+                  <div class="ag-code"><pre><code>{step.code}</code></pre><button type="button" class="ag-copy" data-copy-text={step.code} aria-label="Copy" title="Copy" set:html={copyIcon} /></div>
+                )}
+                {step.link && <a class="ag-btn ag-btn-small" href={step.link.href} target={step.link.href.startsWith('http') ? '_blank' : undefined} rel={step.link.href.startsWith('http') ? 'noopener' : undefined}>{step.link.label} <span aria-hidden="true">↗</span></a>}
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section class="ag-section" aria-labelledby="why-title">
+          <h2 id="why-title">Why use {h.name} for your launch video</h2>
+          <ul class="ag-list">{h.strengths.map((s) => <li>{s}</li>)}</ul>
+        </section>
+
+        <section class="ag-section" aria-labelledby="how-title">
+          <h2 id="how-title">How it works</h2>
+          <ol class="ag-flow">
+            {workflow.map((w, i) => (
+              <li><span class="ag-flow-n">{i + 1}</span><div><h3>{w.title}</h3><p>{w.text}</p><code>{w.tool}</code></div></li>
+            ))}
+          </ol>
+        </section>
+
+        <section class="ag-section" aria-labelledby="prompts-title">
+          <h2 id="prompts-title">Prompts to try in {h.name}</h2>
+          <ul class="ag-prompts">
+            {h.prompts.map((p) => (
+              <li><p>{p}</p><button type="button" class="ag-copy" data-copy-text={p} aria-label="Copy prompt" title="Copy prompt" set:html={copyIcon} /></li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <aside class="ag-side" aria-label="Setup prompt">
+        <div class="ag-card ag-prompt">
+          <div class="ag-card-head"><h2>Setup prompt</h2><span>Paste into {h.name}</span></div>
+          <pre class="ag-prompt-text" tabindex="0">{SETUP_PROMPT}</pre>
+          <button type="button" class="ag-copy-wide" data-copy-text={SETUP_PROMPT}><Fragment set:html={copyIcon} /><span>Copy setup prompt</span></button>
+          {h.primary && <a class="ag-btn ag-btn-block" href={h.primary.href} target={h.primary.href.startsWith('http') ? '_blank' : undefined} rel={h.primary.href.startsWith('http') ? 'noopener' : undefined}>{h.primary.label} <span aria-hidden="true">↗</span></a>}
+        </div>
+      </aside>
+    </div>
+
+    <section class="ag-wide" aria-labelledby="videos-title">
+      <div class="section-heading"><h2 id="videos-title">Launch video templates to start from</h2><a href="/videos">All launch videos →</a></div>
+      <div class="video-grid">{featured.map((video) => <VideoCard video={video} surface="agent" />)}</div>
+    </section>
+
+    {parts.length > 0 && (
+      <section class="ag-wide" aria-labelledby="parts-title">
+        <div class="section-heading"><h2 id="parts-title">{coding ? `Components ${h.name} can install` : 'Components for the build'}</h2><a href="/components">All components →</a></div>
+        <ul class="ag-parts">
+          {parts.map((c) => (
+            <li><a href={`/components/${c.name}`}><img src={posterUrl(c.name)} alt="" loading="lazy" width="320" height="180"><span>{c.title}</span></a></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section class="ag-wide ag-faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">{h.name} and Kuchi: questions</h2>
+      {faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}
+    </section>
+
+    <nav class="ag-wide" aria-labelledby="others-title">
+      <div class="section-heading"><h2 id="others-title">Use Kuchi with another agent</h2><a href="/agents">All agents →</a></div>
+      <ul class="ag-others">
+        {others.map((o) => (
+          <li><a href={harnessPath(o)}><img class:list={['brand-icon', { 'brand-color': o.brandColor }]} src={o.logo} alt="" width="20" height="20" loading="lazy"><span>Launch videos with {o.name}</span></a></li>
+        ))}
+      </ul>
+    </nav>
+  </main>
+
+  <Toast />
+  <SiteFooter />
+
+  <script>
+    import '../../scripts/gallery.js';
+    import '../../scripts/agent-page';
+  </script>
+</BaseLayout>
+
+<style>
+  .ag { padding-top: 28px; }
+  .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--k-muted); margin-bottom: 28px; }
+  .crumbs a { color: var(--k-muted); text-decoration: none; }
+  .crumbs a:hover { color: var(--k-ink); }
+  .crumbs [aria-current] { color: var(--k-ink); }
+
+  .ag-hero { max-width: 760px; margin-bottom: 48px; }
+  .ag-mark { width: 52px; height: 52px; display: grid; place-items: center; border: 1px solid var(--k-line); border-radius: 14px; background: var(--k-paper); margin-bottom: 18px; }
+  .ag-kicker { font-size: 13px; color: var(--k-muted); margin: 0 0 8px; }
+  .ag-hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -0.04em; margin: 0 0 18px; }
+  .ag-lede { font-size: 17px; line-height: 1.6; color: var(--k-soft); margin: 0 0 12px; }
+  .ag-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+
+  .ag-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 16px;
+    border: 1px solid var(--k-line); border-radius: 10px; background: var(--k-paper); color: var(--k-ink);
+    font-size: 14px; font-weight: 600; text-decoration: none;
+    transition: background-color 150ms ease, scale 160ms var(--ease-out-strong);
+  }
+  .ag-btn:hover { background: var(--k-wash); text-decoration: none; }
+  .ag-btn:active { scale: 0.98; }
+  .ag-btn-primary { background: var(--k-ink); color: var(--k-on-ink); border-color: var(--k-ink); }
+  .ag-btn-primary:hover { background: var(--k-ink-hover); }
+  .ag-btn-small { height: 34px; font-size: 13px; margin-top: 10px; }
+  .ag-btn-block { width: 100%; margin-top: 8px; }
+
+  .ag-layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; column-gap: 40px; align-items: start; }
+  .ag-body { min-width: 0; }
+  .ag-section { margin-bottom: 44px; }
+  .ag-section h2, .ag-wide h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 14px; }
+  .ag-note { color: var(--k-muted); font-size: 14px; margin: -6px 0 16px; }
+  .ag-note code { font-family: var(--k-mono); font-size: 13px; overflow-wrap: anywhere; }
+
+  .ag-steps { list-style: none; counter-reset: s; padding: 0; margin: 0; display: grid; gap: 18px; }
+  .ag-steps li { counter-increment: s; position: relative; padding-left: 36px; }
+  .ag-steps li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 999px; background: var(--k-wash); font-size: 12px; font-weight: 600; }
+  .ag-steps p { margin: 0; line-height: 1.6; }
+  .ag-code { position: relative; margin-top: 10px; }
+  .ag-code pre { margin: 0; padding: 12px 44px 12px 12px; border-radius: 10px; background: var(--k-wash); border: 1px solid var(--k-line); font-family: var(--k-mono); font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .ag-copy { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--k-muted); cursor: pointer; transition: background-color 150ms ease, color 150ms ease; }
+  .ag-copy:hover { background: var(--k-paper); color: var(--k-ink); }
+  .ag-copy[data-copied] { color: var(--k-ink); }
+
+  .ag-list { margin: 0; padding-left: 20px; display: grid; gap: 8px; line-height: 1.6; }
+
+  .ag-flow { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .ag-flow li { display: flex; gap: 14px; padding: 14px; border: 1px solid var(--k-line); border-radius: 12px; }
+  .ag-flow-n { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; background: var(--k-ink); color: var(--k-on-ink); font-size: 12px; font-weight: 600; }
+  .ag-flow h3 { font-size: 15px; margin: 2px 0 4px; }
+  .ag-flow p { margin: 0 0 6px; color: var(--k-soft); line-height: 1.55; font-size: 14px; }
+  .ag-flow code { font-family: var(--k-mono); font-size: 12px; color: var(--k-muted); }
+
+  .ag-prompts { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .ag-prompts li { position: relative; padding: 14px 48px 14px 14px; border-radius: 12px; background: var(--k-wash); }
+  .ag-prompts p { margin: 0; line-height: 1.55; font-size: 14.5px; }
+
+  .ag-side { position: sticky; top: 24px; }
+  .ag-card { border: 1px solid var(--k-line); border-radius: 14px; padding: 16px; background: var(--k-paper); box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.12); }
+  .ag-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .ag-card-head h2 { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--k-muted); margin: 0; }
+  .ag-card-head span { font-size: 12px; color: var(--k-muted); }
+  .ag-prompt-text { margin: 0; padding: 12px; max-height: 280px; overflow: auto; border-radius: 10px; background: var(--k-wash); border: 1px solid var(--k-line); font-family: var(--k-mono); font-size: 12px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .ag-copy-wide { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 40px; margin-top: 10px; border: 0; border-radius: 10px; background: var(--k-ink); color: var(--k-on-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, scale 160ms var(--ease-out-strong); }
+  .ag-copy-wide:hover { background: var(--k-ink-hover); }
+  .ag-copy-wide:active { scale: 0.98; }
+
+  .ag-wide { margin-top: 64px; }
+  .ag-parts { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+  .ag-parts a { display: grid; gap: 8px; color: inherit; text-decoration: none; font-size: 14px; }
+  .ag-parts img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 10px; border: 1px solid var(--k-line); background: var(--k-thumb); }
+  .ag-parts a:hover span { text-decoration: underline; }
+
+  .ag-faq { max-width: 760px; }
+  .ag-faq details { border-bottom: 1px solid var(--k-line); padding: 14px 0; }
+  .ag-faq summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+  .ag-faq details p { margin: 10px 0 0; color: var(--k-soft); line-height: 1.6; }
+
+  .ag-others { list-style: none; padding: 0; margin: 0 0 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .ag-others a { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--k-line); border-radius: 12px; color: var(--k-ink); text-decoration: none; font-size: 14px; transition: background-color 150ms ease; }
+  .ag-others a:hover { background: var(--k-wash); }
+
+  @media (max-width: 960px) {
+    .ag-layout { grid-template-columns: minmax(0, 1fr); }
+    .ag-side { position: static; order: -1; margin-bottom: 40px; }
+    .ag-parts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .ag-parts { grid-template-columns: 1fr; }
+  }
+</style>

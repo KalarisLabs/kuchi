@@ -202,14 +202,14 @@
 <script>
   import { prefersReducedMotion } from '../scripts/motion';
 
-  interface Entry { k: 'page' | 'video' | 'component'; t: string; s: string; h: string; w: string; i?: string }
+  interface Entry { k: 'page' | 'agent' | 'video' | 'component'; t: string; s: string; h: string; w: string; i?: string }
 
   const dialog = document.getElementById('cmdk') as HTMLDialogElement | null;
   const input = document.getElementById('cmdk-input') as HTMLInputElement | null;
   const list = document.getElementById('cmdk-list') as HTMLElement | null;
   const count = document.getElementById('cmdk-count');
 
-  const GROUPS: Record<Entry['k'], string> = { page: 'Pages', video: 'Launch videos', component: 'Components' };
+  const GROUPS: Record<Entry['k'], string> = { page: 'Pages', agent: 'Agent guides', video: 'Launch videos', component: 'Components' };
   const ICONS: Record<string, string> = {
     page: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>',
   };
@@ -253,7 +253,7 @@
       .filter((x) => x.rank > 0)
       .sort((a, b) => b.rank - a.rank || a.index - b.index)
       .map((x) => x.entry);
-    return [...take('page', 4, ranked), ...take('video', 8, ranked), ...take('component', 8, ranked)];
+    return [...take('page', 4, ranked), ...take('agent', 4, ranked), ...take('video', 8, ranked), ...take('component', 8, ranked)];
   }
 
   function row(entry: Entry, index: number) {

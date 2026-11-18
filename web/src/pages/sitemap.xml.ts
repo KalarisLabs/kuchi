@@ -5,6 +5,7 @@ import type { APIRoute } from 'astro';
 import { components, posterUrl, videoUrl } from '../lib/components-catalog';
 import { newestFirst } from '../lib/catalog';
 import { videoPath } from '../lib/video-links.js';
+import { harnesses, harnessPath } from '../lib/harnesses';
 
 export const prerender = true;
 
@@ -34,6 +35,8 @@ const ENTRIES: Entry[] = [
     path: `/components/${item.name}`,
     video: { thumb: posterUrl(item.name), title: `${item.title} — Remotion component`, description: clip(item.description), file: videoUrl(item.name) },
   })),
+  { path: '/agents', lastmod: latest },
+  ...harnesses.map((h) => ({ path: harnessPath(h), lastmod: latest })),
   { path: '/support' },
   { path: '/privacy' },
   { path: '/terms' },

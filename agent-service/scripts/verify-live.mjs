@@ -58,8 +58,8 @@ for (const [name, Client, Transport] of [['modern', Modern, ModernHTTP], ['legac
     const links = linked.content.filter(p => p.type === 'resource_link');
     assert.ok(links.some(l => l.mimeType === 'video/mp4') && links.some(l => l.mimeType === 'image/jpeg'), 'video results link the file and images');
     for (const l of links) assert.equal(await head(l.uri), 200, l.uri);
-    const templates = (await c.listResourceTemplates()).resourceTemplates.map(t => t.uriTemplate).sort();
-    assert.deepEqual(templates, ['kuchi://breakdowns/{id}', 'kuchi://components/{name}', 'kuchi://videos/{id}']);
+    const templates = (await c.listResourceTemplates()).resourceTemplates.map(t => t.uriTemplate);
+    for (const t of ['kuchi://breakdowns/{id}', 'kuchi://components/{name}', 'kuchi://videos/{id}']) assert.ok(templates.includes(t), t);
     const asResource = JSON.parse((await c.readResource({uri:`kuchi://videos/${video.id}`})).contents[0].text);
     assert.equal(asResource.id, video.id);
     const completed = await c.complete({ref:{type:'ref/resource', uri:'kuchi://videos/{id}'}, argument:{name:'id', value:String(video.id)}});

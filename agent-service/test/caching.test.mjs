@@ -98,12 +98,26 @@ test('the HTTP mirror sends an ETag, caches for a minute and answers a matching 
   assert.equal(first.status, 200);
   assert.match(first.headers.get('cache-control'), /public, max-age=60/);
   const etag = first.headers.get('etag');
-  assert.match(etag, /^"[0-9a-f]+-[0-9a-f]+"$/);
+  assert.match(etag, /^W\/"[0-9a-f]+"$/);
   const again = await worker.fetch(new Request(url, {headers:{'If-None-Match':etag}}), env, ctx);
   assert.equal(again.status, 304);
   assert.equal(await again.text(), '');
-  const weak = await worker.fetch(new Request(url, {headers:{'If-None-Match':`W/${etag}`}}), env, ctx);
-  assert.equal(weak.status, 304);
+  const strong = await worker.fetch(new Request(url, {headers:{'If-None-Match':etag.slice(2)}}), env, ctx);
+  assert.equal(strong.status, 304, 'the tag matches with or without W/');
+  const list = await worker.fetch(new Request(url, {headers:{'If-None-Match':`"other", ${etag}`}}), env, ctx);
+  assert.equal(list.status, 304, 'a list of tags matches when any one does');
   const other = await worker.fetch(new Request(url, {headers:{'If-None-Match':'"stale"'}}), env, ctx);
   assert.equal(other.status, 200);
+});
+
+test('the mirror ETag depends on the commit, not on bytes that differ between isolates', async () => {
+  // Two isolates load the same commit at different times, so catalog.json's
+  // fetched_at differs. A fresh module instance stands in for a second isolate.
+  const env = {ARCHIVE_REQUEST_LIMITER:{limit:async () => ({success:true})}};
+  const ctx = {waitUntil() {}};
+  const url = 'https://kuchi.kalarislabs.com/agent/SKILL.md';
+  const second = (await import(`../worker.mjs?isolate=${Date.now()}`)).default;
+  const a = await worker.fetch(new Request(url), env, ctx);
+  const b = await second.fetch(new Request(url), env, ctx);
+  assert.equal(a.headers.get('etag'), b.headers.get('etag'));
 });

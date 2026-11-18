@@ -38,33 +38,41 @@ function response(body, type = 'application/json', status = 200) {
 }
 
 // The open HTTP copies of what the MCP tools return, for agents without MCP.
-// Each file is rendered once per catalog commit and kept in memory with a
-// content hash as its ETag. Clients may reuse a copy for a minute, and one
-// sending If-None-Match with the current ETag gets an empty 304.
+// Each file is rendered once per catalog commit and kept in memory. Clients
+// may reuse a copy for a minute, and one sending If-None-Match with the
+// current ETag gets an empty 304.
+//
+// The ETag names what the content is made from (the file, the catalog commit
+// and this server's version), not a hash of the bytes: catalog.json carries
+// the fetched_at of the isolate that loaded it, so its bytes differ between
+// isolates while its content does not. It is weak (W/) for that reason, and
+// every isolate gives the same ETag for the same commit.
 const MIRROR_CACHE = 'public, max-age=60, stale-while-revalidate=300';
 const rendered = new Map();
-const hash = body => {
+const hash = text => {
   let h = 0x811c9dc5;
-  for (let i = 0; i < body.length; i++) h = Math.imul(h ^ body.charCodeAt(i), 0x01000193);
-  return `"${(h >>> 0).toString(16)}-${body.length.toString(16)}"`;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193);
+  return (h >>> 0).toString(16);
 };
+const opaque = tag => tag.trim().replace(/^W\//, '');
 function mirrored(key, revision, render) {
   const held = rendered.get(key);
   if (held?.revision === revision) return held;
   const {body, type} = render();
-  const entry = {revision, body, type, etag:hash(body)};
+  const entry = {revision, body, type, etag:`W/"${hash(`${key}|${revision}|${VERSION}`)}"`};
   rendered.set(key, entry);
   return entry;
 }
 function mirrorResponse(request, {body, type, etag}) {
   const headers = {...HEADERS, 'Cache-Control':MIRROR_CACHE, ETag:etag, 'Content-Type':`${type}; charset=utf-8`};
   const sent = request.headers.get('If-None-Match');
-  if (sent && sent.split(',').map(t => t.trim().replace(/^W\//, '')).includes(etag)) return new Response(null, {status:304, headers});
+  if (sent && (sent.trim() === '*' || sent.split(',').map(opaque).includes(opaque(etag)))) return new Response(null, {status:304, headers});
   return new Response(body, {status:200, headers});
 }
 
 async function agentFile(request, path, options) {
-  if (path === '/agent/SKILL.md') return mirrorResponse(request, mirrored(path, VERSION, () => ({body:SKILL, type:'text/markdown'})));
+  // SKILL changes only on deploy, so its own text stands in for a commit.
+  if (path === '/agent/SKILL.md') return mirrorResponse(request, mirrored(path, hash(SKILL), () => ({body:SKILL, type:'text/markdown'})));
   const breakdownId = path.match(/^\/agent\/breakdowns\/(\d{1,6})\.json$/)?.[1];
   if (!breakdownId && !['/agent/manifest.json', '/agent/catalog.json', '/agent/workflow.md'].includes(path)) return response({ error: 'Not found' }, 'application/json', 404);
   try {

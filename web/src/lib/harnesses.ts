@@ -297,7 +297,7 @@ export const harnesses: Harness[] = [
     primary: { label: 'Open Plugins', href: 'https://chatgpt.com/plugins' },
     install: [
       { text: 'In ChatGPT, open Plugins and select + → Add custom MCP server.', link: { label: 'Open Plugins', href: 'https://chatgpt.com/plugins' } },
-      { text: 'Name it Kuchi, paste this URL and choose No authentication. Create and install.', code: MCP_URL },
+      { text: 'Name it Kuchi, paste this URL as the Server URL and choose No authentication. Accept the warning and select Create as a plugin.', code: MCP_URL },
       { text: 'Start a chat and paste the setup prompt from this page.' },
     ],
     strengths: [

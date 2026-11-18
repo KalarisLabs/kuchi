@@ -223,11 +223,15 @@
 
   const esc = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 
+  // A failed load leaves `failed` set, so the palette says so instead of
+  // "Loading…" forever. Opening it again retries.
+  let failed = false;
   function load() {
+    failed = false;
     loading ??= fetch('/search-index.json')
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
       .then((data: Entry[]) => { entries = data; })
-      .catch(() => { loading = null; });
+      .catch(() => { loading = null; failed = true; });
     return loading;
   }
 
@@ -266,7 +270,9 @@
   function render() {
     if (!list || !input) return;
     if (!entries) {
-      list.innerHTML = '<p class="cp-empty">Loading…</p>';
+      list.innerHTML = failed
+        ? '<p class="cp-empty">Search is unavailable right now. Close and try again.</p>'
+        : '<p class="cp-empty">Loading…</p>';
       return;
     }
     shown = results(input.value);

@@ -11,15 +11,9 @@ const GradientASCII = lazy(() => import('./GradientASCII.jsx'));
 
 const isDark = () => typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark';
 
-const hasWebGL2 = () => {
-  if (typeof window === 'undefined' || typeof WebGL2RenderingContext === 'undefined') return false;
-  try {
-    const canvas = document.createElement('canvas');
-    return !!canvas.getContext('webgl2');
-  } catch {
-    return false;
-  }
-};
+// A feature check only: creating a throwaway WebGL2 context costs a GPU context
+// on every mount. GradientASCII falls back on its own if context creation fails.
+const hasWebGL2 = () => typeof window !== 'undefined' && typeof WebGL2RenderingContext !== 'undefined';
 
 const canAnimate = () => {
   if (typeof window === 'undefined') return false;
@@ -80,7 +74,8 @@ export default function HeroBackground() {
         characters=" =+xX0S8#@"
         cellSize={isMobile ? 14 : 18}
         density={0.8}
-        dpr={isMobile ? 1.5 : 2}
+        // Phones render at 1x: the glyph grid is coarse, and 1.5x more than doubles the pixels shaded.
+        dpr={isMobile ? 1 : 2}
         grain={0.06}
         flow={0.5}
         speed={0.8}

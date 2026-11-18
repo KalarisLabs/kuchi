@@ -95,8 +95,10 @@ function VideoPlayer({
     return () => {
       player.destroy();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- open once on mount
-  }, [playerId, prefersReducedMotion, mounted]);
+  // The runtime reads the sources once, when it first loads media. A new source
+  // re-attaches it: the cleanup stops and unloads the old media first.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- callbacks are read through refs
+  }, [playerId, prefersReducedMotion, mounted, src, iosSrc, previewSrc, previewIosSrc]);
 
   const resolvedPreviewSrc = previewSrc ?? src;
   const resolvedPreviewIosSrc = previewIosSrc ?? iosSrc;

@@ -56,7 +56,9 @@ function apply() {
   for (const link of $$('.cmp-sidebar-link[data-name]')) {
     const linkName = link.dataset.name ?? '';
     const linkCat = link.dataset.cat ?? '';
-    const card = $(`[data-name="${CSS.escape(linkName)}"]`);
+    // The card, not the link: sidebar links carry the same data-name, come first
+    // in the page, and have no data-search (title, description, category).
+    const card = $(`.cmp-card[data-name="${CSS.escape(linkName)}"]`);
     const cardSearch = card?.dataset.search ?? linkName;
     const hit = inCategory(linkName, linkCat) && (!q || cardSearch.includes(q));
     (link.parentElement as HTMLElement).hidden = !hit;

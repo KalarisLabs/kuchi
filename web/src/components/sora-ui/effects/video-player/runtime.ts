@@ -1625,6 +1625,18 @@ export function attachVideoPlayer(
       cancelAnimationFrame(previewFrame);
       iconMorpher.destroy();
       controller.abort();
+      // A player replaced while playing (another video started) is unmounted
+      // without closeModal(), so stop and unload its media here: a detached
+      // <video> keeps playing, and keeps downloading, until it is released.
+      if (document.pictureInPictureElement === video) {
+        document.exitPictureInPicture().catch(() => {});
+      }
+      for (const media of [video, previewVideo]) {
+        media.pause();
+        media.removeAttribute("src");
+        media.load();
+      }
+      isMediaLoaded = false;
     },
   };
 }

@@ -52,6 +52,19 @@ for (const [name, Client, Transport] of [['modern', Modern, ModernHTTP], ['legac
     const component = await call('kuchi_get_component', {name:componentPage.components[0].name});
     assert.ok(component.file.content.length > 0, 'a component arrives with its source');
 
+    // What a harness gets without a tool call: links it can open from the CDN,
+    // and every video and component as a resource with autocompletion.
+    const linked = await c.callTool({name:'kuchi_get_video', arguments:{reference:String(video.id)}});
+    const links = linked.content.filter(p => p.type === 'resource_link');
+    assert.ok(links.some(l => l.mimeType === 'video/mp4') && links.some(l => l.mimeType === 'image/jpeg'), 'video results link the file and images');
+    for (const l of links) assert.equal(await head(l.uri), 200, l.uri);
+    const templates = (await c.listResourceTemplates()).resourceTemplates.map(t => t.uriTemplate).sort();
+    assert.deepEqual(templates, ['kuchi://breakdowns/{id}', 'kuchi://components/{name}', 'kuchi://videos/{id}']);
+    const asResource = JSON.parse((await c.readResource({uri:`kuchi://videos/${video.id}`})).contents[0].text);
+    assert.equal(asResource.id, video.id);
+    const completed = await c.complete({ref:{type:'ref/resource', uri:'kuchi://videos/{id}'}, argument:{name:'id', value:String(video.id)}});
+    assert.ok(completed.completion.values.includes(String(video.id)), 'ids autocomplete');
+
     // The common instruction layer: the workflow as a tool result, and the shot analysis handed to the agent.
     const workflow = (await c.callTool({name:'kuchi_get_workflow', arguments:{}})).content[0].text;
     assert.match(workflow, /## 2\. Study it shot by shot[\s\S]+## 5\. Check against the reference/);
@@ -97,6 +110,11 @@ for (const path of ['manifest.json', 'catalog.json', 'workflow.md', 'SKILL.md', 
     assert.ok(c.getServerCapabilities().extensions?.['io.modelcontextprotocol/skills'], 'the skills extension is declared');
     const skill = (await c.readResource({uri:'skill://kuchi/SKILL.md'})).contents[0].text;
     assert.equal(skill, await (await fetch(new URL('/agent/SKILL.md', url), {headers:QUIET})).text(), 'the MCP skill and the published file are the same text');
+    // The HTTP mirror is cacheable: a client holding the current copy gets an empty 304.
+    const mirror = await fetch(new URL('/agent/catalog.json', url), {headers:QUIET});
+    assert.match(mirror.headers.get('cache-control'), /public, max-age=60/);
+    const revalidated = await fetch(new URL('/agent/catalog.json', url), {headers:{...QUIET, 'If-None-Match':mirror.headers.get('etag')}});
+    assert.equal(revalidated.status, 304, 'an unchanged catalog is not sent again');
     console.log(JSON.stringify({skill:'skill://kuchi/SKILL.md', bytes:skill.length, icons:c.getServerVersion().icons?.length ?? 0}));
   } finally { await c.close().catch(() => {}); }
 }

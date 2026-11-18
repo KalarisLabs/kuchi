@@ -1,69 +1,288 @@
 ---
-// /components: copy-paste video components (Remotion). Static; the filter, dialog and
-// copy buttons are src/scripts/components-page.ts. Source is fetched from /r/<name>.json
-// only when a component is opened.
+// /components: copy-paste video components (Remotion). Pressing a card plays its clip in the
+// site player (components/KuchiPlayer.tsx) with the install command underneath.
+// Two-column documentation layout with sidebar navigation.
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SkipLink from '../components/SkipLink.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Toast from '../components/Toast.astro';
-import { components, categories, categoryLabels, installCommand, posterUrl, videoUrl } from '../lib/components-catalog';
+import { components, categories, categoryLabels, installCommand, posterUrl, videoUrl, SITE } from '../lib/components-catalog';
+import { favButtonsHTML } from '../lib/favorites.js';
 
 export const prerender = true;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Video components',
+    url: `${SITE}/components`,
+    description: `${components.length} copy-paste Remotion video components for launch videos, installable with the shadcn CLI.`,
+    isPartOf: { '@type': 'WebSite', name: 'Kuchi', url: `${SITE}/` },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: components.length,
+      itemListElement: components.map((item, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `${SITE}/components/${item.name}`,
+        name: item.title,
+      })),
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Kuchi', item: `${SITE}/` },
+      { '@type': 'ListItem', position: 2, name: 'Video components', item: `${SITE}/components` },
+    ],
+  },
+];
+
 ---
-<BaseLayout title="Video components · Kuchi" description="Copy-paste Remotion components for launch videos: text, scenes, device screens, captions and more. One command installs the source into your project.">
+<BaseLayout
+  title="Video components · Kuchi"
+  description={`${components.length} copy-paste Remotion video components for launch videos: kinetic type, scenes, phone and UI screens, AI chats, captions and transitions. Install with the shadcn CLI.`}
+  jsonLd={jsonLd}
+>
   <SkipLink href="#cmp-title" label="Skip to components" />
-  <SiteHeader navHref="/" navLabel="Kuchi ↗" />
-  <main class="document">
-    <section class="cmp section" aria-labelledby="cmp-title">
-      <div class="cmp-head">
-        <h1 id="cmp-title">Video components</h1>
-        <p>Remotion components for the shots a launch video is made of. One command copies the source into your project, so the code is yours to edit.</p>
-      </div>
+  <SiteHeader />
 
-      <div class="cmp-tools">
-        <label class="search-label"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="cmp-search" type="search" placeholder="Search components…" aria-label="Search components"></label>
-        <div class="cmp-chips" role="group" aria-label="Category">
-          <button type="button" class="cmp-chip" data-cat="all" aria-pressed="true">All</button>
-          {categories.map((key) => <button type="button" class="cmp-chip" data-cat={key} aria-pressed="false">{categoryLabels[key]}</button>)}
+  <div class="cmp-page-container">
+    <div class="cmp-layout">
+      <!-- Left Sidebar Navigation -->
+      <aside class="cmp-sidebar" id="cmp-sidebar" aria-label="Component directory">
+        <div class="cmp-sidebar-inner">
+          <div class="cmp-sidebar-header">
+            <span class="cmp-sidebar-badge">Video Registry</span>
+            <label class="cmp-sidebar-search-label">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+              <input type="search" id="cmp-sidebar-search" placeholder="Quick find component…" aria-label="Quick find component" />
+            </label>
+          </div>
+
+          <nav class="cmp-sidebar-nav" aria-label="Components navigation">
+            {categories.map((catKey) => {
+              const catItems = components.filter((item) => item.category === catKey);
+              if (!catItems.length) return null;
+              return (
+                <div class="cmp-sidebar-group" data-sidebar-cat={catKey}>
+                  <div class="cmp-sidebar-group-title">
+                    <span>{categoryLabels[catKey] || catKey}</span>
+                    <span class="cmp-count-tag">{catItems.length}</span>
+                  </div>
+                  <ul class="cmp-sidebar-links">
+                    {catItems.map((item) => (
+                      <li>
+                        <a
+                          href={`#cmp-${item.name}`}
+                          class="cmp-sidebar-link"
+                          data-name={item.name}
+                          data-cat={item.category}
+                        >
+                          <span class="link-dot"></span>
+                          {item.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </nav>
         </div>
-        <span id="cmp-count" class="cmp-count" role="status" aria-live="polite">{components.length} components</span>
-      </div>
+      </aside>
 
-      <ul class="cmp-grid" id="cmp-grid">
-        {components.map((item) => (
-          <li class="cmp-card" data-name={item.name} data-cat={item.category} data-search={`${item.title} ${item.description} ${item.category}`.toLowerCase()}>
-            <button type="button" class="cmp-open" data-open={item.name} aria-label={`Open ${item.title}`}>
-              <span class="cmp-media">
-                <img src={posterUrl(item.name)} alt="" loading="lazy" decoding="async" width="640" height="360" data-poster>
-                <video src={videoUrl(item.name)} muted loop playsinline preload="none" data-preview></video>
-              </span>
-              <span class="cmp-meta">
-                <span class="cmp-title">{item.title}</span>
-                <span class="cmp-cat">{categoryLabels[item.category]}</span>
-              </span>
+      <!-- Main Content Area -->
+      <main class="cmp-main" id="cmp-main">
+        <div class="cmp-hero">
+          <div class="cmp-hero-badge">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+            <span>Remotion & Video Components Registry</span>
+          </div>
+          <h1 id="cmp-title">Video components</h1>
+          <p class="cmp-hero-desc">
+            Production-ready Remotion motion components for the shots a viral launch video is made of.
+            Open-source Remotion components (MIT).
+            One command copies the full source code into your project so you own every frame.
+          </p>
+
+          <div class="cmp-hero-cli">
+            <div class="cmp-cli-box">
+              <span class="cmp-cli-prompt">$</span>
+              <code class="cmp-cli-text">npx shadcn@latest add https://kuchi.kalarislabs.com/r/text-reveal.json</code>
+            </div>
+            <button
+              type="button"
+              class="pill pill-secondary cmp-cli-copy"
+              data-copy-cmd="npx shadcn@latest add https://kuchi.kalarislabs.com/r/text-reveal.json"
+            >
+              Copy command
             </button>
-          </li>
-        ))}
-      </ul>
-      <div id="cmp-empty" class="empty" hidden><p>No matching components.</p><button type="button" id="cmp-reset">Reset filters ↗</button></div>
-    </section>
-  </main>
+          </div>
+        </div>
 
+        <!-- Components Browser & Filters -->
+        <section class="cmp-browser" aria-labelledby="browser-heading">
+          <div class="cmp-section-header">
+            <h2 id="browser-heading">Component Directory</h2>
+            <p>Browse kinetic typography, device mockups, chat streams, scene transitions, and captions.</p>
+          </div>
+
+          <div class="cmp-tools">
+            <label class="search-label cmp-search-wrap">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+              <input id="cmp-search" type="search" placeholder={`Search ${components.length} components by keyword or style…`} aria-label="Search components" />
+            </label>
+
+            <div class="cmp-chips" role="group" aria-label="Filter by category">
+              <button type="button" class="cmp-chip" data-cat="all" aria-pressed="true">All</button>
+              {categories.map((key) => (
+                <button type="button" class="cmp-chip" data-cat={key} aria-pressed="false">
+                  {categoryLabels[key] || key}
+                </button>
+              ))}
+              <button type="button" class="cmp-chip cmp-chip-mine" data-cat="saved" aria-pressed="false">Saved <span class="mine-count" data-fav-count="saved:component"></span></button>
+              <button type="button" class="cmp-chip cmp-chip-mine" data-cat="liked" aria-pressed="false">Liked <span class="mine-count" data-fav-count="liked:component"></span></button>
+            </div>
+
+            <span id="cmp-count" class="cmp-count" role="status" aria-live="polite">{components.length} components</span>
+          </div>
+
+          <!-- Grouped by Category -->
+          <div class="cmp-categories-container">
+            {categories.map((catKey) => {
+              const catItems = components.filter((item) => item.category === catKey);
+              if (!catItems.length) return null;
+              return (
+                <section class="cmp-cat-section" id={`cat-${catKey}`} data-cat-section={catKey}>
+                  <div class="cmp-cat-heading">
+                    <h3>{categoryLabels[catKey] || catKey}</h3>
+                    <span class="cmp-cat-count">{catItems.length} items</span>
+                  </div>
+
+                  <ul class="cmp-grid">
+                    {catItems.map((item) => (
+                      <li
+                        class="cmp-card"
+                        id={`cmp-${item.name}`}
+                        data-name={item.name}
+                        data-cat={item.category}
+                        data-search={`${item.title} ${item.description} ${item.category}`.toLowerCase()}
+                      >
+                        <div class="cmp-card-inner">
+                          <button
+                            type="button"
+                            class="cmp-open"
+                            data-play={item.name}
+                            data-src={videoUrl(item.name)}
+                            aria-label={`Play ${item.title}`}
+                          >
+                            <span class="cmp-media">
+                              <img
+                                src={posterUrl(item.name)}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                                width="640"
+                                height="360"
+                                data-poster
+                              />
+                              <video
+                                src={videoUrl(item.name)}
+                                muted
+                                loop
+                                playsinline
+                                preload="none"
+                                data-preview
+                              ></video>
+                              <span class="cmp-media-overlay">
+                                <span class="cmp-preview-pill">Play clip</span>
+                              </span>
+                            </span>
+                          </button>
+
+                          <div class="cmp-card-bottom">
+                            <div class="cmp-meta">
+                              <a class="cmp-title" href={`/components/${item.name}`}>{item.title}</a>
+                              <span class="cmp-cat">{categoryLabels[item.category] || item.category}</span>
+                            </div>
+
+                            <p class="cmp-desc-snippet">{item.description}</p>
+
+                            <div class="cmp-card-actions">
+                              <div class="cmp-actions-left">
+                              <button
+                                type="button"
+                                class="cmp-quick-install"
+                                data-copy-cmd={installCommand(item.name)}
+                                title="Copy install CLI command"
+                              >
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                <span>Copy CLI</span>
+                              </button>
+                              <Fragment set:html={favButtonsHTML('component', item.name, item.title)} />
+                              </div>
+
+                              <button
+                                type="button"
+                                class="cmp-details-btn"
+                                data-open={item.name}
+                              >
+                                View Code ↗
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
+          </div>
+
+          <div id="cmp-empty" class="empty" hidden>
+            <p>No matching video components found.</p>
+            <button type="button" id="cmp-reset">Reset filters ↗</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Source Code & Install Dialog -->
   <dialog id="cmp-dialog" class="cmp-dialog" aria-labelledby="cmp-d-title">
     <div class="cmp-d-bar">
-      <h2 id="cmp-d-title"></h2>
-      <button type="button" class="cmp-d-close" id="cmp-d-close" aria-label="Close">✕</button>
+      <div class="cmp-d-title-group">
+        <h2 id="cmp-d-title"></h2>
+        <span class="cmp-d-badge">shadcn compatible</span>
+      </div>
+      <button type="button" class="pill pill-secondary cmp-d-play" id="cmp-d-play">Play clip</button>
+      <button type="button" class="cmp-d-close" id="cmp-d-close" aria-label="Close dialog">✕</button>
     </div>
     <div class="cmp-d-body" data-lenis-prevent>
       <p id="cmp-d-desc" class="cmp-d-desc"></p>
-      <div class="cmp-install">
-        <code id="cmp-d-cmd"></code>
-        <button type="button" class="pill pill-secondary" id="cmp-copy-cmd">Copy command</button>
+      
+      <div class="cmp-install-box">
+        <div class="cmp-install-label">Install command (CLI):</div>
+        <div class="cmp-install">
+          <code id="cmp-d-cmd"></code>
+          <button type="button" class="pill pill-secondary" id="cmp-copy-cmd">Copy command</button>
+        </div>
       </div>
+
       <p class="cmp-d-note" id="cmp-d-deps"></p>
-      <p class="cmp-d-note">Put a background behind it in your composition, for example an <code>AbsoluteFill</code> with a background colour. The component draws on a transparent layer, so a bare render is black.</p>
-      <div class="cmp-d-code-head"><span id="cmp-d-file"></span><button type="button" class="pill pill-secondary" id="cmp-copy-src">Copy code</button></div>
+      <div class="cmp-usage-tip">
+        <strong>Remotion tip:</strong> If a frame renders black, the component is drawing on a transparent layer: put a background behind it in your composition (e.g. <code>&lt;AbsoluteFill style=&#123;&#123; background: "#faf9f6" &#125;&#125;&gt;&lt;Component /&gt;&lt;/AbsoluteFill&gt;</code>).
+      </div>
+
+      <div class="cmp-d-code-head">
+        <span id="cmp-d-file">Source code</span>
+        <button type="button" class="pill pill-secondary" id="cmp-copy-src">Copy code</button>
+      </div>
       <pre class="cmp-code" tabindex="0"><code id="cmp-d-src">Loading…</code></pre>
     </div>
   </dialog>
@@ -77,42 +296,721 @@ export const prerender = true;
 </BaseLayout>
 
 <style>
-  .cmp { max-width: 1200px; margin: 0 auto; padding: 56px 0 96px; }
-  .cmp-head h1 { font-size: clamp(32px, 5vw, 56px); line-height: 1.1; margin: 0 0 12px; }
-  .cmp-head p { max-width: 62ch; margin: 0 0 32px; color: var(--k-muted); line-height: 1.6; }
-  .cmp-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-bottom: 24px; }
-  .cmp-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-  .cmp-chip { border: 1px solid var(--k-line); background: transparent; color: var(--k-ink); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer; transition: background-color 160ms var(--ease-out-strong, ease-out), transform 160ms var(--ease-out-strong, ease-out); }
-  .cmp-chip[aria-pressed='true'] { background: var(--k-ink); color: var(--k-paper); border-color: var(--k-ink); }
-  .cmp-chip:active { transform: scale(0.97); }
-  .cmp-count { margin-left: auto; font-size: 14px; color: var(--k-muted); }
-  .cmp-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-  .cmp-card[hidden] { display: none; }
-  .cmp-open { all: unset; box-sizing: border-box; display: block; width: 100%; cursor: pointer; border-radius: 14px; }
-  .cmp-open:focus-visible { outline: 2px solid var(--k-accent); outline-offset: 3px; }
-  .cmp-media { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: var(--k-wash); border: 1px solid var(--k-line); }
-  .cmp-media img, .cmp-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .cmp-media video { opacity: 0; transition: opacity 200ms var(--ease-out-strong, ease-out); }
-  .cmp-media.playing video { opacity: 1; }
-  .cmp-media img.missing { visibility: hidden; }
-  .cmp-meta { display: flex; justify-content: space-between; gap: 12px; padding: 10px 2px 0; }
-  .cmp-title { font-weight: 600; }
-  .cmp-cat { color: var(--k-muted); font-size: 14px; }
-  .cmp-dialog { width: min(920px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); margin: auto; padding: 0; border: 1px solid var(--k-line); border-radius: 18px; background: var(--k-paper); color: var(--k-ink); overflow: hidden; }
-  .cmp-dialog[open] { display: flex; flex-direction: column; animation: cmp-in 200ms var(--ease-out-strong, ease-out); }
-  .cmp-dialog::backdrop { background: rgb(0 0 0 / 0.5); }
-  @keyframes cmp-in { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
-  .cmp-d-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--k-line); }
-  .cmp-d-bar h2 { margin: 0; font-size: 20px; }
-  .cmp-d-close { all: unset; cursor: pointer; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 999px; }
-  .cmp-d-close:hover { background: var(--k-wash); }
-  .cmp-d-close:focus-visible { outline: 2px solid var(--k-accent); }
-  .cmp-d-body { overflow: auto; padding: 20px; display: grid; gap: 16px; }
-  .cmp-d-desc { margin: 0; line-height: 1.6; color: var(--k-muted); }
-  .cmp-install { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-  .cmp-install code { flex: 1 1 320px; min-width: 0; overflow-x: auto; white-space: nowrap; padding: 10px 14px; border-radius: 10px; background: var(--k-wash); font-family: var(--k-mono); font-size: 13px; }
-  .cmp-d-note { margin: 0; font-size: 14px; color: var(--k-muted); }
-  .cmp-d-code-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-family: var(--k-mono); font-size: 13px; color: var(--k-muted); }
-  .cmp-code { margin: 0; max-height: 46dvh; overflow: auto; padding: 14px; border-radius: 10px; background: var(--k-wash); font-family: var(--k-mono); font-size: 12.5px; line-height: 1.55; }
-  @media (prefers-reduced-motion: reduce) { .cmp-dialog[open] { animation: none; } .cmp-media video { transition: none; } }
+  /* Layout: 2 columns with fixed/sticky sidebar */
+  /* Full-bleed docs layout: the sidebar sits on the left edge and the grid uses the rest. */
+  .cmp-page-container {
+    width: 100%;
+    margin: 0;
+    padding: 0 clamp(16px, 2.2vw, 36px) 0 0;
+  }
+
+  .cmp-layout {
+    display: flex;
+    gap: clamp(24px, 2.6vw, 44px);
+    position: relative;
+    align-items: flex-start;
+  }
+
+  /* Sidebar */
+  .cmp-sidebar {
+    width: 264px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 14px 48px clamp(16px, 2vw, 28px);
+    border-right: 1px solid var(--k-line);
+    scrollbar-width: thin;
+  }
+
+  .cmp-sidebar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .cmp-sidebar::-webkit-scrollbar-thumb {
+    background: var(--k-line);
+    border-radius: 4px;
+  }
+
+  .cmp-sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .cmp-sidebar-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--k-line);
+  }
+
+  .cmp-sidebar-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--k-muted);
+  }
+
+  .cmp-sidebar-search-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--k-wash);
+    border: 1px solid var(--k-line);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: var(--k-muted);
+    transition: border-color 140ms ease;
+  }
+  .cmp-sidebar-search-label:focus-within {
+    border-color: var(--k-ink);
+    color: var(--k-ink);
+  }
+  .cmp-sidebar-search-label input {
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--k-ink);
+    outline: none;
+    width: 100%;
+  }
+
+  .cmp-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .cmp-sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .cmp-sidebar-group-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--k-muted);
+    padding: 0 4px;
+  }
+
+  .cmp-count-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--k-wash);
+    color: var(--k-muted);
+    font-weight: 600;
+  }
+
+  .cmp-sidebar-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .cmp-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--k-muted);
+    text-decoration: none;
+    transition: all 140ms ease;
+  }
+
+  .link-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--k-line);
+    transition: background-color 140ms ease;
+  }
+
+  .cmp-sidebar-link:hover {
+    color: var(--k-ink);
+    background: var(--k-wash);
+    text-decoration: none;
+  }
+  .cmp-sidebar-link:hover .link-dot {
+    background: var(--k-ink);
+  }
+
+  .cmp-sidebar-link.active {
+    color: var(--k-ink);
+    font-weight: 600;
+    background: var(--k-wash);
+  }
+  .cmp-sidebar-link.active .link-dot {
+    background: var(--k-accent, #3b82f6);
+    transform: scale(1.5);
+  }
+
+  /* Main Content */
+  .cmp-main {
+    flex: 1;
+    min-width: 0;
+    padding: 36px 0 96px;
+  }
+
+  /* Hero */
+  .cmp-hero {
+    margin-bottom: 56px;
+  }
+
+  .cmp-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--k-wash);
+    border: 1px solid var(--k-line);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--k-muted);
+    margin-bottom: 14px;
+  }
+
+  .cmp-hero h1 {
+    font-size: clamp(36px, 5.2vw, 64px);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    margin: 0 0 16px;
+    font-weight: 700;
+  }
+
+  .cmp-hero-desc {
+    max-width: 68ch;
+    margin: 0 0 28px;
+    color: var(--k-muted);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  .cmp-hero-desc a {
+    color: var(--k-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .cmp-hero-cli {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    max-width: 680px;
+  }
+
+  .cmp-cli-box {
+    flex: 1 1 340px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: var(--k-wash);
+    border: 1px solid var(--k-line);
+    font-family: var(--k-mono);
+    font-size: 13px;
+    min-width: 0;
+    overflow-x: auto;
+  }
+  .cmp-cli-prompt {
+    color: var(--k-muted);
+    user-select: none;
+  }
+  .cmp-cli-text {
+    white-space: nowrap;
+    color: var(--k-ink);
+  }
+
+  .cmp-section-header {
+    margin-bottom: 24px;
+  }
+  .cmp-section-header h2 {
+    font-size: 24px;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+  }
+  .cmp-section-header p {
+    margin: 0;
+    color: var(--k-muted);
+    font-size: 14.5px;
+  }
+
+  /* Browser & Tools */
+  .cmp-browser {
+    margin-top: 64px;
+  }
+
+  .cmp-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--k-line);
+  }
+
+  .cmp-search-wrap {
+    flex: 1 1 320px;
+  }
+
+  .cmp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .cmp-chip {
+    border: 1px solid var(--k-line);
+    background: transparent;
+    color: var(--k-ink);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font: inherit;
+    font-size: 13.5px;
+    cursor: pointer;
+    transition: all 160ms ease;
+  }
+  .cmp-chip[aria-pressed='true'] {
+    background: var(--k-ink);
+    color: var(--k-paper);
+    border-color: var(--k-ink);
+  }
+  .cmp-chip:active {
+    transform: scale(0.97);
+  }
+
+  .cmp-count {
+    margin-left: auto;
+    font-size: 14px;
+    color: var(--k-muted);
+    font-weight: 500;
+  }
+
+  /* Category Sections */
+  .cmp-categories-container {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+
+  .cmp-cat-section {
+    scroll-margin-top: 24px;
+  }
+
+  .cmp-cat-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--k-line);
+  }
+  .cmp-cat-heading h3 {
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+  }
+  .cmp-cat-count {
+    font-size: 13px;
+    color: var(--k-muted);
+  }
+
+  a.cmp-title { color: inherit; text-decoration: none; }
+  a.cmp-title:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* Cards Grid */
+  .cmp-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 20px;
+  }
+
+  .cmp-card {
+    scroll-margin-top: 80px;
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .cmp-card[hidden] {
+    display: none;
+  }
+
+  /* Smooth flash highlight when jumped to from sidebar or hash */
+  .cmp-target-highlight {
+    outline: 2px solid var(--k-accent, #3b82f6);
+    outline-offset: 4px;
+    border-radius: 16px;
+    animation: cmp-pulse 1.8s var(--ease-out-strong, ease-out);
+  }
+  @keyframes cmp-pulse {
+    0% { transform: scale(1.02); }
+    50% { transform: scale(1.01); }
+    100% { transform: none; }
+  }
+
+  .cmp-card-inner {
+    border: 1px solid var(--k-line);
+    border-radius: 16px;
+    background: var(--k-paper);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+  .cmp-card-inner:hover {
+    border-color: var(--k-ink);
+    box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.12);
+  }
+
+  .cmp-open {
+    all: unset;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+  }
+  .cmp-open:focus-visible {
+    outline: 2px solid var(--k-accent);
+    outline-offset: 2px;
+  }
+
+  .cmp-media {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--k-wash);
+    border-bottom: 1px solid var(--k-line);
+  }
+  .cmp-media img,
+  .cmp-media video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .cmp-media video {
+    opacity: 0;
+    transition: opacity 200ms ease;
+  }
+  .cmp-media.playing video {
+    opacity: 1;
+  }
+  .cmp-media img.missing {
+    visibility: hidden;
+  }
+
+  .cmp-media-overlay {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 160ms ease;
+  }
+  .cmp-card-inner:hover .cmp-media-overlay {
+    opacity: 1;
+  }
+  .cmp-preview-pill {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgb(0 0 0 / 0.7);
+    color: #fff;
+    backdrop-filter: blur(4px);
+  }
+
+  .cmp-card-bottom {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 10px;
+  }
+
+  .cmp-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .cmp-title {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .cmp-cat {
+    color: var(--k-muted);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .cmp-desc-snippet {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--k-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  .cmp-actions-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cmp-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid var(--k-line);
+  }
+
+  .cmp-quick-install {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: var(--k-wash);
+    border: 1px solid var(--k-line);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--k-ink);
+    cursor: pointer;
+    transition: all 140ms ease;
+  }
+  .cmp-quick-install:hover {
+    background: var(--k-ink);
+    color: var(--k-paper);
+    border-color: var(--k-ink);
+  }
+  .cmp-quick-install:active {
+    transform: scale(0.96);
+  }
+
+  .cmp-details-btn {
+    all: unset;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--k-ink);
+    cursor: pointer;
+    padding: 4px 6px;
+    transition: opacity 140ms ease;
+  }
+  .cmp-details-btn:hover {
+    opacity: 0.7;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Dialog */
+  .cmp-dialog {
+    width: min(920px, calc(100vw - 32px));
+    max-height: calc(100dvh - 48px);
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--k-line);
+    border-radius: 18px;
+    background: var(--k-paper);
+    color: var(--k-ink);
+    overflow: hidden;
+  }
+  .cmp-dialog[open] {
+    display: flex;
+    flex-direction: column;
+    animation: cmp-in 200ms var(--ease-out-strong, ease-out);
+  }
+  .cmp-dialog::backdrop {
+    background: rgb(0 0 0 / 0.55);
+    backdrop-filter: blur(4px);
+  }
+  @keyframes cmp-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .cmp-d-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--k-line);
+  }
+  .cmp-d-play {
+    margin-left: auto;
+  }
+  .cmp-d-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cmp-d-bar h2 {
+    margin: 0;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+  }
+  .cmp-d-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--k-wash);
+    color: var(--k-muted);
+    border: 1px solid var(--k-line);
+  }
+
+  .cmp-d-close {
+    all: unset;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: var(--k-muted);
+  }
+  .cmp-d-close:hover {
+    background: var(--k-wash);
+    color: var(--k-ink);
+  }
+  .cmp-d-close:focus-visible {
+    outline: 2px solid var(--k-accent);
+  }
+
+  .cmp-d-body {
+    overflow: auto;
+    padding: 24px;
+    display: grid;
+    gap: 20px;
+  }
+
+  .cmp-d-desc {
+    margin: 0;
+    line-height: 1.6;
+    color: var(--k-muted);
+    font-size: 15px;
+  }
+
+  .cmp-install-box {
+    display: grid;
+    gap: 6px;
+  }
+  .cmp-install-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--k-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .cmp-install {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  .cmp-install code {
+    flex: 1 1 320px;
+    min-width: 0;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 11px 16px;
+    border-radius: 10px;
+    background: var(--k-wash);
+    border: 1px solid var(--k-line);
+    font-family: var(--k-mono);
+    font-size: 13px;
+  }
+
+  .cmp-d-note {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--k-muted);
+  }
+
+  .cmp-usage-tip {
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: var(--k-wash);
+    border-left: 3px solid var(--k-accent, #3b82f6);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--k-muted);
+  }
+  .cmp-usage-tip strong {
+    color: var(--k-ink);
+  }
+
+  .cmp-d-code-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--k-mono);
+    font-size: 13px;
+    color: var(--k-muted);
+    margin-top: 4px;
+  }
+
+  .cmp-code {
+    margin: 0;
+    max-height: 46dvh;
+    overflow: auto;
+    padding: 16px;
+    border-radius: 12px;
+    background: var(--k-wash);
+    border: 1px solid var(--k-line);
+    font-family: var(--k-mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+  }
+
+  /* Responsive Breakpoints */
+  @media (max-width: 960px) {
+    .cmp-sidebar {
+      display: none;
+    }
+    .cmp-layout {
+      gap: 0;
+    }
+    .cmp-page-container {
+      padding: 0 16px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cmp-dialog[open] { animation: none; }
+    .cmp-media video { transition: none; }
+    .cmp-card { transition: none; }
+  }
 </style>

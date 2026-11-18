@@ -2,6 +2,7 @@
 // agent/manifest.json and agent/workflow.md, read at one immutable commit of the
 // public repository.
 import {indexBreakdowns, breakdownSummary, SHOT_KINDS, shotKinds} from './breakdown.mjs';
+import {edgeCache, cacheKey, cacheGet, cachePut} from './cache.mjs';
 
 const REPO = 'kalarislabs/kuchi';
 const SOURCE_PATHS = {catalog:'data/videos.json', manifest:'agent/manifest.json', workflow:'agent/workflow.md', breakdowns:'data/breakdowns.json', labels:'data/shot_labels.json'};
@@ -10,10 +11,19 @@ const LIMITS = {catalog:4 * 1024 * 1024, breakdowns:4 * 1024 * 1024, labels:1024
 const OPTIONAL = new Set(['breakdowns', 'labels']);
 export const SITE_URL = 'https://kuchi.kalarislabs.com';
 export const MEDIA_URL = 'https://kuchi-media.kalarislabs.com';
-// A fresh copy is fetched at most once a minute per isolate. If GitHub is
-// unreachable, the last good copy keeps serving for up to a day.
+// Every minute an isolate checks which commit main is at (a 444-byte read).
+// The files are downloaded again only when that commit changes. Meanwhile
+// requests keep being answered from memory: a refresh runs in the background
+// and no caller waits for GitHub. If GitHub is unreachable, the last good copy
+// keeps serving for up to a day.
 export const FRESH_MS = 60 * 1000;
 export const STALE_MS = 24 * 60 * 60 * 1000;
+// After a failed refresh, wait this long before trying again.
+export const RETRY_MS = 10 * 1000;
+// Files read at a commit never change, so a location keeps them for a month.
+const PINNED_SECONDS = 30 * 24 * 60 * 60;
+// Isolates in one location share the answer to "which commit is main at?".
+const REVISION_SECONDS = 30;
 
 export async function readBounded(response, limit) {
   if (!response.ok) throw new Error('Published source unavailable');
@@ -37,16 +47,23 @@ export async function readBounded(response, limit) {
 }
 
 // Raw branch URLs can be stale, so resolve the current main commit first and
-// read every file at that commit.
-export async function loadArchive(fetcher = fetch) {
+// read every file at that commit. `previous` is the copy already in memory:
+// when main has not moved it is returned as is, with nothing downloaded.
+export async function loadArchive(fetcher = fetch, {previous = null, cache = edgeCache()} = {}) {
   const options = () => ({headers:{'User-Agent':'KuchiMCP/1.0'}, cache:'no-store', signal:AbortSignal.timeout(12000)});
-  const refs = await readBounded(await fetcher(`https://github.com/${REPO}.git/info/refs?service=git-upload-pack`, options()), 128 * 1024);
-  const sourceRevision = refs.match(/([0-9a-f]{40}) refs\/heads\/main(?:\0|\n)/)?.[1];
-  if (!sourceRevision) throw new Error('Published main revision unavailable');
+  const sourceRevision = await mainRevision(fetcher, options, cache);
+  if (previous?.sourceRevision === sourceRevision) return previous;
   // Raw files for a commit pushed seconds ago can briefly 404, so retry.
   const read = async (path, limit) => {
+    const key = cacheKey('github', REPO, sourceRevision, path);
+    const hit = await cacheGet(cache, key);
+    if (hit) { try { return await readBounded(hit, limit); } catch { /* A bad cached copy is read again from GitHub. */ } }
     for (let attempt = 0; ; attempt++) {
-      try { return await readBounded(await fetcher(`https://raw.githubusercontent.com/${REPO}/${sourceRevision}/${path}`, options()), limit); }
+      try {
+        const body = await readBounded(await fetcher(`https://raw.githubusercontent.com/${REPO}/${sourceRevision}/${path}`, options()), limit);
+        await cachePut(cache, key, body, {seconds:PINNED_SECONDS, type:'text/plain; charset=utf-8'});
+        return body;
+      }
       catch (error) { if (attempt >= 2) throw error; await new Promise(r => setTimeout(r, 750 * (attempt + 1))); }
     }
   };
@@ -62,15 +79,44 @@ export async function loadArchive(fetcher = fetch) {
   return {videos, manifest, formats, workflow:raw.workflow, ...indexBreakdowns(parse(raw.breakdowns), parse(raw.labels)), sourceRevision, fetchedAt:new Date().toISOString()};
 }
 
-// Wraps a loader with the fresh/stale policy above. One wrapper lives at
+const REVISION = /^[0-9a-f]{40}$/;
+async function mainRevision(fetcher, options, cache) {
+  const key = cacheKey('github', REPO, 'main');
+  const hit = await cacheGet(cache, key);
+  const shared = hit && (await hit.text().catch(() => '')).trim();
+  if (REVISION.test(shared ?? '')) return shared;
+  const refs = await readBounded(await fetcher(`https://github.com/${REPO}.git/info/refs?service=git-upload-pack`, options()), 128 * 1024);
+  const revision = refs.match(/([0-9a-f]{40}) refs\/heads\/main(?:\0|\n)/)?.[1];
+  if (!revision) throw new Error('Published main revision unavailable');
+  await cachePut(cache, key, revision, {seconds:REVISION_SECONDS, type:'text/plain'});
+  return revision;
+}
+
+// Wraps a loader with the policy above: fresh for a minute, then served while a
+// background refresh runs, for up to a day. The loader receives the copy it is
+// replacing, so it can keep it when nothing changed. One wrapper lives at
 // module scope in the Worker, so every request in an isolate shares it.
-export function cachedLoader(load = loadArchive, now = Date.now) {
+// Pass `waitUntil` (the request's ctx.waitUntil) so the Worker keeps a
+// background refresh alive after the response has gone out.
+export function cachedLoader(load = previous => loadArchive(fetch, {previous}), now = Date.now) {
   let entry = null;
   let pending = null;
-  return async () => {
-    if (entry && now() - entry.at < FRESH_MS) return entry.value;
-    pending ??= load().then(value => { entry = {value, at:now()}; return value; }).finally(() => { pending = null; });
-    try { return await pending; }
+  let retryAt = 0;
+  const refresh = () => pending ??= Promise.resolve().then(() => load(entry?.value ?? null))
+    .then(value => { entry = {value, at:now()}; retryAt = 0; return value; })
+    .catch(error => { retryAt = now() + RETRY_MS; throw error; })
+    .finally(() => { pending = null; });
+  return async ({waitUntil} = {}) => {
+    const age = entry ? now() - entry.at : Infinity;
+    if (age < FRESH_MS) return entry.value;
+    if (age < STALE_MS) {
+      if (now() >= retryAt) {
+        const background = refresh().catch(error => console.error(JSON.stringify({event:'background_refresh_failed', message:error.message})));
+        waitUntil?.(background);
+      }
+      return entry.value;
+    }
+    try { return await refresh(); }
     catch (error) {
       if (entry && now() - entry.at < STALE_MS) return entry.value;
       throw error;

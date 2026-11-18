@@ -52,7 +52,9 @@ test('the skill is served over MCP to hosts that load skills from servers, and a
     await client.connect(transport());
     assert.ok(client.getServerCapabilities().extensions['io.modelcontextprotocol/skills'],'the skills extension is declared');
     const {resources}=await client.listResources();
-    assert.deepEqual(resources.map(r=>r.uri).sort(),['kuchi://workflow','skill://kuchi/SKILL.md']);
+    const uris=resources.map(r=>r.uri);
+    for (const uri of ['kuchi://workflow','skill://kuchi/SKILL.md']) assert.ok(uris.includes(uri),uri);
+    assert.ok(uris.every(u=>/^(kuchi:\/\/(workflow|videos\/\d+|components\/[a-z0-9-]+)|skill:\/\/kuchi\/SKILL\.md)$/.test(u)),'only Kuchi resources are listed');
     const read=await client.readResource({uri:'skill://kuchi/SKILL.md'});
     assert.deepEqual([read.contents[0].mimeType,read.contents[0].text],['text/markdown',SKILL]);
     await client.close();

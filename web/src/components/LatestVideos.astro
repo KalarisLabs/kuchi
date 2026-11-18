@@ -1,0 +1,31 @@
+---
+// Home page: a handful of the newest launch videos, rendered at build time, and the way to
+// the full collection at /videos. Cards play in the site player (gallery script).
+import type { Video } from '../lib/catalog';
+import VideoCard from './VideoCard.astro';
+
+interface Props {
+  videos: Video[];
+  total: number;
+}
+const { videos, total } = Astro.props;
+---
+<section class="latest section numbered" id="latest" data-line="003" aria-labelledby="latest-title">
+  <div class="section-heading">
+    <h2 id="latest-title">Latest launches</h2>
+    <a class="section-more" href="/videos">All {total} videos <span aria-hidden="true">→</span></a>
+  </div>
+  <div class="video-grid">
+    {videos.map((video) => <VideoCard video={video} surface="latest" />)}
+  </div>
+  <div class="latest-more">
+    <a class="pill pill-secondary" href="/videos">Browse all {total} launch videos <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</section>
+
+<style>
+  .latest { scroll-margin-top: 95px; }
+  .section-more { font-size: 13px; color: var(--k-muted); text-decoration: none; transition: color 150ms ease; }
+  .section-more:hover { color: var(--k-ink); text-decoration: none; }
+  .latest-more { display: flex; justify-content: center; margin-top: 40px; }
+</style>

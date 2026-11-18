@@ -120,3 +120,158 @@
     @apply font-sans;
   }
 }
+
+/* ══ Site video player (components/KuchiPlayer.tsx) ═════════════
+   A bare top-layer dialog that hosts the animated player modal; the
+   player draws its own backdrop, so the dialog itself is invisible. */
+dialog.kp-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+dialog.kp-layer::backdrop { background: transparent; }
+
+.kp-details { display: grid; gap: 10px; font-family: var(--font-sans, inherit); }
+.kp-head { display: grid; gap: 2px; min-width: 0; }
+.kp-title { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.3; color: #fff; }
+.kp-subtitle {
+  margin: 0; font-size: 12.5px; line-height: 1.4; color: rgb(255 255 255 / 0.62);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.kp-install { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.kp-cmd {
+  flex: 1; min-width: 0; padding: 8px 10px; border-radius: 8px;
+  background: rgb(255 255 255 / 0.07); border: 1px solid rgb(255 255 255 / 0.1);
+  font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; color: #fff;
+  overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+}
+.kp-details .kp-btn {
+  flex: none; padding: 7px 12px; border-radius: 999px; border: 1px solid rgb(255 255 255 / 0.18);
+  background: rgb(255 255 255 / 0.08); color: #fff; font: inherit; font-size: 12.5px; font-weight: 500;
+  cursor: pointer; transition: background-color 160ms ease, scale 160ms var(--ease-out-strong);
+}
+.kp-details .kp-btn:hover { background: rgb(255 255 255 / 0.16); }
+.kp-details .kp-btn:active { scale: 0.97; }
+.kp-details .kp-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.kp-details .kp-btn-primary { background: #fff; color: #0a0a0a; border-color: #fff; }
+.kp-details .kp-btn-primary:hover { background: rgb(255 255 255 / 0.86); }
+.kp-link { justify-self: start; font-size: 12.5px; color: rgb(255 255 255 / 0.66); text-decoration: underline; text-underline-offset: 3px; }
+.kp-link:hover { color: #fff; }
+
+/* Remake prompt beside the video. */
+.kp-prompt { display: grid; gap: 8px; }
+.kp-prompt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.kp-prompt-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(255 255 255 / 0.62); }
+.kp-prompt-hint { font-size: 11.5px; color: rgb(255 255 255 / 0.45); }
+.kp-prompt-text {
+  margin: 0; padding: 10px 12px; border-radius: 10px;
+  background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.1);
+  font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; line-height: 1.55; color: rgb(255 255 255 / 0.92);
+  white-space: pre-wrap; overflow-wrap: anywhere; max-height: 12em; overflow-y: auto; scrollbar-width: thin;
+}
+.kp-prompt-text:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.kp-details .kp-copy { width: 100%; padding: 9px 12px; font-size: 13px; }
+@media (max-width: 1023px) {
+  .kp-prompt-text { max-height: 4.8em; }
+}
+
+/* Boxed details card: the way to a video's or component's own page. */
+.kp-details .kp-card {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px;
+  border: 1px solid rgb(255 255 255 / 0.14); border-radius: 12px; background: rgb(255 255 255 / 0.04);
+  color: #fff; font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, scale 160ms var(--ease-out-strong);
+}
+.kp-details .kp-card:hover { background: rgb(255 255 255 / 0.09); border-color: rgb(255 255 255 / 0.24); text-decoration: none; color: #fff; }
+.kp-details .kp-card:active { scale: 0.98; }
+.kp-details .kp-card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.kp-details .kp-card-icon {
+  flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px;
+  background: rgb(255 255 255 / 0.08); border: 1px solid rgb(255 255 255 / 0.12);
+}
+.kp-details .kp-card-text { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.kp-details .kp-card-label { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.kp-details .kp-card-hint { font-size: 12px; color: rgb(255 255 255 / 0.55); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kp-details .kp-card-arrow { flex: none; color: rgb(255 255 255 / 0.55); transition: transform 180ms var(--ease-out-strong), color 160ms ease; }
+.kp-details .kp-card:hover .kp-card-arrow { transform: translateX(3px); color: #fff; }
+
+/* The same card on the page itself (featured block, video pages), in theme colours. */
+.detail-card {
+  display: flex; align-items: center; gap: 12px; width: 100%; max-width: 360px; padding: 12px 14px;
+  border: 1px solid var(--k-line); border-radius: 12px; background: var(--k-paper);
+  color: var(--k-ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  transition: background-color 160ms ease, border-color 160ms ease, scale 160ms var(--ease-out-strong);
+}
+.detail-card:hover { background: var(--k-wash); border-color: color-mix(in srgb, var(--k-ink) 22%, var(--k-line)); text-decoration: none; color: var(--k-ink); }
+.detail-card:active { scale: 0.98; }
+.detail-card-icon {
+  flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px;
+  background: var(--k-wash); border: 1px solid var(--k-line); color: var(--k-ink);
+}
+.detail-card-text { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.detail-card-label { font-size: 14px; font-weight: 600; line-height: 1.3; }
+.detail-card-hint { font-size: 12.5px; color: var(--k-muted); }
+.detail-card-arrow { flex: none; color: var(--k-muted); transition: transform 180ms var(--ease-out-strong), color 160ms ease; }
+.detail-card:hover .detail-card-arrow { transform: translateX(3px); color: var(--k-ink); }
+@media (prefers-reduced-motion: reduce) {
+  .kp-card:hover .kp-card-arrow, .detail-card:hover .detail-card-arrow { transform: none; }
+}
+
+@media (max-width: 640px) {
+  .kp-install { flex-direction: column; align-items: stretch; }
+}
+
+/* Click-to-play posters (home page): the poster stays on the page and pressing it, or
+   its play button, opens the site player. */
+.kp-frame { position: relative; }
+.kp-frame video, .inline-player video { cursor: pointer; }
+
+/* Like (heart) and save (bookmark) toggles, lib/favorites.js. Kept in this browser. */
+.fav-actions { display: inline-flex; align-items: center; gap: 2px; flex: none; }
+.fav-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 32px; height: 32px; padding: 0 7px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--k-muted); cursor: pointer; font-size: 13px; font-weight: 500;
+  transition: color 160ms ease, background-color 160ms ease, transform 120ms ease;
+}
+.fav-btn svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; transition: fill 160ms ease, transform 200ms cubic-bezier(.2, .9, .3, 1.4); }
+.fav-btn:hover { color: var(--k-ink); background: var(--k-wash); }
+.fav-btn:active { transform: scale(.94); }
+.fav-btn:focus-visible { outline: 2px solid var(--k-accent); outline-offset: 1px; }
+.fav-like[aria-pressed="true"] { color: #e5484d; }
+.fav-save[aria-pressed="true"] { color: var(--k-ink); }
+.fav-btn[aria-pressed="true"] svg { fill: currentColor; transform: scale(1.08); }
+.fav-text { display: none; }
+.fav-labeled { gap: 6px; margin-top: 10px; }
+.fav-labeled .fav-btn { padding: 0 11px 0 9px; background: var(--k-wash); }
+.fav-labeled .fav-btn:hover { background: var(--k-wash-hover, var(--k-wash)); }
+.fav-labeled .fav-text { display: inline; }
+@media (prefers-reduced-motion: reduce) { .fav-btn, .fav-btn svg { transition: none; } }
+
+/* Cards: the toggles sit at the end of the title row. */
+.card-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.card-title-row .fav-actions { margin: -5px -7px 0 0; }
+
+/* In the site player (dark glass panel). */
+.kp-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; }
+.kp-fav .fav-btn { color: rgb(255 255 255 / .6); }
+.kp-fav .fav-btn:hover { color: #fff; background: rgb(255 255 255 / .1); }
+.kp-fav .fav-save[aria-pressed="true"] { color: #fff; }
+.kp-fav .fav-like[aria-pressed="true"] { color: #ff6369; }
+
+/* All / Saved / Liked view switch above the video grid. */
+.mine-tabs { display: inline-flex; gap: 2px; margin-left: auto; padding: 3px; border-radius: 8px; background: var(--k-wash); }
+.mine-tabs button { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 11px; border: 0; border-radius: 6px; background: transparent; color: var(--k-muted); font-size: 12px; font-weight: 500; cursor: pointer; }
+.mine-tabs button:hover { color: var(--k-ink); }
+.mine-tabs button[aria-pressed="true"] { background: var(--k-paper); color: var(--k-ink); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
+.mine-count:empty { display: none; }
+.mine-count { font-variant-numeric: tabular-nums; opacity: .7; }

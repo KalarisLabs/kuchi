@@ -1,0 +1,456 @@
+/*! Portions Copyright (c) 2026 Remocn. MIT License. See THIRD_PARTY_LICENSES. */
+"use client";
+
+import { loadFont as loadGeist } from "@remotion/google-fonts/Geist";
+import { loadFont as loadGeistMono } from "@remotion/google-fonts/GeistMono";
+import { loadFont as loadManrope } from "@remotion/google-fonts/Manrope";
+import type React from "react";
+import { type CSSProperties, useId } from "react";
+import {
+  AbsoluteFill,
+  Easing,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
+import type { GradientParams } from "@/lib/kuchi/gsh/gradient-engine";
+import { GshGround } from "@/lib/kuchi/gsh/gsh-ground";
+import type { GshPresetId } from "@/lib/kuchi/gsh/presets";
+
+const geist = loadGeist("normal", {
+  weights: ["300", "400"],
+  subsets: ["latin"],
+});
+const geistMono = loadGeistMono("normal", {
+  weights: ["400"],
+  subsets: ["latin"],
+});
+const manrope = loadManrope("normal", {
+  weights: ["600"],
+  subsets: ["latin"],
+});
+
+
+function KuchiLogo({ fontSize, color }: { fontSize: number; color: string }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        color,
+        fontFamily: manrope.fontFamily,
+        fontWeight: 600,
+        fontSize,
+        letterSpacing: "-0.025em",
+        lineHeight: 1,
+      }}
+    >
+      <span>Acme</span>
+    </div>
+  );
+}
+
+export interface BorderBeamProps {
+  title?: string;
+  description?: string;
+  command?: string;
+  showLogo?: boolean;
+  /** Replaces the acme mark at the top of the card. */
+  logo?: React.ReactNode;
+  accent?: string;
+  /** Text color of the title and command; overrides the theme. */
+  ink?: string;
+  /** Solid fill in place of the gradient ground; "transparent" drops it. */
+  background?: string;
+  /** Typeface for the title and description. Load it yourself; Geist by default. */
+  fontFamily?: string;
+  /** Frames for one lap of the beam around the card. */
+  lap?: number;
+  /** Size of the card, around the frame's center. */
+  scale?: number;
+  /** Frames to hold the first frame before anything moves. */
+  delay?: number;
+  speed?: number;
+  theme?: "dark" | "light";
+  ground?: GshPresetId;
+  groundParams?: Partial<GradientParams>;
+}
+
+const THEMES = {
+  dark: {
+    card: "rgba(9,9,10,0.9)",
+    depth: "0 2px 6px rgba(0,0,0,0.35), 0 30px 80px -20px rgba(0,0,0,0.7)",
+    hair: "rgba(255,255,255,0.1)",
+    trail: "rgba(255,255,255,0.1)",
+    rule: "rgba(255,255,255,0.08)",
+    head: "#FFFFFF",
+    fg: "#EDEDED",
+    muted: "#8F8F94",
+    logo: "#EDEDED",
+    glow: 0.55,
+    ground: "charcoal-satin" as GshPresetId,
+    groundParams: {
+      colors: ["#2c3036", "#7d838c", "#4f555e"],
+    } as Partial<GradientParams> | undefined,
+  },
+  light: {
+    card: "rgba(255,255,255,0.9)",
+    depth:
+      "0 1px 2px rgba(20,24,60,0.06), 0 30px 70px -24px rgba(20,24,60,0.22)",
+    hair: "rgba(10,10,10,0.1)",
+    trail: "rgba(10,10,10,0.1)",
+    rule: "rgba(10,10,10,0.07)",
+    head: "",
+    fg: "#0F0F10",
+    muted: "#6E6E73",
+    logo: "#0F0F10",
+    glow: 0.3,
+    ground: "paper-crease" as GshPresetId,
+    groundParams: undefined as Partial<GradientParams> | undefined,
+  },
+};
+
+const LAYERS = 28;
+
+const EASE_ENTER = Easing.bezier(0.22, 1, 0.36, 1);
+const EASE_MOVE = Easing.bezier(0.65, 0, 0.35, 1);
+const SPRING_HEAVY = { mass: 1, damping: 26, stiffness: 120 };
+const CLAMP = {
+  extrapolateLeft: "clamp",
+  extrapolateRight: "clamp",
+} as const;
+
+const T = {
+  lapStart: 14,
+  lapDur: 80,
+  lag: 8,
+  contentStart: 84,
+  stagger: 5,
+  contentDur: 18,
+};
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace("#", "");
+  const n = Number.parseInt(
+    h.length === 3
+      ? h
+          .split("")
+          .map((ch) => ch + ch)
+          .join("")
+      : h.slice(0, 6),
+    16,
+  );
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function mix(a: string, b: string, t: number) {
+  const ca = hexToRgb(a);
+  const cb = hexToRgb(b);
+  const ch = ca.map((v, i) => Math.round(v + (cb[i] - v) * t));
+  return `rgb(${ch[0]},${ch[1]},${ch[2]})`;
+}
+
+/** The foreground at `scale`, around the frame's center; nothing extra at 1. */
+function ScaleLayer({
+  scale,
+  children,
+}: {
+  scale: number;
+  children: React.ReactNode;
+}) {
+  if (scale === 1) return children;
+  return (
+    <AbsoluteFill style={{ transform: `scale(${scale})` }}>
+      {children}
+    </AbsoluteFill>
+  );
+}
+
+export function BorderBeam({
+  title = "Version 2.0",
+  description = "Launch videos, written in React. Installed like shadcn.",
+  command = "npx shadcn add @kuchi/launch-film",
+  showLogo = true,
+  logo,
+  accent = "#3B5BFD",
+  ink,
+  background,
+  fontFamily = geist.fontFamily,
+  lap = T.lapDur,
+  scale = 1,
+  delay = 0,
+  speed = 1,
+  theme = "dark",
+  ground,
+  groundParams,
+}: BorderBeamProps) {
+  const frame = Math.max(0, useCurrentFrame() - delay) * speed;
+  const { width: W, height: H, fps } = useVideoConfig();
+  const c = THEMES[theme];
+  const fg = ink ?? c.fg;
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const portrait = H > W * 1.1;
+  const preset = ground ?? (groundParams ? undefined : c.ground);
+  const gParams = groundParams ?? (ground ? undefined : c.groundParams);
+
+  const w = portrait ? W * 0.84 : W * 0.6;
+  const h = portrait ? H * 0.36 : H * 0.52;
+  const r = portrait ? W * 0.03 : W * 0.0125;
+  const P = 2 * (w - 2 * r) + 2 * (h - 2 * r) + 2 * Math.PI * r;
+  const pad = portrait ? W * 0.07 : W * 0.034;
+  const mx = w / 2;
+  const d = [
+    `M ${mx} 0`,
+    `H ${w - r}`,
+    `A ${r} ${r} 0 0 1 ${w} ${r}`,
+    `V ${h - r}`,
+    `A ${r} ${r} 0 0 1 ${w - r} ${h}`,
+    `H ${r}`,
+    `A ${r} ${r} 0 0 1 0 ${h - r}`,
+    `V ${r}`,
+    `A ${r} ${r} 0 0 1 ${r} 0`,
+    "Z",
+  ].join(" ");
+
+  const enter = spring({ frame, fps, config: SPRING_HEAVY });
+  const enterO = interpolate(frame, [0, 12], [0, 1], {
+    ...CLAMP,
+    easing: EASE_ENTER,
+  });
+  const lapAt = (start: number) =>
+    interpolate(frame, [start, start + lap], [0, P], {
+      ...CLAMP,
+      easing: EASE_MOVE,
+    });
+  const headD = lapAt(T.lapStart);
+  const tailD = lapAt(T.lapStart + T.lag);
+  const L = headD - tailD;
+
+  const head = c.head || accent;
+  const target = (m: number) =>
+    m > LAYERS ? 0 : Math.min(0.98, (1 - (m - 1) / LAYERS) ** 1.6);
+  const layers: { j: number; len: number; color: string; alpha: number }[] = [];
+  if (L > 0.5) {
+    for (let j = LAYERS; j >= 1; j--) {
+      const alpha = 1 - (1 - target(j)) / (1 - target(j + 1));
+      const tt = (j - 1) / (LAYERS - 1);
+      layers.push({
+        j,
+        len: (L * j) / LAYERS,
+        color:
+          theme === "dark"
+            ? mix(head, accent, Math.min(1, tt * 1.25))
+            : mix(accent, "#0A0A0A", 0.15 * (1 - tt)),
+        alpha,
+      });
+    }
+  }
+
+  const beamPaths = (strokeWidth: number) =>
+    layers.map((layer) => (
+      <path
+        key={layer.j}
+        d={d}
+        fill="none"
+        stroke={layer.color}
+        strokeOpacity={layer.alpha}
+        strokeWidth={strokeWidth}
+        strokeDasharray={`${layer.len} ${P}`}
+        strokeDashoffset={-(headD - layer.len)}
+      />
+    ));
+
+  const item = (i: number): CSSProperties => {
+    const p = interpolate(
+      frame,
+      [
+        T.contentStart + i * T.stagger,
+        T.contentStart + i * T.stagger + T.contentDur,
+      ],
+      [0, 1],
+      { ...CLAMP, easing: EASE_ENTER },
+    );
+    return {
+      opacity: p,
+      filter: `blur(${(1 - p) * 6}px)`,
+      transform: `translateY(${(1 - p) * H * 0.02}px)`,
+    };
+  };
+
+  const s = Math.min(W / 1280, H / 720);
+  const titleFs = portrait ? W * 0.1 : W * 0.056;
+  const descFs = portrait ? W * 0.038 : H * 0.032;
+  const monoFs = portrait ? W * 0.03 : H * 0.025;
+  const logoFs = portrait ? W * 0.045 : H * 0.036;
+
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      {background === undefined ? (
+        <GshGround
+          preset={preset}
+          params={gParams}
+          timeOffset={theme === "light" ? 3 : 5}
+          timeScale={0.4}
+        />
+      ) : (
+        <AbsoluteFill
+          style={{
+            background: background === "transparent" ? undefined : background,
+          }}
+        />
+      )}
+      <ScaleLayer scale={scale}>
+        <div
+          style={{
+            position: "absolute",
+            left: (W - w) / 2,
+            top: (H - h) / 2,
+            width: w,
+            height: h,
+            opacity: enterO,
+            transform: `translateY(${(1 - enter) * H * 0.04}px) scale(${0.97 + 0.03 * enter})`,
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              borderRadius: r,
+              backgroundColor: c.card,
+              boxShadow: c.depth,
+            }}
+          />
+          <svg
+            width={w}
+            height={h}
+            viewBox={`0 0 ${w} ${h}`}
+            style={{ position: "absolute", inset: 0, overflow: "visible" }}
+            aria-hidden
+          >
+            <defs>
+              <filter
+                id={`${uid}-glow`}
+                x={-40 * s}
+                y={-40 * s}
+                width={w + 80 * s}
+                height={h + 80 * s}
+                filterUnits="userSpaceOnUse"
+              >
+                <feGaussianBlur stdDeviation={5 * s} />
+              </filter>
+            </defs>
+            <path d={d} fill="none" stroke={c.hair} strokeWidth={1} />
+            {tailD > 0 ? (
+              <path
+                d={d}
+                fill="none"
+                stroke={c.trail}
+                strokeWidth={1}
+                strokeDasharray={`${tailD} ${P}`}
+              />
+            ) : null}
+            <g filter={`url(#${uid}-glow)`} opacity={c.glow}>
+              {beamPaths(4 * s)}
+            </g>
+            <g>{beamPaths(Math.max(1, 1.5 * s))}</g>
+          </svg>
+
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: pad,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ ...item(0), minHeight: logoFs }}>
+              {showLogo
+                ? (logo ?? <KuchiLogo fontSize={logoFs} color={c.logo} />)
+                : null}
+            </div>
+            <div>
+              <div
+                style={{
+                  ...item(1),
+                  fontFamily,
+                  fontWeight: 400,
+                  fontSize: titleFs,
+                  letterSpacing: "-0.045em",
+                  lineHeight: 1,
+                  color: fg,
+                  whiteSpace: "pre",
+                }}
+              >
+                {title}
+              </div>
+              <div
+                style={{
+                  ...item(2),
+                  marginTop: titleFs * 0.32,
+                  fontFamily,
+                  fontWeight: 300,
+                  fontSize: descFs,
+                  letterSpacing: "-0.01em",
+                  lineHeight: 1.4,
+                  color: c.muted,
+                  maxWidth: w - pad * 2,
+                  textWrap: "balance",
+                }}
+              >
+                {description}
+              </div>
+              {command ? (
+                <div
+                  style={{
+                    ...item(3),
+                    marginTop: titleFs * 0.5,
+                    paddingTop: monoFs * 1.1,
+                    borderTop: `1px solid ${c.rule}`,
+                    display: "flex",
+                    gap: monoFs * 0.7,
+                    fontFamily: geistMono.fontFamily,
+                    fontWeight: 400,
+                    fontSize: monoFs,
+                    letterSpacing: "-0.01em",
+                    whiteSpace: "pre",
+                    color: fg,
+                  }}
+                >
+                  <span style={{ color: c.muted }}>$</span>
+                  <span style={{ flex: 1 }}>{command}</span>
+                  <svg
+                    width={monoFs * 1.1}
+                    height={monoFs * 1.1}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={c.muted}
+                    strokeWidth={1.5}
+                    strokeLinejoin="round"
+                    aria-hidden
+                    style={{ alignSelf: "center" }}
+                  >
+                    <rect
+                      x="8.5"
+                      y="8.5"
+                      width="11"
+                      height="11"
+                      rx="2.5"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                    <path
+                      d="M15.5 8.5V6.5a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </svg>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </ScaleLayer>
+    </AbsoluteFill>
+  );
+}

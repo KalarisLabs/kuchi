@@ -460,3 +460,56 @@ test('suggest_templates ranks by fit, says what differs, and offers both ways to
     assert.equal((await call(client, 'kuchi_suggest_templates', {count:7})).isError, true);
   } finally { await close(); }
 });
+
+test('harnesses can list, autocomplete and attach videos, breakdowns and components as resources', async () => {
+  const component = {name:'text-reveal', title:'Text Reveal', description:'Text Reveal animation.', category:'text', dependencies:['remotion'], registry_dependencies:[], files:['components/kuchi/text-reveal.tsx']};
+  const components = {index:async () => ({components:[component]}), item:async () => ({docs:null, dev_dependencies:[], files:[{path:'components/kuchi/text-reveal.tsx', type:null, content:'export {};\n'}]})};
+  const {client, close} = await connect(undefined, {components});
+  try {
+    const {resources} = await client.listResources();
+    const uris = resources.map(r => r.uri);
+    assert.ok(uris.includes('kuchi://workflow'));
+    assert.ok(uris.includes('kuchi://videos/1') && uris.includes('kuchi://videos/12'));
+    assert.ok(uris.includes('kuchi://components/text-reveal'));
+    assert.ok(resources.every(r => r.title && r.mimeType), 'every listed resource has a title and type');
+    const {resourceTemplates} = await client.listResourceTemplates();
+    assert.deepEqual(resourceTemplates.map(t => t.uriTemplate).sort(), ['kuchi://breakdowns/{id}', 'kuchi://components/{name}', 'kuchi://videos/{id}']);
+
+    const v = JSON.parse((await client.readResource({uri:'kuchi://videos/2'})).contents[0].text);
+    assert.equal(v.title, 'Pastel cursor demo');
+    const b = await client.readResource({uri:'kuchi://breakdowns/1'});
+    assert.match(b.contents[0].text, /^# Breakdown: Demo 1 \(id 1\)/);
+    const c = JSON.parse((await client.readResource({uri:'kuchi://components/text-reveal'})).contents[0].text);
+    assert.equal(c.install, 'npx shadcn@latest add https://kuchi.kalarislabs.com/r/text-reveal.json');
+    await assert.rejects(client.readResource({uri:'kuchi://videos/999'}));
+
+    const ids = await client.complete({ref:{type:'ref/resource', uri:'kuchi://videos/{id}'}, argument:{name:'id', value:'1'}});
+    assert.deepEqual(ids.completion.values, ['12', '11', '10', '1'], 'ids that start with what was typed, newest first');
+    const withBreakdowns = await client.complete({ref:{type:'ref/resource', uri:'kuchi://breakdowns/{id}'}, argument:{name:'id', value:''}});
+    assert.deepEqual(withBreakdowns.completion.values, ['4', '1'], 'only videos that have a breakdown');
+    const names = await client.complete({ref:{type:'ref/resource', uri:'kuchi://components/{name}'}, argument:{name:'name', value:'text'}});
+    assert.deepEqual(names.completion.values, ['text-reveal']);
+    const prompt = await client.complete({ref:{type:'ref/prompt', name:'remake_launch_video'}, argument:{name:'reference', value:'2'}});
+    assert.deepEqual(prompt.completion.values, ['2']);
+  } finally { await close(); }
+});
+
+test('videos, breakdowns and components carry links a harness can open from the CDN', async () => {
+  const component = {name:'text-reveal', title:'Text Reveal', description:'d', category:'text', dependencies:[], registry_dependencies:[], files:['a.tsx']};
+  const components = {index:async () => ({components:[component]}), item:async () => ({docs:null, dev_dependencies:[], files:[{path:'a.tsx', type:null, content:'x'}]})};
+  const {client, close} = await connect(undefined, {components});
+  try {
+    const links = r => r.content.filter(p => p.type === 'resource_link');
+    const video = links(await call(client, 'kuchi_get_video', {reference:'1'}));
+    assert.deepEqual(video.map(l => [l.mimeType, l.uri]), [
+      ['video/mp4', 'https://kuchi-media.kalarislabs.com/assets/1.mp4'],
+      ['image/jpeg', 'https://kuchi-media.kalarislabs.com/previews/demo-1.jpg'],
+      ['image/jpeg', 'https://kuchi-media.kalarislabs.com/frames/01/overview.jpg']]);
+    assert.ok(video.every(l => l.name && l.title));
+    const sheets = links(await call(client, 'kuchi_get_breakdown', {reference:'1'}));
+    assert.deepEqual(sheets.map(l => l.uri), ['https://kuchi-media.kalarislabs.com/frames/01/overview.jpg', 'https://kuchi-media.kalarislabs.com/frames/01/detail-1.jpg', 'https://kuchi-media.kalarislabs.com/assets/1.mp4']);
+    const json = await call(client, 'kuchi_get_video', {reference:'1', response_format:'json'});
+    assert.equal(json.structuredContent.id, 1, 'structured results are unchanged');
+    assert.deepEqual(links(await call(client, 'kuchi_get_component', {name:'text-reveal'})).map(l => l.uri), ['https://kuchi.kalarislabs.com/r/text-reveal.json']);
+  } finally { await close(); }
+});

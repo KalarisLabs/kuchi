@@ -144,8 +144,9 @@ code, pre, kbd { font-family: var(--k-mono); }
 .featured-stats span { color: var(--k-muted); font-size: 12px; }
 .text-link, .video-title { border: 0; background: none; color: var(--k-accent); padding: 0; text-align: left; text-decoration: underline; text-underline-offset: 3px; font-weight: 400; }
 .text-link { align-self: flex-start; font-size: 13px; }
-.video-title { text-decoration: none; }
-.video-title:hover { text-decoration: underline; }
+.video-title { text-decoration: none; color: var(--k-ink); font-weight: 600; }
+.video-title:hover { text-decoration: underline; text-decoration-color: var(--k-muted); }
+.featured-info .detail-card { margin-top: 18px; }
 .featured > .section-heading { align-items: center; flex-wrap: wrap; gap: 12px; padding-bottom: 18px; }
 .desk-selector { display: inline-flex; max-width: 100%; gap: 3px; padding: 4px; background: var(--k-wash); border-radius: 8px; }
 .desk-selector button { background: transparent; color: var(--k-muted); border: 0; border-radius: 5px; padding: 7px 12px; font-size: 12px; white-space: nowrap; }
@@ -155,7 +156,7 @@ code, pre, kbd { font-family: var(--k-mono); }
 .archive > .section-heading { justify-content: flex-start; gap: 12px; padding-bottom: 16px; }
 .filter-bar { display: grid; grid-template-columns: minmax(0, 1fr) 160px 160px 176px 42px; gap: 8px; align-items: center; margin-bottom: 26px; }
 .filter-bar > label { display: flex; align-items: center; min-width: 0; }
-.search-label { gap: 10px; height: 42px; padding: 0 13px; background: var(--k-wash); border-radius: 6px; }
+.search-label { display: flex; align-items: center; gap: 10px; height: 42px; padding: 0 13px; background: var(--k-wash); border-radius: 6px; }
 .search-label > svg { flex: none; color: var(--k-muted); }
 .search-label input { width: 100%; min-width: 0; background: transparent; border: 0; outline: 0; font-size: 13px; }
 .search-label:focus-within { outline: 2px solid var(--k-accent); outline-offset: 2px; }
@@ -166,14 +167,14 @@ code, pre, kbd { font-family: var(--k-mono); }
 .video-card { min-width: 0; display: flex; flex-direction: column; }
 .thumb { display: block; width: 100%; padding: 0; position: relative; background: var(--k-thumb); aspect-ratio: 16/10; overflow: hidden; border: 0; }
 .inline-player video { display: block; width: 100%; height: 100%; object-fit: contain; background: #151515; }
-.play-icon { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: var(--k-paper); color: var(--k-ink); font-size: 15px; cursor: pointer; z-index: 2; }
+.play-icon { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: var(--k-paper); color: var(--k-ink); font-size: 15px; cursor: pointer; z-index: 2; box-shadow: 0 0 0 1px rgb(0 0 0 / .08), 0 6px 18px rgb(0 0 0 / .18); }
 .timecode, .excerpt-label { position: absolute; padding: 2px 5px; background: #000; color: #fff; font-size: 11px; line-height: 1.4; pointer-events: none; }
 .timecode { right: 7px; bottom: 7px; }
 .excerpt-label { left: 7px; top: 7px; }
 .inline-player.is-playing .inline-play, .inline-player.is-playing .timecode, .inline-player.is-playing .excerpt-label { display: none; }
 .card-title-row { margin-top: 14px; }
 .video-card h3 { margin-bottom: 5px; font-size: 16px; line-height: 1.4; letter-spacing: -.02em; }
-.video-title { font: inherit; }
+.video-title { font: inherit; font-weight: 600; }
 .card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 13px; }
 .card-metrics strong { display: block; font-size: 19px; font-weight: 400; line-height: 1.25; letter-spacing: -.03em; }
 .card-metrics span { color: var(--k-muted); font-size: 12px; }
@@ -339,8 +340,8 @@ h1 { font-size: clamp(32px, 4.1vw, 48px); line-height: 1.1; letter-spacing: -.03
    top and bottom so it never sits hard behind the headline. Clicks pass through. */
 body { overflow-x: clip; }
 .intro-bg { position: absolute; z-index: -1; top: 0; bottom: 0; left: calc(50% - 50vw); width: 100vw; pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 42%, #000 72%, #000 86%, transparent 100%);
-          mask-image: linear-gradient(to bottom, transparent 0%, transparent 42%, #000 72%, #000 86%, transparent 100%); }
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 12%, #000 28%, #000 88%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 12%, #000 28%, #000 88%, transparent 100%); }
 
 
 /* Dark mode: monochrome logo files draw black (currentColor inside <img>), so they are

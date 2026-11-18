@@ -1,0 +1,280 @@
+---
+// /videos/<slug>: one launch video, prerendered for search engines and sharing. The video
+// sits in the main column; the remake prompt (with a copy button), stats and metadata sit
+// in a sticky panel on the right. Pressing the poster plays it in the site player
+// (scripts/gallery.js), which shows the same prompt beside the playing video.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SkipLink from '../../components/SkipLink.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import Toast from '../../components/Toast.astro';
+import VideoCard from '../../components/VideoCard.astro';
+import { newestFirst, type Video } from '../../lib/catalog';
+import { full, compact, timecode, launchDate, displayDuration } from '../../lib/format.js';
+import { SITE_URL, videoPath, remakeBrief } from '../../lib/video-links.js';
+import { favButtonsHTML } from '../../lib/favorites.js';
+
+export const prerender = true;
+
+export function getStaticPaths() {
+  return newestFirst.map((video, index) => ({
+    params: { slug: video.slug },
+    props: {
+      video,
+      prev: newestFirst[index - 1] ?? null,
+      next: newestFirst[index + 1] ?? null,
+    },
+  }));
+}
+
+interface Props { video: Video; prev: Video | null; next: Video | null }
+const { video: v, prev, next } = Astro.props;
+
+const url = `${SITE_URL}${videoPath(v)}`;
+const brief = remakeBrief(v);
+const related = [
+  ...newestFirst.filter((other) => other.id !== v.id && other.category === v.category),
+  ...newestFirst.filter((other) => other.id !== v.id && other.category !== v.category && other.styles.some((s) => v.styles.includes(s))),
+].slice(0, 3);
+const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1).replace(/\s+\S*$/, '')}…` : text);
+const description = clip(`${v.title} launch video by ${v.account} (${v.category}). ${v.notes[0] ?? ''} Watch it and copy a remake prompt for your agent.`, 158);
+const isoDuration = (seconds: number) => {
+  const total = Math.round(seconds);
+  return `PT${Math.floor(total / 60)}M${total % 60}S`;
+};
+const vertical = v.height > v.width;
+
+const stats: [string, number | null][] = [
+  ['Impressions', v.impressions],
+  ['Video plays', v.views],
+  ['Likes', v.likes],
+  ['Bookmarks', v.bookmarks],
+  ['Reposts', v.reposts],
+  ['Followers', v.followers],
+];
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'VideoObject',
+    name: v.title,
+    description: [v.notes.join(' '), `Styles: ${v.styles.join(', ')}.`].join(' ').trim(),
+    thumbnailUrl: [v.poster],
+    uploadDate: `${v.date}T12:00:00-08:00`,
+    duration: isoDuration(v.originalSeconds || v.clipSeconds),
+    contentUrl: v.video,
+    url,
+    genre: v.category,
+    keywords: v.styles.join(', '),
+    author: { '@type': 'Person', name: v.account },
+    isBasedOn: v.source,
+    interactionStatistic: [
+      ...(v.views != null ? [{ '@type': 'InteractionCounter', interactionType: { '@type': 'WatchAction' }, userInteractionCount: v.views }] : []),
+      { '@type': 'InteractionCounter', interactionType: { '@type': 'LikeAction' }, userInteractionCount: v.likes },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Kuchi', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Launch videos', item: `${SITE_URL}/videos` },
+      { '@type': 'ListItem', position: 3, name: v.title, item: url },
+    ],
+  },
+];
+---
+<BaseLayout
+  title={`${v.title} — launch video · Kuchi`}
+  description={description}
+  image={v.poster}
+  imageAlt={`${v.title} launch video poster`}
+  imageWidth={v.width}
+  imageHeight={v.height}
+  ogType="video.other"
+  jsonLd={jsonLd}
+>
+  <SkipLink href="#video-title" label="Skip to the video" />
+  <SiteHeader />
+  <main class="document vp">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">Kuchi</a><span aria-hidden="true">/</span>
+      <a href="/videos">Launch videos</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{v.title}</span>
+    </nav>
+
+    <div class="vp-layout">
+      <div class="vp-main">
+        <div class:list={['kp-frame', 'vp-frame', { 'vp-frame-vertical': vertical }]} style={`aspect-ratio: ${v.width} / ${v.height}`}>
+          <video playsinline preload="none" data-reference-id={v.id} data-surface="page" poster={v.poster} aria-hidden="true" tabindex="-1"></video>
+          <button class="play-icon" type="button" data-play-ref={v.id} data-surface="page" aria-label={`Play ${v.title}`}>▶</button>
+        </div>
+        <div class="vp-under">
+          <span>{displayDuration(v)} · {v.ratio}{v.hasAudio ? ' · Sound' : ''}</span>
+          <a href={v.source} target="_blank" rel="noopener">Original post on X ↗</a>
+        </div>
+
+        <h1 id="video-title">{v.title}</h1>
+        <p class="vp-byline">{v.account} · Launched <time datetime={v.date}>{launchDate(v.date)}</time> · {v.category}</p>
+        <Fragment set:html={favButtonsHTML('video', v.id, v.title, 'fav-labeled')} />
+        <ul class="vp-tags" aria-label="Visual styles">{v.styles.map((style) => <li>{style}</li>)}</ul>
+      </div>
+
+      <div class="vp-body">
+
+        {v.notes.length > 0 && (
+          <section class="vp-section" aria-labelledby="borrow-title">
+            <h2 id="borrow-title">What to borrow</h2>
+            <ul class="vp-notes">{v.notes.map((note) => <li>{note}</li>)}</ul>
+          </section>
+        )}
+        {v.quote && (
+          <section class="vp-section" aria-labelledby="post-title">
+            <h2 id="post-title">The launch post</h2>
+            <blockquote class="vp-quote">{v.quote}</blockquote>
+          </section>
+        )}
+      </div>
+
+      <aside class="vp-side" aria-label="Remake this video">
+        <div class="vp-card vp-prompt">
+          <div class="vp-prompt-head">
+            <h2>Remake prompt</h2>
+            <span>Paste into your agent</span>
+          </div>
+          <pre class="vp-prompt-text" id="vp-prompt" tabindex="0">{brief}</pre>
+          <button class="vp-copy" type="button" data-copy-prompt>
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span data-copy-label>Copy prompt</span>
+          </button>
+          <p class="vp-hint">Your agent needs the Kuchi MCP. <a href="/#connect">Connect it in one click →</a></p>
+        </div>
+
+        <div class="vp-card">
+          <h2 class="vp-card-title">Stats</h2>
+          <dl class="vp-stats">
+            {stats.map(([label, value]) => (
+              <div><dt>{label}</dt><dd title={full(value)}>{compact(value)}</dd></div>
+            ))}
+          </dl>
+          {v.flag && <p class="vp-warn">△ Plays are below 3% of impressions. A low ratio alone does not establish organic reach or paid promotion.</p>}
+        </div>
+
+        <div class="vp-card">
+          <h2 class="vp-card-title">File</h2>
+          <dl class="vp-meta">
+            <div><dt>Launch date</dt><dd>{v.date}</dd></div>
+            <div><dt>Original duration</dt><dd>{timecode(v.originalSeconds)}</dd></div>
+            <div><dt>Included footage</dt><dd>{timecode(v.clipSeconds)}{v.excerpt ? ' (excerpt)' : ''}</dd></div>
+            <div><dt>Resolution</dt><dd>{v.width} × {v.height}</dd></div>
+            <div><dt>Data snapshot</dt><dd>{v.snapshotDate || '—'}</dd></div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+
+    {related.length > 0 && (
+      <section class="vp-related" aria-labelledby="related-title">
+        <div class="section-heading"><h2 id="related-title">More like this</h2><a class="vp-all" href="/videos">All launch videos →</a></div>
+        <div class="video-grid">{related.map((video) => <VideoCard video={video} surface="related" />)}</div>
+      </section>
+    )}
+
+    <nav class="vp-pager" aria-label="More launch videos">
+      {prev ? <a class="vp-pager-link" href={videoPath(prev)} rel="prev"><span>← Newer</span><strong>{prev.title}</strong></a> : <span />}
+      {next ? <a class="vp-pager-link vp-pager-next" href={videoPath(next)} rel="next"><span>Older →</span><strong>{next.title}</strong></a> : <span />}
+    </nav>
+  </main>
+
+  <Toast />
+  <SiteFooter />
+
+  <script>
+    import '../../scripts/gallery.js';
+    import '../../scripts/video-page';
+  </script>
+</BaseLayout>
+
+<style>
+  .vp { padding-top: 28px; }
+  .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--k-muted); margin-bottom: 20px; min-width: 0; }
+  .crumbs a { color: var(--k-muted); text-decoration: none; }
+  .crumbs a:hover { color: var(--k-ink); }
+  .crumbs [aria-current] { color: var(--k-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60ch; }
+  /* Desktop: video and notes on the left, the sticky remake panel on the right. On narrow
+     screens the panel comes straight after the video and title, before the notes. */
+  .vp-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-areas: "main side" "body side";
+    grid-template-rows: auto 1fr;
+    column-gap: 40px;
+    align-items: start;
+  }
+  .vp-main { grid-area: main; min-width: 0; }
+  .vp-body { grid-area: body; min-width: 0; }
+  .vp-side { grid-area: side; }
+  .vp-frame { width: 100%; border-radius: 12px; overflow: hidden; background: var(--k-thumb); border: 1px solid var(--k-line); }
+  .vp-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .vp-frame-vertical { max-height: 78vh; width: auto; margin: 0 auto; }
+  .vp-frame :global(.play-icon) { width: 64px; height: 64px; font-size: 20px; border-radius: 14px; }
+  .vp-under { display: flex; justify-content: space-between; gap: 12px; padding: 10px 2px 0; font-size: 12.5px; color: var(--k-muted); }
+  .vp-under a { color: var(--k-muted); }
+  .vp-under a:hover { color: var(--k-ink); }
+  .vp-main h1 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.08; letter-spacing: -0.035em; margin: 26px 0 8px; }
+  .vp-byline { color: var(--k-muted); font-size: 14px; margin: 0; }
+  .vp-tags { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: 16px 0 0; }
+  .vp-tags li { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--k-wash); color: var(--k-soft); }
+  .vp-section { margin-top: 36px; }
+  .vp-section h2 { font-size: 17px; margin: 0 0 12px; }
+  .vp-notes { margin: 0; padding-left: 20px; display: grid; gap: 10px; line-height: 1.6; }
+  .vp-quote { margin: 0; padding: 14px 16px; border-left: 2px solid var(--k-line); color: var(--k-soft); line-height: 1.6; white-space: pre-line; }
+
+  .vp-side { position: sticky; top: 24px; display: grid; gap: 14px; }
+  .vp-card { border: 1px solid var(--k-line); border-radius: 14px; padding: 16px; background: var(--k-paper); }
+  .vp-prompt { border-color: color-mix(in srgb, var(--k-ink) 22%, var(--k-line)); box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -12px rgb(0 0 0 / 0.12); }
+  .vp-prompt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .vp-prompt-head h2, .vp-card-title { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--k-muted); margin: 0; }
+  .vp-card-title { margin-bottom: 12px; }
+  .vp-prompt-head span { font-size: 12px; color: var(--k-muted); }
+  .vp-prompt-text {
+    margin: 0; padding: 12px; border-radius: 10px; background: var(--k-wash); border: 1px solid var(--k-line);
+    font-family: var(--k-mono); font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--k-ink);
+  }
+  .vp-copy {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 40px; margin-top: 10px;
+    border: 0; border-radius: 10px; background: var(--k-ink); color: var(--k-on-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background-color 150ms ease, scale 160ms var(--ease-out-strong);
+  }
+  .vp-copy:hover { background: var(--k-ink-hover); }
+  .vp-copy:active { scale: 0.98; }
+  .vp-hint { margin: 10px 0 0; font-size: 12.5px; color: var(--k-muted); line-height: 1.5; }
+  .vp-hint a { color: var(--k-ink); white-space: nowrap; }
+  .vp-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; margin: 0; }
+  .vp-stats dt { font-size: 12px; color: var(--k-muted); }
+  .vp-stats dd { margin: 2px 0 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .vp-warn { font-size: 12px; color: var(--k-warn-ink); margin: 12px 0 0; line-height: 1.5; }
+  .vp-meta { margin: 0; display: grid; gap: 8px; }
+  .vp-meta div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+  .vp-meta dt { color: var(--k-muted); }
+  .vp-meta dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+  .vp-related { margin-top: 72px; }
+  .vp-all { font-size: 13px; color: var(--k-muted); text-decoration: none; }
+  .vp-all:hover { color: var(--k-ink); }
+  .vp-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 56px 0 24px; }
+  .vp-pager-link { display: grid; gap: 4px; padding: 16px; border: 1px solid var(--k-line); border-radius: 12px; color: var(--k-ink); text-decoration: none; transition: background-color 150ms ease, border-color 150ms ease; min-width: 0; }
+  .vp-pager-link:hover { background: var(--k-wash); text-decoration: none; }
+  .vp-pager-link span { font-size: 12px; color: var(--k-muted); }
+  .vp-pager-link strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vp-pager-next { text-align: right; }
+
+  @media (max-width: 960px) {
+    .vp-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "side" "body"; grid-template-rows: auto; row-gap: 28px; }
+    .vp-side { position: static; }
+  }
+  @media (max-width: 560px) {
+    .vp-pager { grid-template-columns: 1fr; }
+    .vp-pager-next { text-align: left; }
+  }
+</style>

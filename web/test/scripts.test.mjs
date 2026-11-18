@@ -27,7 +27,7 @@ async function boot(file) {
   const context = createContext({
     document: { querySelector: node, getElementById: (id) => node('#' + id), querySelectorAll: () => [], addEventListener() {} },
     location: { href: 'https://kuchi.kalarislabs.com/', hash: '' }, URL, URLSearchParams, setTimeout, clearTimeout, console,
-    fetch: async (url) => ({ ok: true, json: async () => (url === 'videos.json' ? [video] : { timeZone: 'America/Los_Angeles', snapshots: [] }) }),
+    fetch: async (url) => ({ ok: true, json: async () => (/^\/?videos\.json$/.test(url) ? [video] : { timeZone: 'America/Los_Angeles', snapshots: [] }) }),
   });
   // Analytics is only ever imported dynamically; make that fail, as an ad blocker would.
   const failAnalytics = async () => { throw new Error('Analytics module 404 (regression fixture)'); };
@@ -72,8 +72,11 @@ test('gallery.js matches the reference app.js apart from the shared formatting h
   const original = lines(await read(reference, 'app.js'));
   // Reference: 'use strict', the daily-stats import, two telemetry lines, a blank line, `$`,
   // ten lines of helpers (now in src/lib/format.js), then the rest.
-  assert.deepEqual(ported.slice(7, 11), original.slice(2, 6), `app.js ${PORT_ME}`);
-  assert.deepEqual(ported.slice(11), original.slice(16), `app.js ${PORT_ME}`);
+  // Since 2026-11-17 gallery.js plays every reference in the site player
+  // (components/KuchiPlayer.tsx), which the old site cannot do, so only the telemetry
+  // header is still held to the reference; the body diverges on purpose.
+  const start = ported.findIndex((line) => line.startsWith('const telemetry'));
+  assert.deepEqual(ported.slice(start, start + 4), original.slice(2, 6), `app.js ${PORT_ME}`);
 });
 
 test('the shared formatting helpers are the ones the reference app.js defines', async () => {

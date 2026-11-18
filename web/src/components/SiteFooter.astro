@@ -27,11 +27,12 @@ const year = new Date().getFullYear();
 interface FooterLink { label: string; href: string; external?: boolean }
 const columns: { title: string; links: FooterLink[] }[] = [
   { title: 'Explore', links: [
-    { label: 'All videos', href: at('#archive') },
+    { label: 'All launch videos', href: '/videos' },
     { label: 'Video components', href: '/components' },
+    { label: 'Agent guides', href: '/agents' },
     { label: 'Connect your agent', href: at('#connect') },
     { label: 'FAQ', href: at('#faq') },
-    { label: 'About the data', href: at('#method') },
+    { label: 'About the data', href: '/videos#method' },
   ] },
   { title: 'Kuchi', links: [
     { label: 'Privacy', href: '/privacy' },
@@ -54,7 +55,7 @@ const columns: { title: string; links: FooterLink[] }[] = [
         <p class="footer-sub">Launch videos your agent can use as templates. New every day.</p>
         <div class="footer-actions">
           <a class="pill pill-primary" href={at('#connect')}>Connect your agent</a>
-          <a class="pill pill-secondary" href={at('#archive')}>Browse videos</a>
+          <a class="pill pill-secondary" href="/videos">Browse videos</a>
         </div>
       </div>
       <nav class="footer-nav" aria-label="Footer">

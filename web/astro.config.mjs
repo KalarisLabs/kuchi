@@ -4,6 +4,7 @@ import cloudflare from '@astrojs/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 
 import react from '@astrojs/react';
+import { cacheHeaders } from './scripts/cache-headers.mjs';
 
 export default defineConfig({
   site: 'https://kuchi.kalarislabs.com',
@@ -17,5 +18,9 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
 
-  integrations: [react()],
+  // Every internal link is fetched on hover (or touch start), so moving between pages
+  // feels instant. The pages are prerendered static files, so this is cheap.
+  prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
+
+  integrations: [react(), cacheHeaders()],
 });

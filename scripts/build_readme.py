@@ -215,7 +215,7 @@ The catalog, breakdowns, manifest and workflow are read live from `main`, so dat
 
 ## License & credits
 
-Original curation, prompts, and repository code are [MIT licensed](LICENSE). Third-party videos, previews, product UI, logos, and branding remain with their respective owners; the MIT license does not grant rights to those assets. Every video links to its original post.
+Original curation, prompts, and repository code are [MIT licensed](LICENSE). Third-party videos, previews, product UI, logos, and branding remain with their respective owners; the MIT license does not grant rights to those assets. Every video links to its original post. The site's sidebar and code-block UI are adapted from [Rare UI](https://rareui.com).
 ''')
 
 assert VIDEOS and len(VIDEOS) == len({v['slug'] for v in VIDEOS})

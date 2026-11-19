@@ -1,37 +1,42 @@
 ---
 // Hero: centered headline with app tiles set inline in the type, the tagline,
-// collection totals and the two calls to action. The headline and tagline blur in
-// word by word (HeroCopy -> BlurText); the totals and buttons follow with a CSS blur-in.
-// The totals are rendered at build time; the gallery script refreshes them and fills
-// the day-over-day deltas (#delta-*), so they stay outside the React island.
-// Behind it all, HeroBackground (GradientASCII, follows the theme) fills the hero edge to edge.
-// It hydrates across all screens (desktop, tablets, mobile) with responsive tuning and graceful fallback.
+// usage counter and the two calls to action. The headline and tagline blur in
+// word by word (HeroCopy -> BlurText); the counter and buttons follow with a CSS blur-in.
+// The counter shows real usage (agents connected over MCP, site visits): the build-time
+// baseline is in the HTML, and scripts/usage-counter.ts glides it to the live totals
+// from /stats.json, outside the React island.
+// Behind it all, TiltedGridHero fills the hero edge to edge: a curved CSS 3D wall of every
+// launch video's poster, drifting, with a few silent clips playing. Pressing a tile opens
+// the theater, which plays the video large and moves through the whole wall.
+// (HeroBackground, the GradientASCII backdrop it replaced, is kept but no longer mounted.)
 // CopyDodge is fixed to the viewport (pops up when a visitor copies text); it is mounted
 // here only so it ships with the page.
-import { compact } from '../lib/format.js';
+import { USAGE_BASELINE } from '../lib/usage.js';
 import HeroCopy from './HeroCopy.jsx';
-import HeroBackground from './HeroBackground.jsx';
+import TiltedGridHero from './TiltedGridHero.tsx';
+import type { WallTile } from './TiltedGridHero.tsx';
+import { newestFirst } from '../lib/catalog';
 import CopyDodge from './CopyDodge.jsx';
 
-interface Props {
-  totalVideos: number;
-  totalImpressions: number;
-}
-const { totalVideos, totalImpressions } = Astro.props;
+const format = (n: number) => n.toLocaleString('en-US');
+
+// Each tile needs only its id and poster, newest first (88 fills the 11 columns evenly);
+// the theater reads titles and video files from /videos.json when it opens.
+const wall: WallTile[] = newestFirst.slice(0, 88).map((v) => ({ id: v.id, poster: v.poster }));
 ---
 <section class="intro numbered" data-line="002" aria-labelledby="main-title">
   <div class="intro-bg" aria-hidden="true">
-    <HeroBackground client:load />
+    <TiltedGridHero client:load items={wall} />
   </div>
   <!-- The two wrappers are the parallax layers (script below). They exist because the
        elements inside animate their own transform (BlurText, .intro-reveal), which would
        override a transform set on them directly. -->
   <div class="intro-layer" data-hero-copy><HeroCopy client:media="(min-width: 768px)" /></div>
   <div class="intro-layer" data-hero-lower>
-  <p class="intro-stats intro-reveal"><span class="summary" aria-label="Collection statistics"><span><strong id="total-videos">{totalVideos}</strong> videos<span class="stat-delta" id="delta-videos" hidden></span></span>, <span><strong id="total-impressions">{compact(totalImpressions)}</strong> impressions<span class="stat-delta" id="delta-impressions" hidden></span></span>, new every day.</span></p>
+  <p class="intro-stats intro-reveal" data-usage><span class="summary"><span><strong class="usage-count" data-count="agents" data-value={USAGE_BASELINE.agents}>{format(USAGE_BASELINE.agents)}</strong> agents connected</span>, <span><strong class="usage-count" data-count="visits" data-value={USAGE_BASELINE.visits}>{format(USAGE_BASELINE.visits)}</strong> site visits</span>, and counting.</span></p>
   <div class="intro-actions intro-reveal">
     <a class="pill pill-primary" href="#connect">Connect your agent</a>
-    <a class="pill pill-secondary" href="/videos">Browse videos <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    <a class="pill pill-secondary" href="#archive">Browse videos <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
   </div>
   </div>
   <CopyDodge client:media="(min-width: 768px) and (hover: hover) and (pointer: fine)" />
@@ -44,6 +49,12 @@ const { totalVideos, totalImpressions } = Astro.props;
      be rendered into the page.)
      A layer keeps the hero's centred column, so wrapping changes nothing in the layout. */
   .intro-layer { display: flex; flex-direction: column; align-items: center; width: 100%; }
+  /* The poster wall fills the hero and takes clicks wherever no copy or control sits on
+     it: the layers and their blocks let the pointer through, the words and controls do not. */
+  .intro { min-height: clamp(600px, 92svh, 980px); justify-content: center; }
+  .intro-layer, .intro-layer :is(h1, p, div) { pointer-events: none; }
+  .intro-layer :is(h1 > *, p > *, a, button) { pointer-events: auto; }
+  .usage-count { display: inline-block; text-align: right; font-variant-numeric: tabular-nums; }
 </style>
 
 <script>
@@ -57,6 +68,10 @@ const { totalVideos, totalImpressions } = Astro.props;
   // not on touch screens (GSAP is not loaded there, as in the footer), and not under
   // reduced motion.
   import { loadGsap, prefersReducedMotion } from '../scripts/motion';
+  import { startUsageCounter } from '../scripts/usage-counter';
+
+  const usage = document.querySelector<HTMLElement>('[data-usage]');
+  if (usage) startUsageCounter(usage);
 
   const hero = document.querySelector<HTMLElement>('section.intro');
   const pointerDesktop = window.matchMedia('(min-width: 768px)').matches && !window.matchMedia('(hover: none) and (pointer: coarse)').matches;

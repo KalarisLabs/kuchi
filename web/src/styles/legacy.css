@@ -285,7 +285,7 @@ dialog::backdrop { background: var(--k-backdrop); }
 .masthead .logo { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; letter-spacing: -.02em; }
 .masthead .logo:hover { text-decoration: none; }
 .logo-mark { display: block; width: 24px; height: 24px; }
-.logo-name { font-size: 16px; }
+.logo-name { font-size: 18px; font-weight: 700; }
 .logo-by { margin-left: 2px; color: var(--k-muted); font-size: 13px; font-weight: 400; }
 /* The wordmark file has wide transparent margins; the negative margins trim them so the
    letters, not the canvas, sit on the text line. Height is the canvas: letters are ~half. */

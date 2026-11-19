@@ -3,7 +3,6 @@
 // formatting helpers now live in ../lib/format.js. It drives the markup rendered by
 // the Astro components through the same element ids and data attributes, so keep
 // those in sync (web/test/pages.test.mjs checks them).
-import {dailyChanges} from './daily-stats.mjs';
 import {escapeHTML, pad, full, compact, timecode, launchDate, displayDuration} from '../lib/format.js';
 import {playVideo} from '../lib/play-video.js';
 import {videoPath, remakeBrief} from '../lib/video-links.js';
@@ -205,13 +204,16 @@ document.addEventListener('click', (event) => {
 });
 document.addEventListener('play', (event) => {
   if (!(event.target instanceof HTMLVideoElement)) return;
+  // The hero wall's silent clips (components/TiltedGridHero.tsx, data-ambient) are
+  // scenery: they are not plays, and they neither stop other players nor get stopped.
+  if (event.target.hasAttribute('data-ambient')) return;
   const id = Number(event.target.dataset.referenceId);
   if (id && !playedReferences.has(id)) {
     playedReferences.add(id);
     track('reference_played',{reference_id:id,surface:event.target.dataset.surface});
   }
   document.querySelectorAll('video').forEach(player => {
-    if (player !== event.target) player.pause();
+    if (player !== event.target && !player.hasAttribute('data-ambient')) player.pause();
   });
   event.target.closest('.inline-player')?.classList.add('is-playing');
 }, true);
@@ -297,21 +299,6 @@ fetch('/videos.json').then(response => {
   for (const [id, values, label] of [['category',videos.map(v=>v.category),'All categories'],['style',videos.flatMap(v=>v.styles),'All styles']]) {
     if (document.getElementById(id)) document.getElementById(id).innerHTML = `<option value="all">${label}</option>` + [...new Set(values)].sort().map(value=>`<option>${escapeHTML(value)}</option>`).join('');
   }
-  if ($('#total-videos')) $('#total-videos').textContent = videos.length;
-  if ($('#total-impressions')) $('#total-impressions').textContent = compact(videos.reduce((n,v) => n + (v.impressions ?? 0), 0));
-  if ($('#delta-videos')) fetch('/daily-stats.json').then(r => { if (!r.ok) throw new Error('No daily snapshot'); return r.json(); }).then(history => {
-    const comparison = dailyChanges(videos, history);
-    if (!comparison) return;
-    for (const [metric, change] of Object.entries(comparison.changes)) {
-      const badge = $(`#delta-${metric}`);
-      if (!badge) continue;
-      badge.textContent = change > 0 ? `↑ +${compact(change)}` : change < 0 ? `↓ −${compact(-change)}` : '0';
-      badge.dataset.direction = change > 0 ? 'up' : change < 0 ? 'down' : 'flat';
-      badge.title = `Collection total vs yesterday (${comparison.yesterday}, PT). Includes newly added references; not daily traffic or same-post growth.`;
-      badge.setAttribute('aria-label', `${metric}: ${change > 0 ? '+' : ''}${change.toLocaleString('en-US')} vs yesterday`);
-      badge.hidden = false;
-    }
-  }).catch(() => {});
   setFeature(87);
   renderCollection();
   // Kuchi links in remake briefs (/#video-<id>, the form the MCP resolves) land people on

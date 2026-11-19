@@ -1,0 +1,208 @@
+/*! Portions Copyright (c) 2026 Swami Malode (Rare UI, https://rareui.com). MIT + Commons Clause + Attribution. See THIRD_PARTY_LICENSES. */
+// Ported for Astro: plain anchors instead of next/link, and each item can carry extra
+// attributes (class, data-*) so page scripts can find, filter and wire the links.
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps } from "react";
+import { motion, useAnimate } from "motion/react";
+import { arc } from "motion";
+import { cn } from "@/lib/utils";
+
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+type ItemAttrs = Record<string, string | undefined>;
+
+export type BounceSidebarItem =
+  | string
+  | { label: string; href?: string; attrs?: ItemAttrs }
+  | { label: string; heading: true; attrs?: ItemAttrs };
+
+export type BounceSidebarProps = Omit<ComponentProps<"ul">, "onChange"> & {
+  items: BounceSidebarItem[];
+  value?: number;
+  defaultValue?: number;
+  onChange?: (index: number) => void;
+  dotColor?: string;
+  /** Colour for heading rows. Defaults to dotColor. */
+  headingColor?: string;
+  /** Extra classes for every link or button row. */
+  itemClassName?: string;
+  /** Change it after rows are shown or hidden so the dot re-measures its target. */
+  layoutKey?: number;
+};
+
+export function BounceSidebar({
+  items,
+  value,
+  defaultValue = 0,
+  onChange,
+  dotColor = "#FC4C01",
+  headingColor,
+  itemClassName: extraItemClassName,
+  layoutKey = 0,
+  className,
+  ...props
+}: BounceSidebarProps) {
+  const [internalValue, setInternalValue] = useState(defaultValue);
+  const activeIndex = value ?? internalValue;
+
+  const [dot, animate] = useAnimate<HTMLSpanElement>();
+  const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const prevY = useRef<number | null>(null);
+
+  const [dotSize, setDotSize] = useState(6);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const dpr = window.devicePixelRatio || 1;
+    setDotSize(Math.round(6 * dpr) / dpr);
+  }, []);
+
+  useIsomorphicLayoutEffect(() => {
+    let cancelled = false;
+    const snap = () => {
+      const el = itemRefs.current[activeIndex];
+      if (cancelled || !el || !dot.current) return;
+      const dpr = window.devicePixelRatio || 1;
+      const size = Math.round(6 * dpr) / dpr;
+      const toY =
+        Math.round((el.offsetTop + el.offsetHeight / 2 - size / 2) * dpr) / dpr;
+      animate(dot.current, { x: 0, y: toY }, { duration: 0 });
+      prevY.current = toY;
+      setReady(true);
+    };
+
+    snap();
+    const raf = requestAnimationFrame(snap);
+    document.fonts?.ready.then(snap);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  useEffect(() => {
+    const el = itemRefs.current[activeIndex];
+    if (!el || !dot.current) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const toY =
+      Math.round((el.offsetTop + el.offsetHeight / 2 - dotSize / 2) * dpr) /
+      dpr;
+
+    if (prevY.current === null) {
+      animate(dot.current, { x: 0, y: toY }, { duration: 0 });
+      prevY.current = toY;
+      return;
+    }
+
+    const fromY = prevY.current;
+    const delta = toY - fromY;
+    prevY.current = toY;
+    if (delta === 0) return;
+
+    const distance = Math.abs(delta);
+    const path = arc({
+      strength: Math.min(0.8, 14 / distance),
+      direction: delta > 0 ? "ccw" : "cw",
+    });
+
+    animate(
+      dot.current,
+      { x: 0, y: toY },
+      { duration: 0.25, ease: "easeOut", path },
+    );
+  }, [activeIndex, animate, dot, dotSize, layoutKey]);
+
+  const select = (index: number) => {
+    if (value === undefined) setInternalValue(index);
+    onChange?.(index);
+  };
+
+  return (
+    <ul
+      data-slot="bounce-sidebar"
+      className={cn("relative flex flex-col gap-1 pl-6", className)}
+      {...props}
+    >
+      <span
+        ref={dot}
+        aria-hidden
+        className="absolute left-2 top-0 rounded-full transition-opacity duration-150"
+        style={{
+          width: dotSize,
+          height: dotSize,
+          backgroundColor: dotColor,
+          opacity: ready ? 1 : 0,
+        }}
+      />
+
+      {items.map((item, index) => {
+        const label = typeof item === "string" ? item : item.label;
+        const attrs = typeof item === "string" ? undefined : item.attrs;
+
+        if (typeof item !== "string" && "heading" in item) {
+          return (
+            <li
+              key={`${index}-${label}`}
+              ref={(el) => {
+                itemRefs.current[index] = el;
+              }}
+              role="presentation"
+              data-slot="bounce-sidebar-heading"
+              {...attrs}
+              style={{ color: headingColor ?? dotColor }}
+              className={cn(
+                "px-1 pb-1 pt-7 text-[11px] font-semibold uppercase tracking-[0.14em] first:pt-0",
+                attrs?.className,
+              )}
+            >
+              {label}
+            </li>
+          );
+        }
+
+        const href = typeof item === "string" ? undefined : item.href;
+        const isActive = index === activeIndex;
+        const itemClassName = cn(
+          "flex w-full cursor-pointer items-center rounded-lg p-1 text-left text-sm transition-colors duration-200",
+          isActive ? "text-foreground" : "text-foreground/50",
+          extraItemClassName,
+          attrs?.className,
+        );
+
+        return (
+          <li
+            key={`${index}-${label}`}
+            ref={(el) => {
+              itemRefs.current[index] = el;
+            }}
+          >
+            {href ? (
+              <motion.a
+                {...attrs}
+                href={href}
+                data-slot="bounce-sidebar-item"
+                data-active={isActive}
+                aria-current={isActive ? "true" : undefined}
+                onClick={() => select(index)}
+                className={itemClassName}
+              >
+                {label}
+              </motion.a>
+            ) : (
+              <motion.button
+                {...attrs}
+                type="button"
+                data-slot="bounce-sidebar-item"
+                data-active={isActive}
+                onClick={() => select(index)}
+                className={itemClassName}
+              >
+                {label}
+              </motion.button>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}

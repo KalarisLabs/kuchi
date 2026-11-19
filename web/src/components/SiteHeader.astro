@@ -1,5 +1,6 @@
 ---
-// Masthead: the Kuchi lockup ("Kuchi by Kalaris Labs"), the top navigation bar, and the theme toggle.
+// Masthead: the Kuchi lockup ("Kuchi by Kalaris Labs"), the navigation, search and the theme toggle,
+// each its own floating glass pill (no bar behind them; styles below).
 // Brand lockups are production assets from kalarislabs.com/brand.
 import wordmarkBlack from '../assets/kalaris-wordmark-black.png';
 import wordmarkWhite from '../assets/kalaris-wordmark-white.png';
@@ -17,6 +18,9 @@ const { navHref, navLabel } = Astro.props;
 const pathname = Astro.url.pathname;
 const isComponents = pathname.startsWith('/components');
 const isVideos = pathname.startsWith('/videos');
+// /agents (the guides), never /agent: that path belongs to the MCP Worker.
+const isAgents = pathname === '/agents' || pathname.startsWith('/agents/') || pathname.startsWith('/agents.');
+const isBlog = pathname === '/blog' || pathname.startsWith('/blog/') || pathname.startsWith('/blog.');
 ---
 <header class="masthead site-header" data-site-header data-site-page={isComponents ? "components" : isVideos ? "launch-videos" : "home"}>
   <div class="brand">
@@ -40,6 +44,14 @@ const isVideos = pathname.startsWith('/videos');
       <span class="site-nav-label">Components</span>
       <span class="site-nav-badge" aria-label={`${components.length} components`}>{components.length}</span>
     </a>
+    <a href="/agents" class:list={['site-nav-link', { active: isAgents }]} aria-current={isAgents ? 'page' : undefined}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7.5 10 3 2.5-3 2.5"/><path d="M13 15h3.5"/></svg>
+      <span class="site-nav-label">Agents</span>
+    </a>
+    <a href="/blog" class:list={['site-nav-link', { active: isBlog }]} aria-current={isBlog ? 'page' : undefined}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 20z"/><path d="M14 3.5V8h4"/><path d="M9 12.5h6M9 16h4"/></svg>
+      <span class="site-nav-label">Blog</span>
+    </a>
   </nav>
 
   <button class="site-search" type="button" data-cmdk-open aria-label="Search videos, components and pages" aria-haspopup="dialog" aria-controls="cmdk">
@@ -60,103 +72,192 @@ const isVideos = pathname.startsWith('/videos');
 </header>
 
 <style>
+  /* Glass masthead: no bar, no border, no box. The header floats over the page (sticky), and
+     every control in it is its own piece of glass: the logo, each link, search, the theme
+     toggle. Each pill blurs and brightens whatever scrolls under it (backdrop-filter), with
+     a lit top edge and a soft drop shadow, so it reads as a separate pane.
+     The page you are on is the "open" pill: filled brighter, label always shown (on phones
+     the other links shrink to icons, the open one keeps its name). No underline tail. */
+  .masthead {
+    --glass-tint: color-mix(in srgb, var(--k-paper) 52%, transparent);
+    --glass-tint-strong: color-mix(in srgb, var(--k-paper) 80%, transparent);
+    --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.08) 55%, rgba(255, 255, 255, 0.18));
+    --glass-edge: rgba(255, 255, 255, 0.65);
+    --glass-rim: rgba(15, 15, 20, 0.08);
+    --glass-shadow: 0 10px 28px -14px rgba(10, 10, 20, 0.28), 0 2px 6px -2px rgba(10, 10, 20, 0.08);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    gap: 8px;
+    padding: 12px clamp(12px, 3vw, 32px);
+    border-bottom: 0;
+    background: transparent;
+  }
+  :global(:root[data-theme="dark"]) .masthead {
+    --glass-tint: color-mix(in srgb, #1a1a1d 50%, transparent);
+    --glass-tint-strong: color-mix(in srgb, #2a2a2f 78%, transparent);
+    --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 55%, rgba(255, 255, 255, 0.05));
+    --glass-edge: rgba(255, 255, 255, 0.16);
+    --glass-rim: rgba(255, 255, 255, 0.07);
+    --glass-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.7), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .masthead {
+      --glass-tint: color-mix(in srgb, #1a1a1d 50%, transparent);
+      --glass-tint-strong: color-mix(in srgb, #2a2a2f 78%, transparent);
+      --glass-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.02) 55%, rgba(255, 255, 255, 0.05));
+      --glass-edge: rgba(255, 255, 255, 0.16);
+      --glass-rim: rgba(255, 255, 255, 0.07);
+      --glass-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.7), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  /* One recipe for every pane. */
+  .masthead .logo,
+  .site-nav-link,
+  .site-search,
+  .masthead :global(.theme-toggle),
+  .masthead :global(.meta a) {
+    position: relative;
+    height: 40px;
+    border: 1px solid var(--glass-rim);
+    border-radius: 999px;
+    background: var(--glass-sheen), var(--glass-tint);
+    -webkit-backdrop-filter: blur(16px) saturate(1.8);
+            backdrop-filter: blur(16px) saturate(1.8);
+    box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 -1px 0 var(--glass-rim), var(--glass-shadow);
+    text-decoration: none;
+    transition:
+      color 160ms ease-out,
+      box-shadow 200ms ease-out,
+      transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .masthead { --glass-tint: color-mix(in srgb, var(--k-paper) 94%, transparent); }
+  }
+
+  .masthead .logo { padding: 0 14px 0 10px; }
+  .masthead .logo:hover { text-decoration: none; }
+  .brand { flex: none; }
+
   .site-nav {
     display: flex;
     align-items: center;
-    gap: 2px;
-    margin-left: 12px;
+    gap: 6px;
+    margin: 0 auto;
+  }
+  @media (min-width: 720px) {
+    .site-nav {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+    }
   }
   .site-nav-link {
-    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    height: 36px;
-    padding: 0 12px;
-    border-radius: 10px;
+    padding: 0 14px;
     font-size: 14px;
     font-weight: 500;
     color: var(--k-muted);
-    text-decoration: none;
-    transition: color 150ms ease, background-color 150ms ease;
   }
   .site-nav-link svg { flex: none; }
-  .site-nav-link:hover { color: var(--k-ink); background: var(--k-wash); text-decoration: none; }
-  .site-nav-link:active { transform: scale(0.97); }
-  .site-nav-link.active { color: var(--k-ink); }
-  /* The current page: a short bar under the item, not a filled pill. */
-  .site-nav-link.active::after {
-    content: "";
-    position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: -15px;
-    height: 2px;
-    border-radius: 2px;
-    background: var(--k-ink);
+  .site-nav-link.active {
+    color: var(--k-ink);
+    background: var(--glass-sheen), var(--glass-tint-strong);
+    box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 0 0 1px color-mix(in srgb, var(--k-ink) 10%, transparent), var(--glass-shadow);
   }
   .site-nav-badge {
     font-size: 11px;
     font-weight: 600;
     font-variant-numeric: tabular-nums;
-    padding: 1px 6px;
-    border-radius: 6px;
-    background: var(--k-wash);
-    border: 1px solid var(--k-line);
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--k-ink) 7%, transparent);
     color: var(--k-muted);
-    line-height: 1.4;
+    line-height: 1.5;
   }
   .site-nav-link.active .site-nav-badge { color: var(--k-ink); }
+
   .site-search {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    height: 36px;
     width: 220px;
     margin-left: auto;
-    padding: 0 6px 0 11px;
-    border: 1px solid var(--k-line);
-    border-radius: 10px;
-    background: var(--k-field);
+    flex: none;
+    padding: 0 7px 0 14px;
     color: var(--k-muted);
     font: inherit;
     font-size: 13.5px;
     cursor: pointer;
-    transition: border-color 150ms ease, color 150ms ease;
   }
-  .site-search:hover { border-color: color-mix(in srgb, var(--k-ink) 28%, var(--k-line)); color: var(--k-ink); }
-  .site-search:active { transform: scale(0.98); }
   .site-search-label { flex: 1; text-align: left; }
   .site-search-key {
-    padding: 2px 6px;
-    border: 1px solid var(--k-line);
-    border-radius: 6px;
-    background: var(--k-wash);
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--k-ink) 7%, transparent);
     font: 500 11px/1.3 var(--k-sans);
     color: var(--k-muted);
   }
-  .masthead :global(.theme-toggle) { margin-left: 4px; }
-  @media (max-width: 900px) {
-    .site-search { width: auto; }
-    .site-search-label { display: none; }
+  .masthead :global(.theme-toggle) { width: 40px; margin-left: 0; flex: none; }
+  .masthead :global(.meta a) { padding: 0 14px; min-height: 0; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .site-nav-link:hover,
+    .site-search:hover,
+    .masthead .logo:hover,
+    .masthead :global(.theme-toggle:hover),
+    .masthead :global(.meta a:hover) {
+      color: var(--k-ink);
+      text-decoration: none;
+      background: var(--glass-sheen), var(--glass-tint-strong);
+      transform: translateY(-1px);
+    }
   }
-  @media (max-width: 720px) {
-    .site-nav { margin-left: 4px; }
-    .site-nav-link { padding: 0 9px; gap: 6px; font-size: 13px; }
-    .site-nav-badge, .site-search-key { display: none; }
-    .site-nav-link.active::after { bottom: -13px; }
-    .site-search { width: 36px; padding: 0; justify-content: center; }
-  }
-  @media (max-width: 520px) {
-    .masthead { gap: 6px; }
+  .site-nav-link:active,
+  .site-search:active,
+  .masthead .logo:active,
+  .masthead :global(.theme-toggle:active),
+  .masthead :global(.meta a:active) { transform: scale(0.96); }
+
+  /* Narrower: counts, the search label and the "by Kalaris Labs" wordmark go first, then
+     the labels of the links you are not on. The open link keeps its name. */
+  @media (max-width: 1179px) {
+    .site-nav-badge, .site-search-key, .site-search-label { display: none; }
+    .site-search { width: 40px; padding: 0; justify-content: center; }
     .masthead .logo .logo-by,
     .masthead .logo .logo-wordmark { display: none; }
-    .site-nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .site-nav-link { padding: 0 10px; }
-    .site-nav-link.active::after { left: 8px; right: 8px; }
+  }
+  @media (max-width: 900px) {
+    .site-nav-link { padding: 0 12px; gap: 6px; font-size: 13px; }
+  }
+  @media (max-width: 640px) {
+    .masthead { gap: 6px; }
+    .site-nav-link:not(.active) .site-nav-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .site-nav-link:not(.active) { width: 40px; padding: 0; justify-content: center; }
+    .masthead .logo .logo-name { display: none; }
+    .masthead .logo { width: 40px; padding: 0; justify-content: center; }
+  }
+  /* Panes keep their shape; they never squash into each other. */
+  .masthead .logo, .site-nav-link, .site-search, .masthead :global(.theme-toggle) { flex-shrink: 0; }
+  /* Narrowest phones: smaller panes, and the open pill drops its icon to keep its name. */
+  @media (max-width: 420px) {
+    .masthead { padding-left: 8px; padding-right: 8px; gap: 3px; }
+    .site-nav { gap: 3px; }
+    .site-nav-link, .site-search, .masthead .logo, .masthead :global(.theme-toggle) { height: 36px; }
+    .site-nav-link:not(.active), .site-search, .masthead .logo, .masthead :global(.theme-toggle) { width: 36px; }
+    .site-nav-link.active { padding: 0 11px; }
+    .site-nav-link.active svg { display: none; }
   }
   @media (hover: none) {
     .site-search-key { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .masthead .logo, .site-nav-link, .site-search, .masthead :global(.theme-toggle) { transition: none; }
   }
 </style>
 

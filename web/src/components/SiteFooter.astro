@@ -10,11 +10,13 @@
 //     (scripts/ascii-wordmark.ts). As the footer scrolls into view its weight goes from
 //     thin to black and its letters rise into line, all in place at the end of the page.
 // Without JavaScript the wordmark is the live text below it in the markup; under reduced
-// motion the canvas draws one still, full-weight frame. No colour behind the wordmark
-// (the blue glow was removed on the owner's instruction, 2026-11-14), and the footer does
-// not state the number of videos (same instruction). The Kalaris Labs wordmark is the production white file (for dark
+// motion the canvas draws one still, full-weight frame. Behind it all is the blue ASCII
+// wash that used to be the hero's backdrop (HeroBackground, moved here on the owner's
+// instruction, 2026-11-19; it replaces the 2026-11-14 "no colour behind the wordmark"
+// rule). The footer does not state the number of videos (owner's instruction, 2026-11-14). The Kalaris Labs wordmark is the production white file (for dark
 // backgrounds) from kalarislabs.com/brand; never rebuild it in live text.
 import wordmarkWhite from '../assets/kalaris-wordmark-white.png';
+import HeroBackground from './HeroBackground.jsx';
 
 interface Props {
   /** True on the gallery page, where the section anchors are on the same page. */
@@ -48,6 +50,7 @@ const columns: { title: string; links: FooterLink[] }[] = [
 ];
 ---
 <footer class="site-footer" data-footer>
+  <div class="footer-wash" aria-hidden="true"><HeroBackground client:visible forceDark /></div>
   <div class="footer-inner" data-footer-inner>
     <div class="footer-top">
       <div class="footer-pitch">
@@ -55,8 +58,8 @@ const columns: { title: string; links: FooterLink[] }[] = [
         <h2 class="footer-title">Launch your idea before your product.</h2>
         <p class="footer-sub">Launch videos your agent can use as templates. New every day.</p>
         <div class="footer-actions">
-          <a class="pill pill-primary" href={at('#connect')}>Connect your agent</a>
-          <a class="pill pill-secondary" href="/videos">Browse videos</a>
+          <a class="pill pill-primary" href={at('#connect')}>Make your launch video</a>
+          <a class="pill pill-secondary" href="/components">Browse components</a>
         </div>
       </div>
       <nav class="footer-nav" aria-label="Footer">
@@ -99,6 +102,16 @@ const columns: { title: string; links: FooterLink[] }[] = [
     background: var(--k-paper); border-radius: 0 0 32px 32px;
   }
   .footer-inner { will-change: transform; }
+  /* The blue ASCII wash (HeroBackground), rising from the bottom behind the wordmark and
+     faded out toward the top so the links stay on plain dark. */
+  .footer-wash {
+    position: absolute; z-index: -1; inset: 0; pointer-events: none;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 18%, rgba(0,0,0,.45) 48%, #000 82%);
+            mask-image: linear-gradient(to bottom, transparent 0%, transparent 18%, rgba(0,0,0,.45) 48%, #000 82%);
+  }
+  .footer-wash :global(.intro-bg-static) {
+    background: radial-gradient(60% 55% at 50% 100%, rgba(77,124,255,.45), rgba(30,63,216,.22) 45%, transparent 75%);
+  }
   .footer-top {
     display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 48px;
     max-width: 1180px; margin: 0 auto; padding: clamp(88px, 11vw, 136px) 34px 0;

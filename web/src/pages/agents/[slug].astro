@@ -6,14 +6,20 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SkipLink from '../../components/SkipLink.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
+import SectionNav from '../../components/SectionNav';
 import SiteFooter from '../../components/SiteFooter.astro';
 import Toast from '../../components/Toast.astro';
 import VideoCard from '../../components/VideoCard.astro';
+import AuthorByline from '../../components/AuthorByline.astro';
+import { AUTHOR, authorLd } from '../../lib/authors';
 import { SITE_URL, videoPath } from '../../lib/video-links.js';
 import { posterUrl } from '../../lib/components-catalog';
 import {
   harnesses, harnessPath, videosFor, componentsFor, faqFor, SETUP_PROMPT, MCP_URL, type Harness,
 } from '../../lib/harnesses';
+import { posts, postPath, inline } from '../../lib/blog';
+import { depth, DEPTH_UPDATED } from '../../lib/harness-depth';
+import { TOOLS, SHOT_KINDS, ENTRANCES, MOTION, PLAN_LIMITS, SAMPLE_SHOT } from '../../lib/mcp-reference';
 
 export const prerender = true;
 
@@ -27,6 +33,45 @@ const featured = videosFor(h);
 const parts = componentsFor(h);
 const faq = faqFor(h);
 const others = harnesses.filter((other) => other.slug !== h.slug);
+// The step-by-step post for this harness (lib/blog-harnesses.ts), linked both ways.
+const guide = posts.find((p) => p.harness === h.slug);
+// Technical depth (lib/harness-depth.ts, lib/mcp-reference.ts): the owner asked for long,
+// technical cash pages on 2026-11-19, so search engines see them as worth indexing.
+const d = depth[h.slug];
+const troubleshoot: [string, string][] = [
+  ...(d?.troubleshoot ?? []),
+  ['The tool list is empty or the connection times out', 'Check that nothing on your network (a proxy, VPN or firewall) blocks HTTPS to kuchi.kalarislabs.com, and that the URL ends in `/mcp`.'],
+  ['A tool says the catalog is temporarily unavailable', 'The library is refreshing. Retry in a minute; nothing on your side needs to change.'],
+];
+const remotionMap = `// src/Root.tsx: one composition at the blueprint's fps and length
+import { Composition } from 'remotion';
+import plan from '../plan.json';
+import { Launch } from './Launch';
+
+export const Root = () => (
+  <Composition id="Launch" component={Launch}
+    fps={plan.blueprint.fps} durationInFrames={plan.blueprint.frames}
+    width={1920} height={1080} />
+);
+
+// src/Launch.tsx: one <Sequence> per blueprint shot, on its exact frames
+import { AbsoluteFill, Sequence } from 'remotion';
+import plan from '../plan.json';
+import { shots } from './shots';
+
+export const Launch = () => (
+  <AbsoluteFill>
+    {plan.blueprint.shots.map((s) => {
+      const Shot = shots[s.shot];
+      return (
+        <Sequence key={s.shot} from={s.start_frame}
+          durationInFrames={s.end_frame - s.start_frame + 1}>
+          <Shot />
+        </Sequence>
+      );
+    })}
+  </AbsoluteFill>
+);`;
 const coding = h.kind === 'coding';
 
 const workflow = [
@@ -41,6 +86,8 @@ const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'HowTo',
+    author: authorLd(new URL(AUTHOR.photo.src, SITE_URL).href),
+    dateModified: DEPTH_UPDATED,
     name: `How to make a launch video with ${h.name}`,
     description: h.description,
     url,
@@ -77,6 +124,7 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
   <SkipLink href="#agent-title" label="Skip to the guide" />
   <SiteHeader />
   <main class="document ag">
+    <SectionNav client:load pathname={Astro.url.pathname} />
     <nav class="crumbs" aria-label="Breadcrumb">
       <a href="/">Kuchi</a><span aria-hidden="true">/</span>
       <a href="/agents">Agents</a><span aria-hidden="true">/</span>
@@ -86,12 +134,14 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
     <header class="ag-hero">
       <div class="ag-mark"><img class:list={['brand-icon', { 'brand-color': h.brandColor }]} src={h.logo} alt="" width="28" height="28"></div>
       <p class="ag-kicker">{h.maker} · {coding ? 'Builds and renders the video' : 'Chooses, studies and plans'}</p>
-      <h1 id="agent-title">Launch videos with {h.name}</h1>
+      <h1 id="agent-title">{coding ? 'Make a product launch video with' : 'Plan a product launch video with'} {h.name}</h1>
       {h.intro.map((p) => <p class="ag-lede">{p}</p>)}
       <div class="ag-actions">
         <a class="ag-btn ag-btn-primary" href="#install">Connect {h.name}</a>
         <a class="ag-btn" href="/videos">Browse launch videos</a>
       </div>
+      <AuthorByline date={DEPTH_UPDATED} />
+      {guide && <p class="ag-guide">Step by step: <a href={postPath(guide)}>{guide.heading}</a></p>}
     </header>
 
     <div class="ag-layout">
@@ -134,6 +184,99 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
             ))}
           </ul>
         </section>
+
+        {d && (
+          <section class="ag-section ag-prose" id="config" aria-labelledby="config-title">
+            <h2 id="config-title">How {h.name} loads the MCP server</h2>
+            {d.config.map((p) => <p set:html={inline(p)} />)}
+          </section>
+        )}
+
+        {d && (
+          <section class="ag-section ag-prose" id="run" aria-labelledby="run-title">
+            <h2 id="run-title">A full run in {h.name}, step by step</h2>
+            {d.run.map((p) => <p set:html={inline(p)} />)}
+          </section>
+        )}
+
+        <section class="ag-section ag-prose" id="protocol" aria-labelledby="protocol-title">
+          <h2 id="protocol-title">What {h.name} sends to the server</h2>
+          <p>The server is a remote MCP server over Streamable HTTP at <code>{MCP_URL}</code>. Every message is a JSON-RPC 2.0 request sent as an HTTP POST to that one endpoint. It is stateless: there is no session to keep alive, no cookie and no Authorization header, so {h.name} can reconnect at any time without losing anything.</p>
+          <p>When {h.name} connects it sends <code>initialize</code> and receives the server's name, version, instructions and capabilities (tools, resources and argument completion), then calls <code>tools/list</code>. The tool list carries a one-hour cache hint, because it only changes when the server is deployed. Each tool call is a <code>tools/call</code> whose arguments are checked against a strict schema: unknown fields are rejected and every string has a length limit, so a malformed call fails with a clear message instead of a half-right answer.</p>
+          <p>Results come back as text, Markdown by default or JSON when the call passes <code>response_format: "json"</code>, and JSON results also arrive as <code>structuredContent</code>. Media is never inlined: the reference MP4, the poster and the storyboard sheets come as <code>resource_link</code> entries pointing at the CDN, which {h.name} can open or fetch itself. A result is capped at 25,000 characters; a long blueprint arrives in pages of up to {PLAN_LIMITS.shotsPerPage} shots, with <code>shot_offset</code> and <code>shot_limit</code> to fetch the next page.</p>
+          <p>Every tool is annotated <code>readOnlyHint: true</code>, <code>destructiveHint: false</code>, <code>idempotentHint: true</code> and <code>openWorldHint: false</code>: nothing changes on the server, the same call returns the same answer, and no tool reaches out to the wider web. The server also offers resources (<code>kuchi://workflow</code>, <code>{'kuchi://videos/{id}'}</code>, <code>{'kuchi://breakdowns/{id}'}</code> and <code>{'kuchi://components/{name}'}</code>) with autocompletion, for clients that let you attach a resource to a message.</p>
+        </section>
+
+        <section class="ag-section" id="tools" aria-labelledby="tools-title">
+          <h2 id="tools-title">The 13 tools, and when {h.name} calls them</h2>
+          <div class="ag-table-wrap">
+            <table class="ag-table">
+              <thead><tr><th scope="col">Tool</th><th scope="col">What it returns</th><th scope="col">When {h.name} uses it</th></tr></thead>
+              <tbody>{TOOLS.map((t) => <tr><td><code>{t.name}</code></td><td data-label="Returns">{t.what}</td><td data-label={`When ${h.name} uses it`}>{coding ? t.coding : t.chat}</td></tr>)}</tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="ag-section ag-prose" id="timing" aria-labelledby="timing-title">
+          <h2 id="timing-title">How the blueprint times your video</h2>
+          <p>A reference video is measured shot by shot: where each shot starts and ends, how it enters and how much of the frame moves. <code>kuchi_plan_remake</code> maps those shots onto your target length, between {PLAN_LIMITS.minSeconds} and {PLAN_LIMITS.maxSeconds} seconds, at the frame rate you will render ({PLAN_LIMITS.minFps} to {PLAN_LIMITS.maxFps} fps, the reference's own by default).</p>
+          <p>If your length is at least 75% of the reference's, every shot is kept and re-timed by the same factor (mode <code>retimed</code>). If it is much shorter, speeding everything up would wreck the rhythm, so the plan keeps an evenly spaced subset of shots, at least three, and re-times those instead (mode <code>condensed</code>). Either way every shot starts on a whole frame and lasts at least one, so <code>start_frame</code> and <code>end_frame</code> are exact integers {coding ? `${h.name} can place directly` : 'a coding agent can place directly'}; no rounding happens later.</p>
+          <p>Each shot also carries <code>compare_at_s</code>: the moment in your video that matches the reference frame shown on the storyboard, so the side-by-side check compares like with like. <code>precision</code> says whether every shot was classified (<code>analysed</code>), some were (<code>partly_analysed</code>) or none were (<code>timing_only</code>); shots without a kind keep their timing and get placeholder content until {h.name} classifies them. One shot from a blueprint:</p>
+          <div class="ag-code"><pre><code>{SAMPLE_SHOT}</code></pre></div>
+          {coding ? (
+            <Fragment>
+              <p>In Remotion the blueprint maps one to one onto a composition and a <code>&lt;Sequence&gt;</code> per shot. Saving the plan as <code>plan.json</code> and reading the frames from it means {h.name} never retypes a number:</p>
+              <div class="ag-code"><pre><code>{remotionMap}</code></pre><button type="button" class="ag-copy" data-copy-text={remotionMap} aria-label="Copy" title="Copy" set:html={copyIcon} /></div>
+              <p>Use 1080×1920 for 9:16 and 1080×1080 for 1:1. Inside a <code>&lt;Sequence&gt;</code>, <code>useCurrentFrame()</code> starts at 0, so each shot's entrance animation is written relative to the shot, not to the whole video.</p>
+            </Fragment>
+          ) : (
+            <p>{h.name} does not render the file. Ask it for the blueprint as JSON and give it to a coding agent such as <a href="/agents/claude-code">Claude Code</a> or <a href="/agents/codex">Codex</a>: each shot becomes a Remotion <code>&lt;Sequence&gt;</code> starting at <code>start_frame</code> and lasting <code>end_frame − start_frame + 1</code> frames, inside a composition whose length is the blueprint's <code>frames</code>.</p>
+          )}
+        </section>
+
+        <section class="ag-section" id="shot-kinds" aria-labelledby="kinds-title">
+          <h2 id="kinds-title">The 14 shot kinds {h.name} classifies</h2>
+          <p class="ag-note">While studying the storyboard, {h.name} gives every reference shot one kind. The kind decides what of yours replaces it.</p>
+          <div class="ag-table-wrap">
+            <table class="ag-table">
+              <thead><tr><th scope="col">Kind</th><th scope="col">In the reference</th><th scope="col">In your video</th></tr></thead>
+              <tbody>{SHOT_KINDS.map(([k, look, fill]) => <tr><td><code>{k}</code></td><td data-label="In the reference">{look}</td><td data-label="In your video">{fill}</td></tr>)}</tbody>
+            </table>
+          </div>
+          <h3 class="ag-h3">Entrances and motion</h3>
+          <div class="ag-table-wrap">
+            <table class="ag-table">
+              <thead><tr><th scope="col">Value</th><th scope="col">Meaning</th></tr></thead>
+              <tbody>
+                {ENTRANCES.map(([k, v]) => <tr><td><code>enters: {k}</code></td><td>{v}</td></tr>)}
+                {MOTION.map(([k, v]) => <tr><td><code>motion: {k}</code></td><td>{v[0].toUpperCase() + v.slice(1)}.</td></tr>)}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="ag-section ag-prose" id="check" aria-labelledby="check-title">
+          <h2 id="check-title">What the check catches before you ship</h2>
+          <p><code>kuchi_check_remake</code> takes the shot list {coding ? `${h.name} built` : 'the build used'}: each shot's start and end in seconds, the <code>reference_shot</code> it rebuilds, how it enters, every line of on-screen text, and where each asset came from (<code>user</code>, <code>generated</code>, <code>stock</code>, <code>placeholder</code> or <code>reference</code>). It returns <code>passed</code>, errors and warnings by shot, and <code>compare_frames</code>.</p>
+          <ul class="ag-list">
+            <li>Text that carries over the reference's brand, product names or slogans.</li>
+            <li>Any asset taken from the reference video: footage, UI, characters or music.</li>
+            <li>Generated logos or generated product UI, which should always come from you.</li>
+            <li>Placeholders still on screen.</li>
+            <li>Gaps or overlaps in the timeline, and shots whose length or entrance drifted from the reference shot they rebuild.</li>
+          </ul>
+          <p>The check reads the shot list, not the file: the video never leaves {coding ? 'your machine' : 'the machine that renders it'}. {coding ? `${h.name} then renders a still at each compare_frames time and sets it beside the reference storyboard, which catches layout drift a quick watch misses.` : 'The coding agent that builds the video runs the check again on its own shot list.'}</p>
+        </section>
+
+        <section class="ag-section" id="troubleshooting" aria-labelledby="trouble-title">
+          <h2 id="trouble-title">Troubleshooting {h.name}</h2>
+          <div class="ag-table-wrap">
+            <table class="ag-table">
+              <thead><tr><th scope="col">Symptom</th><th scope="col">Fix</th></tr></thead>
+              <tbody>{troubleshoot.map(([a, b]) => <tr><td set:html={inline(a)} /><td data-label="Fix" set:html={inline(b)} /></tr>)}</tbody>
+            </table>
+          </div>
+        </section>
       </div>
 
       <aside class="ag-side" aria-label="Setup prompt">
@@ -167,6 +310,8 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
       {faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}
     </section>
 
+    <div class="ag-wide"><AuthorByline variant="card" /></div>
+
     <nav class="ag-wide" aria-labelledby="others-title">
       <div class="section-heading"><h2 id="others-title">Use Kuchi with another agent</h2><a href="/agents">All agents →</a></div>
       <ul class="ag-others">
@@ -196,6 +341,29 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
   .ag-hero { max-width: 760px; margin-bottom: 48px; }
   .ag-mark { width: 52px; height: 52px; display: grid; place-items: center; border: 1px solid var(--k-line); border-radius: 14px; background: var(--k-paper); margin-bottom: 18px; }
   .ag-kicker { font-size: 13px; color: var(--k-muted); margin: 0 0 8px; }
+  .ag-prose p { margin: 0 0 14px; line-height: 1.7; color: var(--k-soft); }
+  .ag-prose p:last-child { margin-bottom: 0; }
+  .ag-prose code, .ag-table code, .ag-note code { font-family: var(--k-mono); font-size: 0.86em; overflow-wrap: anywhere; }
+  .ag-prose a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  .ag-prose .ag-list { margin: 0 0 14px; }
+  .ag-h3 { font-size: 16px; margin: 24px 0 10px; }
+  .ag-table-wrap { overflow-x: auto; border: 1px solid var(--k-line); border-radius: 12px; }
+  .ag-table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.55; }
+  .ag-table th { text-align: left; font-weight: 600; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--k-muted); background: var(--k-wash); }
+  .ag-table th, .ag-table td { padding: 10px 12px; border-bottom: 1px solid var(--k-line); vertical-align: top; }
+  .ag-table tr:last-child td { border-bottom: 0; }
+  .ag-table td:first-child code { white-space: nowrap; }
+  @media (max-width: 640px) {
+    .ag-table thead { display: none; }
+    .ag-table tr { display: block; padding: 12px; border-bottom: 1px solid var(--k-line); }
+    .ag-table tr:last-child { border-bottom: 0; }
+    .ag-table td { display: block; padding: 0; border: 0; }
+    .ag-table td:first-child { font-weight: 600; color: var(--k-ink); margin-bottom: 4px; }
+    .ag-table td + td { margin-top: 6px; color: var(--k-soft); }
+    .ag-table td[data-label]::before { content: attr(data-label) ': '; font-size: 12px; font-weight: 600; color: var(--k-muted); }
+  }
+  .ag-guide { margin: 16px 0 0; font-size: 14px; color: var(--k-muted, #6b6b6b); }
+  .ag-guide a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
   .ag-hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -0.04em; margin: 0 0 18px; }
   .ag-lede { font-size: 17px; line-height: 1.6; color: var(--k-soft); margin: 0 0 12px; }
   .ag-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }

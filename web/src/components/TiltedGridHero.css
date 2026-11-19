@@ -1,0 +1,358 @@
+/* TiltedGridHero: the curved poster wall behind the hero, and the theater it opens.
+   Plain CSS 3D. The wall is a container (container-type: size), so every length below is
+   in cqw of the hero itself: the wall keeps its shape at any width, and the container
+   queries at the end change the tile size and how many columns show by the hero's own
+   proportions, not the window's.
+
+   Geometry: each column is pushed back by --tg-r and turned by --i x --tg-step about the
+   centre, which puts the columns on the inside of a cylinder around the viewer. The
+   middle columns sit deep and small behind the headline, the outer ones lean in, large.
+   --tg-step is the angle one column plus its gap covers: (w + gap) / r radians. */
+
+.tg {
+  --tg-w: 14cqw;
+  --tg-gap: 1.3cqw;
+  --tg-r: 52cqw;
+  --tg-step: 16.7deg;
+  --tg-persp: 70cqw;
+  --tg-tilt: 9deg;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+  pointer-events: auto; /* .intro-bg passes clicks through; the wall takes them */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tg-camera {
+  position: absolute;
+  inset: 0;
+  perspective: var(--tg-persp);
+  perspective-origin: 50% 46%;
+  animation: tg-enter 1.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.tg-world {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--tg-tilt) + var(--tg-pitch, 0deg))) rotateY(var(--tg-yaw, 0deg));
+  transition: transform 1.1s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.tg-col {
+  position: absolute;
+  top: 0;
+  left: calc(var(--tg-w) / -2);
+  width: var(--tg-w);
+  transform: rotateY(calc(var(--i) * var(--tg-step))) translateZ(calc(var(--tg-r) * -1));
+  backface-visibility: hidden;
+}
+
+/* Three copies of the column's tiles; drifting by exactly one copy loops without a seam. */
+.tg-track {
+  transform: translate3d(0, -33.333%, 0);
+  animation: tg-drift var(--dur, 60s) linear var(--delay, 0s) infinite;
+  will-change: transform;
+}
+.tg-track-down { animation-direction: reverse; }
+.tg[data-paused] .tg-track { animation-play-state: paused; }
+
+.tg-tile {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  margin-bottom: var(--tg-gap);
+  overflow: hidden;
+  border-radius: calc(var(--tg-w) * 0.065);
+  background: var(--k-thumb);
+  box-shadow: 0 0 0 1px var(--k-tile-ring);
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 220ms ease-out;
+}
+.tg-tile > img,
+.tg-tile > video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.tg-tile > video { opacity: 0; transition: opacity 320ms ease-out; }
+.tg-tile.is-live > video { opacity: 1; }
+
+@media (hover: hover) and (pointer: fine) {
+  /* The column under the pointer stops, so the tile you aim at stays put. */
+  .tg-col:hover .tg-track { animation-play-state: paused; }
+  .tg-tile:hover { transform: scale(1.045); box-shadow: 0 0 0 2px var(--k-accent), 0 18px 40px -18px rgba(0, 0, 0, 0.45); }
+}
+.tg-tile:active { transform: scale(0.98); }
+
+/* Keeps the headline, tagline and buttons readable: the page colour gathers in the
+   middle and thins out towards the edges, where the wall is brightest. */
+.tg-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 40% 50% at 50% 48%,
+      color-mix(in srgb, var(--k-paper) 95%, transparent) 0%,
+      color-mix(in srgb, var(--k-paper) 82%, transparent) 46%,
+      color-mix(in srgb, var(--k-paper) 30%, transparent) 78%,
+      transparent 100%),
+    color-mix(in srgb, var(--k-paper) 16%, transparent);
+}
+
+@keyframes tg-drift {
+  from { transform: translate3d(0, -33.333%, 0); }
+  to { transform: translate3d(0, -66.667%, 0); }
+}
+@keyframes tg-enter {
+  from { opacity: 0; transform: scale(1.08); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Squarer heroes (tablets, narrow windows): bigger tiles, nine columns. */
+@container (aspect-ratio < 1.25) {
+  .tg-col { --tg-w: 20cqw; --tg-gap: 1.8cqw; --tg-r: 56cqw; --tg-step: 22.3deg; }
+  .tg-col[data-ring="5"] { display: none; }
+}
+/* Tall heroes (phones): bigger still, seven columns, a longer lens. */
+@container (aspect-ratio < 0.8) {
+  .tg-col { --tg-w: 30cqw; --tg-gap: 2.6cqw; --tg-r: 62cqw; --tg-step: 30.1deg; }
+  .tg-camera { --tg-persp: 90cqw; }
+  .tg-col[data-ring="4"], .tg-col[data-ring="5"] { display: none; }
+  .tg-scrim {
+    background:
+      radial-gradient(ellipse 80% 36% at 50% 52%,
+        color-mix(in srgb, var(--k-paper) 94%, transparent) 0%,
+        color-mix(in srgb, var(--k-paper) 84%, transparent) 55%,
+        color-mix(in srgb, var(--k-paper) 35%, transparent) 85%,
+        transparent 100%),
+      color-mix(in srgb, var(--k-paper) 28%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tg-camera { animation: none; }
+  .tg-track { animation: none; }
+  .tg-world { transition: none; }
+}
+
+/* ---------------------------------------------------------------------------------------
+   The theater. Always dark, whatever the site theme: a screening room. The tokens are
+   reset to the dark set so the like/save buttons (lib/favorites.js markup) read on it. */
+
+.tgv {
+  --k-ink: #ededed; --k-muted: #a1a1a1; --k-line: #2a2a2a; --k-wash: rgba(255, 255, 255, 0.08);
+  --k-wash-hover: rgba(255, 255, 255, 0.14); --k-paper: #0c0c0e; --k-accent: #8aa4ff;
+  --tgv-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: transparent;
+  color: #f4f4f5;
+  font-family: var(--k-sans);
+  text-align: left;
+  color-scheme: dark;
+}
+.tgv::backdrop {
+  background: rgba(8, 8, 10, 0.8);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+          backdrop-filter: blur(18px) saturate(1.15);
+  animation: tgv-fade 240ms ease-out both;
+}
+.tgv.is-closing::backdrop { animation: tgv-fade-out 240ms ease-out both; }
+
+/* The video's own colours, blown up and blurred behind everything: the room takes on the
+   light of what is playing. */
+.tgv-glow {
+  position: absolute;
+  inset: -20%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(90px) saturate(1.6);
+  opacity: 0.4;
+  pointer-events: none;
+  animation: tgv-glow 600ms ease-out both; /* a light change, not UI motion */
+}
+
+.tgv-shell {
+  position: relative;
+  outline: none; /* focused on open, so Escape and the arrows work at once */
+  /* A veil over the glow: a bright video tints the room without washing it out. */
+  background: radial-gradient(ellipse 80% 70% at 50% 45%, rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.62));
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  justify-items: center;
+  gap: 14px;
+  padding: 14px 20px 18px;
+}
+
+.tgv-top { width: 100%; display: flex; align-items: center; gap: 16px; }
+.tgv-count { margin-right: auto; font: 500 13px/1 var(--k-mono); color: #a1a1a1; font-variant-numeric: tabular-nums; }
+.tgv-count strong { color: #f4f4f5; font-weight: 600; }
+.tgv-keys { font-size: 12.5px; color: #9a9a9a; }
+.tgv-keys kbd {
+  display: inline-grid; place-items: center; min-width: 22px; height: 20px; margin-right: 3px; padding: 0 5px;
+  border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 5px; font: 500 11px/1 var(--k-mono); color: #d4d4d4;
+}
+
+.tgv-stage { width: 100%; min-height: 0; display: flex; align-items: center; justify-content: center; gap: 28px; }
+
+.tgv-frame {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #000;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 40px 90px -30px rgba(0, 0, 0, 0.8);
+  transition: width 280ms var(--tgv-ease), height 280ms var(--tgv-ease);
+  touch-action: pan-y;
+}
+.tgv-video { display: block; width: 100%; height: 100%; object-fit: contain; background: #000; }
+.tgv-video[data-dir="next"] { animation: tgv-from-right 240ms var(--tgv-ease) both; }
+.tgv-video[data-dir="prev"] { animation: tgv-from-left 240ms var(--tgv-ease) both; }
+
+.tgv-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4f4f5;
+  cursor: pointer;
+  transition: background-color 160ms ease-out, transform 160ms var(--tgv-ease);
+}
+.tgv-nav { width: 52px; height: 52px; }
+.tgv-icon:active { transform: scale(0.94); }
+@media (hover: hover) and (pointer: fine) {
+  .tgv-icon:hover { background: rgba(255, 255, 255, 0.14); }
+}
+
+.tgv-info {
+  max-width: calc(100vw - 40px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  transition: width 280ms var(--tgv-ease);
+}
+.tgv-meta { min-width: 0; animation: tgv-fade 260ms ease-out both; }
+.tgv-meta h2 {
+  margin: 0;
+  overflow: hidden;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: #f4f4f5;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tgv-meta p { margin: 3px 0 0; font-size: 13px; color: #b4b4b4; }
+
+.tgv-actions { flex: none; display: flex; align-items: center; gap: 8px; }
+.tgv-fav { display: inline-flex; }
+.tgv-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #f4f4f5;
+  font: 500 13.5px/1 var(--k-sans);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 160ms ease-out, transform 160ms var(--tgv-ease);
+}
+.tgv-btn:hover { text-decoration: none; color: #fff; }
+.tgv-btn:active { transform: scale(0.97); }
+.tgv-btn-primary { border-color: transparent; background: #f4f4f5; color: #0a0a0a; min-width: 168px; justify-content: center; }
+.tgv-btn-primary:hover { color: #0a0a0a; }
+.tgv-btn-quiet { border-color: transparent; background: transparent; color: #c4c4c4; }
+@media (hover: hover) and (pointer: fine) {
+  .tgv-btn:hover { background: rgba(255, 255, 255, 0.14); }
+  .tgv-btn-primary:hover { background: #fff; }
+  .tgv-btn-quiet:hover { background: rgba(255, 255, 255, 0.06); }
+}
+
+.tgv-strip {
+  width: min(100%, 1180px);
+  display: flex;
+  gap: 8px;
+  padding: 6px 4px;
+  overflow-x: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.tgv-strip::-webkit-scrollbar { display: none; }
+.tgv-thumb {
+  flex: none;
+  position: relative;
+  width: 96px;
+  aspect-ratio: 16 / 10;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: #1b1b1b;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 200ms ease-out, transform 200ms var(--tgv-ease), box-shadow 200ms ease-out;
+}
+.tgv-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.tgv-thumb[aria-current="true"] { opacity: 1; transform: translateY(-2px); box-shadow: 0 0 0 2px #f4f4f5; }
+.tgv-thumb:active { transform: scale(0.96); }
+@media (hover: hover) and (pointer: fine) {
+  .tgv-thumb:hover { opacity: 0.85; }
+}
+
+/* Everything around the frame arrives just after it, and leaves first. */
+.tgv-top, .tgv-nav, .tgv-info, .tgv-strip { animation: tgv-rise 260ms var(--tgv-ease) 80ms both; }
+.tgv.is-closing :is(.tgv-top, .tgv-nav, .tgv-info, .tgv-strip, .tgv-glow) { animation: tgv-fade-out 160ms ease-out both; }
+
+@keyframes tgv-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tgv-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes tgv-glow { from { opacity: 0; } to { opacity: 0.4; } }
+@keyframes tgv-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes tgv-from-right { from { opacity: 0; transform: translateX(32px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes tgv-from-left { from { opacity: 0; transform: translateX(-32px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+
+/* Phones: arrows give way to swipes and the filmstrip, the details stack. */
+@media (max-width: 719px) {
+  .tgv-shell { padding: 12px 12px 14px; gap: 12px; }
+  .tgv-keys, .tgv-nav { display: none; }
+  .tgv-info { flex-direction: column; align-items: stretch; gap: 12px; }
+  .tgv-meta h2 { white-space: normal; }
+  .tgv-actions { flex-wrap: wrap; }
+  .tgv-btn-primary { flex: 1; }
+  .tgv-thumb { width: 78px; }
+}
+@media (hover: none) { .tgv-keys { display: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tgv-video[data-dir], .tgv-top, .tgv-nav, .tgv-info, .tgv-strip { animation: tgv-fade 200ms ease-out both; }
+  .tgv-frame, .tgv-info { transition: none; }
+}

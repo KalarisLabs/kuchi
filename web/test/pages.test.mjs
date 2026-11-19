@@ -36,14 +36,32 @@ test('every element id the scripts look up is rendered by the Astro components',
     const created = new Set([...source.matchAll(/\bid="([\w-]+)"/g)].map((m) => m[1]));
     for (const id of queried) {
       if (created.has(id)) continue;
-      const where = file === 'connect.js' || /^(total|delta)-/.test(id) ? index : videosPage;
+      const where = file === 'connect.js' ? index : videosPage;
       assert.match(where, new RegExp(`\\bid="${id}"`), `${file} needs #${id}, but the page that uses it does not render it`);
     }
   }
-  for (const id of ['delta-videos', 'delta-impressions']) assert.match(index, new RegExp(`\\bid="${id}"`), `index.html is missing #${id}`);
   for (const id of ['category', 'style', 'sort', 'search', 'collection', 'featured-video']) {
     assert.match(videosPage, new RegExp(`\\bid="${id}"`), `videos.html is missing #${id}`);
   }
+});
+
+test('the hero shows real usage (agents connected, site visits), not collection totals', async () => {
+  const { USAGE_BASELINE, readUsage, atLeastBaseline, USAGE_QUERY } = await import(new URL('src/lib/usage.js', web));
+  const hero = index.match(/<p class="intro-stats[\s\S]*?<\/p>/)?.[0] ?? '';
+  for (const [name, label] of [['agents', 'agents connected'], ['visits', 'site visits']]) {
+    const value = USAGE_BASELINE[name];
+    assert.match(hero, new RegExp(`data-count="${name}" data-value="${value}">${value.toLocaleString('en-US')}</strong> ${label}`));
+  }
+  assert.doesNotMatch(hero, /impressions|new every day|total-videos/);
+  // The live query reads PostHog with a server-side secret; the route is not under /relay (AGENTS.md).
+  assert.doesNotMatch(await read(web, 'src/pages/stats.json.ts'),/POSTHOG_PERSONAL_API_KEY\s*[:=]\s*['"]/);
+  assert.match(USAGE_QUERY, /\$mcp_initialize/);
+  assert.deepEqual(readUsage({ results: [[500, 1200]] }), { agents: 500, visits: 1200 });
+  assert.equal(readUsage({ results: [['x', 1]] }), null);
+  assert.equal(readUsage({ error: 'denied' }), null);
+  // Totals never fall below the baseline the page was built with.
+  assert.deepEqual(atLeastBaseline({ agents: 1, visits: 1 }), { agents: USAGE_BASELINE.agents, visits: USAGE_BASELINE.visits });
+  assert.deepEqual(atLeastBaseline(null), { agents: USAGE_BASELINE.agents, visits: USAGE_BASELINE.visits });
 });
 
 test('the collection on /videos keeps the structure and copy of the reference page', async () => {
@@ -99,12 +117,9 @@ test('the collection on /videos keeps the structure and copy of the reference pa
     'The collection on /videos and the reference page differ in elements, ids, classes or copy. If ../site/index.html changed, port the change into the Astro components.');
 });
 
-test('collection totals and filter options come from the catalog', async () => {
+test('collection count and filter options come from the catalog', async () => {
   const videos = JSON.parse(await read(dist, 'videos.json'));
-  const { compact } = await import(new URL('src/lib/format.js', web));
-  assert.match(index, new RegExp(`id="total-videos">${videos.length}<`));
   assert.match(videosPage, new RegExp(`id="result-count"[^>]*>${videos.length}<`));
-  assert.ok(index.includes(`id="total-impressions">${compact(videos.reduce((n, v) => n + (v.impressions ?? 0), 0))}<`));
   const options = (id) => [...videosPage.match(new RegExp(`<select id="${id}">([\\s\\S]*?)</select>`))[1].matchAll(/<option(?: value="[^"]*")?>([^<]*)</g)].map((m) => m[1].replace(/&amp;/g, '&'));
   assert.deepEqual(options('category').slice(1), [...new Set(videos.map((v) => v.category))].sort());
   assert.deepEqual(options('style').slice(1), [...new Set(videos.flatMap((v) => v.styles))].sort());
@@ -180,7 +195,9 @@ test('owner decisions of 2026-11-14: no Collection link, no video count or glow 
   for (const file of ['index.html', 'privacy.html']) {
     const footer = (await read(dist, file)).match(/<footer\b[\s\S]*?<\/footer>/)[0];
     assert.ok(!new RegExp(`\\b${videos.length} launch videos`).test(footer) && !/\d+ launch videos/.test(footer), `${file}: the footer must not state the number of videos`);
-    assert.ok(!footer.includes('footer-glow'), `${file}: the glow behind the footer wordmark was removed`);
+    assert.ok(!footer.includes('footer-glow'), `${file}: the old static glow behind the footer wordmark stays removed`);
+    // 2026-11-19: the hero's blue ASCII wash moved to the footer.
+    assert.ok(footer.includes('class="footer-wash"'), `${file}: the footer carries the blue ASCII wash`);
     // The wordmark is a canvas, with the live text kept as the no-JavaScript fallback.
     assert.match(footer, /<canvas class="footer-ascii"/);
     assert.match(footer, /class="footer-word"/);
@@ -345,13 +362,13 @@ test('the home page shows a handful of the newest videos and links the full coll
   assert.ok(!index.includes('id="collection"'), 'the full collection belongs on /videos');
 });
 
-test('masthead: Videos and Components with counts and icons, a search trigger, no Agent link', async () => {
+test('masthead: Videos, Components, Agents and Blog with icons, a search trigger, no #agent anchor', async () => {
   for (const file of ['index.html', 'videos.html', 'components.html', 'privacy.html']) {
     const masthead = (await read(dist, file)).match(/<header class="masthead[\s"][\s\S]*?<\/header>/)[0];
     const nav = masthead.match(/<nav class="site-nav"[\s\S]*?<\/nav>/)[0];
-    assert.ok(nav.includes('href="/videos"') && nav.includes('href="/components"'), `${file}: nav links`);
+    for (const href of ['/videos', '/components', '/agents', '/blog']) assert.ok(nav.includes(`href="${href}"`), `${file}: nav link ${href}`);
     assert.ok(!/>Agent</.test(nav) && !nav.includes('#agent'), `${file}: the Agent link was removed from the nav`);
-    assert.equal(nav.match(/<svg/g)?.length, 2, `${file}: each nav item has an icon`);
+    assert.equal(nav.match(/<svg/g)?.length, 4, `${file}: each nav item has an icon`);
     assert.ok(!nav.includes('38+'), `${file}: stale component badge`);
     assert.match(masthead, /data-cmdk-open/, `${file}: search trigger`);
     assert.match(masthead, /<dialog id="cmdk"/, `${file}: command palette`);
@@ -412,6 +429,9 @@ test('every agent harness has an indexable guide: canonical, HowTo/FAQ JSON-LD, 
     assert.deepEqual(ld.map((x) => x['@type']), ['HowTo', 'FAQPage', 'ItemList', 'BreadcrumbList'], `${slug}: JSON-LD types`);
     assert.ok(html.includes('https://kuchi.kalarislabs.com/mcp'), `${slug}: MCP URL`);
     assert.ok(html.includes('id="install"'), `${slug}: install section`);
+    // Owner, 2026-11-19: every guide and post is by Sayan Chowdhury, linked to his profile.
+    assert.ok(html.includes('href="https://kalarislabs.com/team/sayan-chowdhury" rel="author"'), `${slug}: author byline`);
+    assert.equal(ld[0].author?.name, 'Sayan Chowdhury', `${slug}: HowTo author`);
     assert.ok((html.match(/class="video-card"/g) ?? []).length >= 6, `${slug}: featured videos`);
     assert.ok(sitemap.includes(`<loc>${url}</loc>`), `${slug}: not in the sitemap`);
     assert.ok(hrefs.has(`/agents/${slug}`), `${slug}: not in search`);
@@ -442,6 +462,8 @@ test('every blog post is indexable: canonical, BlogPosting/FAQ JSON-LD, unique t
     const types = ld.map((x) => x['@type']);
     assert.deepEqual(types.slice(0, 3), ['BlogPosting', 'FAQPage', 'BreadcrumbList'], `${slug}: JSON-LD types`);
     assert.ok(ld[1].mainEntity.length >= 3, `${slug}: FAQ`);
+    assert.ok(html.includes('href="https://kalarislabs.com/team/sayan-chowdhury" rel="author"'), `${slug}: author byline`);
+    assert.equal(ld[0].author?.['@type'], 'Person', `${slug}: BlogPosting author`);
     assert.ok(sitemap.includes(`<loc>${url}</loc>`), `${slug}: not in the sitemap`);
     assert.ok(hrefs.has(`/blog/${slug}`), `${slug}: not in search`);
     // Owner decisions of 2026-11-14: no shell downloads of SKILL.md, no GitHub links.

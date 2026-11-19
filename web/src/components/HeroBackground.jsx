@@ -1,6 +1,8 @@
-// Hero background: GradientASCII, switched with the site theme. On light it is a blue wash
+// Blue ASCII wash: GradientASCII, switched with the site theme. On light it is a blue wash
 // with darker glyphs (lightMode); on dark the vibrant blues glow over the #121212 page. It
-// watches <html data-theme> so the toggle in the header changes it live.
+// watches <html data-theme> so the toggle in the header changes it live. It used to sit
+// behind the hero; since 2026-11-19 it is the footer's backdrop (SiteFooter), where
+// `forceDark` keeps the dark tuning because the footer is dark in both themes.
 //
 // Active across all devices: desktop, tablet, touchscreens, and mobile.
 // Graceful fallback to static CSS gradient (.intro-bg-static) when WebGL2 is unavailable,
@@ -40,7 +42,7 @@ const DARK = {
 
 const Static = () => <div className="intro-bg-static" />;
 
-export default function HeroBackground() {
+export default function HeroBackground({ forceDark = false }) {
   const [dark, setDark] = useState(false);
   const [animate, setAnimate] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -69,7 +71,7 @@ export default function HeroBackground() {
   return (
     <Suspense fallback={<Static />}>
       <GradientASCII
-        {...(dark ? DARK : LIGHT)}
+        {...(dark || forceDark ? DARK : LIGHT)}
         shape="horizon"
         characters=" =+xX0S8#@"
         cellSize={isMobile ? 14 : 18}

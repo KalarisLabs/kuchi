@@ -4,12 +4,15 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import SkipLink from '../../components/SkipLink.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
+import SectionNav from '../../components/SectionNav';
 import SiteFooter from '../../components/SiteFooter.astro';
 import Toast from '../../components/Toast.astro';
 import ogImage from '../../assets/og-image.jpg';
+import AuthorByline from '../../components/AuthorByline.astro';
+import { AUTHOR, authorLd } from '../../lib/authors';
 import { SITE_URL } from '../../lib/video-links.js';
 import { posts, postPath, postUrl, inline, type Post } from '../../lib/blog';
-import { SETUP_PROMPT } from '../../lib/harnesses';
+import { SETUP_PROMPT, harnesses } from '../../lib/harnesses';
 
 export const prerender = true;
 
@@ -21,7 +24,14 @@ const { post } = Astro.props as { post: Post };
 const url = postUrl(post);
 const image = new URL(ogImage.src, SITE_URL).href;
 const toc = post.body.filter((b): b is Extract<Post['body'][number], { type: 'h2' }> => b.type === 'h2');
-const others = posts.filter((p) => p.slug !== post.slug);
+// Keep reading: the general guides, then the next three posts about the same kind of agent
+// (coding or chat), so every post links a few neighbours without listing all thirty.
+const kindOf = (p: Post) => harnesses.find((h) => h.slug === p.harness)?.kind;
+const core = posts.filter((p) => !p.harness && p.slug !== post.slug);
+const sameKind = posts.filter((p) => p.harness && kindOf(p) === kindOf(post));
+const at = sameKind.indexOf(post);
+const neighbours = post.harness ? [1, 2, 3].map((n) => sameKind[(at + n) % sameKind.length]).filter((p) => p !== post) : [];
+const others = [...new Set([...core, ...neighbours])];
 const longDate = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 const org = { '@type': 'Organization', name: 'Kalaris Labs', url: 'https://kalarislabs.com' };
 
@@ -37,7 +47,7 @@ const jsonLd: Record<string, unknown>[] = [
     datePublished: post.published,
     dateModified: post.updated,
     keywords: post.keywords.join(', '),
-    author: org,
+    author: authorLd(new URL(AUTHOR.photo.src, SITE_URL).href),
     publisher: { ...org, logo: { '@type': 'ImageObject', url: `${SITE_URL}/favicon-180.png` } },
     isPartOf: { '@type': 'Blog', name: 'Kuchi blog', url: `${SITE_URL}/blog` },
   },
@@ -72,6 +82,7 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
   <SkipLink href="#post-title" label="Skip to the article" />
   <SiteHeader />
   <main class="document bp">
+    <SectionNav client:load pathname={Astro.url.pathname} />
     <nav class="crumbs" aria-label="Breadcrumb">
       <a href="/">Kuchi</a><span aria-hidden="true">/</span>
       <a href="/blog">Blog</a><span aria-hidden="true">/</span>
@@ -83,6 +94,7 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
         <header class="bp-head">
           <p class="bp-meta"><time datetime={post.published}>{longDate(post.published)}</time><span aria-hidden="true">·</span>{post.minutes} min read</p>
           <h1 id="post-title">{post.heading}</h1>
+          <AuthorByline date={post.updated} />
         </header>
 
         <div class="bp-body">
@@ -117,6 +129,8 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
           <h2 id="faq-title">Questions</h2>
           {post.faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}
         </section>
+
+        <AuthorByline variant="card" />
       </article>
 
       <aside class="bp-side" aria-label="On this page">

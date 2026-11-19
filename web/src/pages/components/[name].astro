@@ -6,6 +6,7 @@ import SkipLink from '../../components/SkipLink.astro';
 import SiteHeader from '../../components/SiteHeader.astro';
 import SiteFooter from '../../components/SiteFooter.astro';
 import Toast from '../../components/Toast.astro';
+import SourceCode from '../../components/SourceCode';
 import { favButtonsHTML } from '../../lib/favorites.js';
 import {
   components,
@@ -17,6 +18,7 @@ import {
   SITE,
   type RegistryItem,
 } from '../../lib/components-catalog';
+import { componentPrompt } from '../../lib/component-prompts';
 
 export const prerender = true;
 
@@ -41,6 +43,7 @@ const files = item.files.map((file) => ({
 
 const category = categoryLabels[item.category] || item.category;
 const cmd = installCommand(item.name);
+const agentPrompt = componentPrompt(item.name, item.title);
 const related = components.filter((c) => c.category === item.category && c.name !== item.name).slice(0, 8);
 const npmDeps = item.dependencies;
 const kuchiDeps = item.registryDependencies;
@@ -106,16 +109,16 @@ const jsonLd = [
       <span aria-current="page">{item.title}</span>
     </nav>
 
-    <div class="cd-grid">
-      <div class="cd-left">
-        <header class="cd-head">
-          <span class="cd-cat">{category}</span>
-          <h1 id="cd-title">{item.title}</h1>
-          <p class="cd-desc">{item.description}</p>
-          <Fragment set:html={favButtonsHTML('component', item.name, item.title, 'fav-labeled')} />
-        </header>
+    <header class="cd-head">
+      <span class="cd-cat">{category}</span>
+      <h1 id="cd-title">{item.title}</h1>
+      <p class="cd-desc">{item.description}</p>
+      <Fragment set:html={favButtonsHTML('component', item.name, item.title, 'fav-labeled')} />
+    </header>
 
-        <figure class="cd-player">
+    <div class="cd-grid">
+      <figure class="cd-player">
+        <div class="cd-stage">
           <video
             src={videoUrl(item.name)}
             poster={posterUrl(item.name)}
@@ -127,9 +130,9 @@ const jsonLd = [
             width="640"
             height="360"
           ></video>
-          <figcaption>{item.title} preview, rendered with Remotion.</figcaption>
-        </figure>
-      </div>
+        </div>
+        <figcaption>{item.title} preview, rendered with Remotion.</figcaption>
+      </figure>
 
       <aside class="cd-side">
         <section aria-labelledby="cd-install">
@@ -141,6 +144,14 @@ const jsonLd = [
           </div>
         </section>
 
+        <section aria-labelledby="cd-agents">
+          <h2 id="cd-agents">Install with your agent</h2>
+          <p>Paste this into Claude Code, Codex, Cursor or any agent that can run commands.</p>
+          <pre class="cd-prompt" tabindex="0">{agentPrompt}</pre>
+          <button type="button" class="pill pill-secondary cd-prompt-copy" data-copy-cmd={agentPrompt} data-copied="Prompt copied. Paste it into your agent.">Copy prompt</button>
+        </section>
+
+        {(npmDeps.length > 0 || kuchiDeps.length > 0) && (
         <section aria-labelledby="cd-deps">
           <h2 id="cd-deps">Dependencies</h2>
           <ul class="cd-deps">
@@ -155,26 +166,18 @@ const jsonLd = [
             ))}
           </ul>
         </section>
+        )}
 
-        <section aria-labelledby="cd-agents">
-          <h2 id="cd-agents">For agents</h2>
-          <p>
-            Agents connected to the Kuchi MCP server can find this component with
-            <code>kuchi_list_components</code> and read its source with
-            <code>kuchi_get_component</code> (name <code>{item.name}</code>). The raw registry item is at
-            <a href={`/r/${item.name}.json`}>/r/{item.name}.json</a>.
-          </p>
-        </section>
+        <p class="cd-registry">Registry item: <a href={`/r/${item.name}.json`}>/r/{item.name}.json</a></p>
       </aside>
     </div>
 
     <section class="cd-source" aria-labelledby="cd-source-title">
       <h2 id="cd-source-title">Source</h2>
       {files.map((file) => (
-        <details class="cd-file" open={file === files[0]}>
-          <summary><code>{file.path}</code></summary>
-          <pre tabindex="0"><code>{file.code}</code></pre>
-        </details>
+        <div class="cd-file">
+          <SourceCode client:visible code={file.code} filename={file.path} />
+        </div>
       ))}
     </section>
 
@@ -214,7 +217,7 @@ const jsonLd = [
       button.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(button.dataset.copyCmd ?? '');
-          showToast('Install command copied');
+          showToast(button.dataset.copied ?? 'Install command copied');
         } catch {
           showToast('Copy failed. Select the command and copy it.');
         }
@@ -224,9 +227,13 @@ const jsonLd = [
 </BaseLayout>
 
 <style>
+  /* One centred column like other component libraries: header, then the preview stage with the
+     install panel beside it, then the source. */
   .cd-page {
     width: 100%;
-    padding: 28px clamp(16px, 2.6vw, 44px) 96px;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 28px clamp(16px, 2.6vw, 40px) 96px;
   }
   .cd-crumbs {
     display: flex;
@@ -240,7 +247,7 @@ const jsonLd = [
   .cd-crumbs a:hover { color: var(--k-ink, currentColor); text-decoration: underline; }
   .cd-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
     gap: clamp(24px, 3vw, 48px);
     align-items: start;
   }
@@ -257,18 +264,32 @@ const jsonLd = [
     line-height: 1.05;
     letter-spacing: -0.03em;
   }
-  .cd-desc { max-width: 70ch; color: var(--k-muted); line-height: 1.6; margin: 0 0 24px; }
-  .cd-player { margin: 0; }
-  .cd-player video {
+  .cd-head { margin-bottom: 28px; }
+  .cd-desc { max-width: 70ch; color: var(--k-muted); line-height: 1.6; margin: 0 0 18px; }
+  .cd-player { margin: 0; min-width: 0; }
+  /* The preview sits centred on a framed, dotted stage. */
+  .cd-stage {
+    display: grid;
+    place-items: center;
+    padding: clamp(16px, 4vw, 48px);
+    border: 1px solid var(--k-line);
+    border-radius: 18px;
+    background-color: var(--k-wash);
+    background-image: radial-gradient(color-mix(in srgb, var(--k-ink) 14%, transparent) 1px, transparent 1px);
+    background-size: 16px 16px;
+    background-position: center;
+  }
+  .cd-stage video {
     display: block;
     width: 100%;
+    max-width: 880px;
     height: auto;
     aspect-ratio: 16 / 9;
     border-radius: 12px;
-    border: 1px solid var(--k-line);
     background: #000;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 24px 48px -24px rgb(0 0 0 / 0.45);
   }
-  .cd-player figcaption { margin-top: 8px; font-size: 13px; color: var(--k-muted); }
+  .cd-player figcaption { margin-top: 10px; font-size: 13px; color: var(--k-muted); text-align: center; }
   .cd-side { display: flex; flex-direction: column; gap: 28px; position: sticky; top: 24px; }
   .cd-side h2, .cd-source h2, .cd-related h2 { font-size: 16px; margin: 0 0 10px; }
   .cd-side p { margin: 0 0 12px; color: var(--k-muted); line-height: 1.55; font-size: 14px; }
@@ -284,17 +305,15 @@ const jsonLd = [
   .cd-cmd code { flex: 1; min-width: 0; overflow-wrap: anywhere; font-size: 12.5px; }
   .cd-deps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
   .cd-dep-note { margin-left: 8px; color: var(--k-muted); font-size: 12px; }
-  .cd-source { margin-top: 56px; }
-  .cd-file { border: 1px solid var(--k-line); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
-  .cd-file summary { cursor: pointer; padding: 10px 14px; font-size: 13px; background: var(--k-wash); }
-  .cd-file pre {
-    margin: 0;
-    max-height: 640px;
-    overflow: auto;
-    padding: 16px;
-    font-size: 12.5px;
-    line-height: 1.55;
+  .cd-prompt {
+    margin: 0 0 10px; padding: 12px 14px; border-radius: 12px;
+    border: 1px solid var(--k-line); background: var(--k-wash);
+    font-family: var(--font-prompt); font-size: 12.5px; line-height: 1.6; color: var(--k-ink);
+    white-space: pre-wrap; overflow-wrap: anywhere;
   }
+  .cd-registry { font-size: 13px !important; }
+  .cd-source { margin-top: 56px; }
+  .cd-file { margin-bottom: 14px; }
   .cd-related { margin-top: 56px; }
   .cd-related ul {
     list-style: none;

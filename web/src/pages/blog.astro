@@ -3,15 +3,24 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SkipLink from '../components/SkipLink.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import SectionNav from '../components/SectionNav';
 import SiteFooter from '../components/SiteFooter.astro';
 import Toast from '../components/Toast.astro';
 import { SITE_URL } from '../lib/video-links.js';
-import { posts, postPath, postUrl } from '../lib/blog';
+import { posts, postPath, postUrl, type Post } from '../lib/blog';
+import { harnesses } from '../lib/harnesses';
 
 export const prerender = true;
 
 const sorted = [...posts].sort((a, b) => b.published.localeCompare(a.published));
-const description = 'Guides to making launch videos with AI agents: connecting the Kuchi MCP server and agent skill, installing Remotion components over MCP, and the full launch-video workflow.';
+// Three shelves: the general guides, then one post per coding agent, then one per chat app.
+const kindOf = (p: Post) => harnesses.find((h) => h.slug === p.harness)?.kind;
+const shelves = [
+  { id: 'guides', title: 'Guides', items: sorted.filter((p) => !p.harness) },
+  { id: 'coding', title: 'Build the video with a coding agent', items: sorted.filter((p) => kindOf(p) === 'coding') },
+  { id: 'chat', title: 'Connect a chat app', items: sorted.filter((p) => kindOf(p) === 'chat') },
+].filter((s) => s.items.length);
+const description = 'Guides to making product launch videos with AI agents: Remotion with Claude Code, Codex, Cursor and 18 more coding agents, custom MCP connectors for ChatGPT, Claude, Grok and other chat apps, and the full workflow.';
 const longDate = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
 const jsonLd = [
   {
@@ -37,6 +46,7 @@ const jsonLd = [
   <SkipLink href="#blog-title" label="Skip to the posts" />
   <SiteHeader />
   <main class="document bl">
+    <SectionNav client:load pathname={Astro.url.pathname} />
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Kuchi</a><span aria-hidden="true">/</span><span aria-current="page">Blog</span></nav>
 
     <header class="bl-hero">
@@ -44,18 +54,23 @@ const jsonLd = [
       <p>How to connect Kuchi to your agent, how agents use its components, and what making a launch video looks like from the first prompt to the rendered file.</p>
     </header>
 
-    <ul class="bl-list">
-      {sorted.map((p) => (
-        <li>
-          <a class="bl-card" href={postPath(p)}>
-            <p class="bl-meta"><time datetime={p.published}>{longDate(p.published)}</time><span aria-hidden="true">·</span>{p.minutes} min read</p>
-            <h2>{p.heading}</h2>
-            <p class="bl-summary">{p.summary}</p>
-            <span class="bl-read">Read <span aria-hidden="true">→</span></span>
-          </a>
-        </li>
-      ))}
-    </ul>
+    {shelves.map((shelf) => (
+      <section class="bl-shelf" aria-labelledby={`shelf-${shelf.id}`}>
+        <h2 class="bl-shelf-title" id={`shelf-${shelf.id}`}>{shelf.title}</h2>
+        <ul class="bl-list">
+          {shelf.items.map((p) => (
+            <li>
+              <a class="bl-card" href={postPath(p)}>
+                <p class="bl-meta"><time datetime={p.published}>{longDate(p.published)}</time><span aria-hidden="true">·</span>{p.minutes} min read</p>
+                <h3>{p.heading}</h3>
+                <p class="bl-summary">{p.summary}</p>
+                <span class="bl-read">Read <span aria-hidden="true">→</span></span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
   </main>
 
   <Toast />
@@ -81,7 +96,8 @@ const jsonLd = [
   .bl-card { display: block; padding: 22px; border: 1px solid var(--k-line); border-radius: 16px; color: inherit; text-decoration: none; transition: background-color 150ms ease, border-color 150ms ease; }
   .bl-card:hover { background: var(--k-wash); text-decoration: none; }
   .bl-meta { display: flex; gap: 8px; font-size: 13px; color: var(--k-muted); margin: 0 0 8px; }
-  .bl-card h2 { font-size: 22px; line-height: 1.25; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--k-ink); text-wrap: balance; }
+  .bl-shelf-title { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--k-muted); margin: 0 0 14px; }
+  .bl-card h3 { font-size: 22px; line-height: 1.25; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--k-ink); text-wrap: balance; }
   .bl-summary { margin: 0 0 12px; color: var(--k-soft); line-height: 1.55; }
   .bl-read { font-size: 14px; font-weight: 600; color: var(--k-ink); }
 </style>

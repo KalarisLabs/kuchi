@@ -4,6 +4,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SkipLink from '../components/SkipLink.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import SectionNav from '../components/SectionNav';
 import SiteFooter from '../components/SiteFooter.astro';
 import Toast from '../components/Toast.astro';
 import { SITE_URL } from '../lib/video-links.js';
@@ -16,7 +17,7 @@ const groups = [
   { title: 'Chat apps', sub: 'Choose a template, study it and get a frame-timed plan to hand to a coding agent.', items: harnesses.filter((h) => h.kind === 'chat') },
 ];
 
-const description = 'Make a product launch video with your AI agent. Step-by-step guides to connect Kuchi to Claude Code, Codex, Cursor, VS Code, Gemini CLI, Claude, ChatGPT and Grok.';
+const description = 'Make a product launch video with your AI agent. Step-by-step guides to connect Kuchi to Claude Code, Codex, Cursor, Devin, Grok Build, OpenCode, Pi, Muse Code, T3 Code, ChatGPT, Claude, Grok, Le Chat and more.';
 const jsonLd = [
   {
     '@context': 'https://schema.org',
@@ -44,6 +45,7 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
   <SkipLink href="#agents-title" label="Skip to the agents" />
   <SiteHeader />
   <main class="document ah">
+    <SectionNav client:load pathname={Astro.url.pathname} />
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Kuchi</a><span aria-hidden="true">/</span><span aria-current="page">Agents</span></nav>
 
     <header class="ah-hero">
@@ -71,7 +73,7 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
 
     <section class="ah-any" aria-labelledby="any-title">
       <h2 id="any-title">Any other MCP client</h2>
-      <p>Raft, Windsurf, Antigravity and any app that speaks MCP over Streamable HTTP can use Kuchi. Add this URL with no authentication, then paste the setup prompt.</p>
+      <p>Raft, Windsurf, Roo Code, Goose and any app that speaks MCP over Streamable HTTP can use Kuchi. Add this URL with no authentication, then paste the setup prompt.</p>
       <div class="ah-code"><code>{MCP_URL}</code><button type="button" class="ag-copy" data-copy-text={MCP_URL} aria-label="Copy MCP server URL" title="Copy" set:html={copyIcon} /></div>
       <button type="button" class="ah-copy-wide ag-copy-wide" data-copy-text={SETUP_PROMPT}><Fragment set:html={copyIcon} /><span>Copy setup prompt</span></button>
     </section>

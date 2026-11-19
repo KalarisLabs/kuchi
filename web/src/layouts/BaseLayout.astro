@@ -4,6 +4,7 @@
 import '../styles/global.css';
 import '../styles/polish.css';
 import ogImage from '../assets/og-image.jpg';
+import SiteSplash from '../components/SiteSplash.astro';
 
 interface Props {
   title: string;
@@ -44,6 +45,10 @@ const image = Astro.props.image ?? new URL(ogImage.src, Astro.site).href;
     <meta name="theme-color" content="#ffffff">
     <!-- Theme before first paint: the saved choice (SiteHeader toggle), else the system setting. -->
     <script is:inline>(function(){var t=null;try{t=localStorage.getItem("kuchi-theme")}catch(e){}if(t!=="light"&&t!=="dark")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t;})();</script>
+    <!-- Logo splash (SiteSplash): only on the first page of a browser session, never when moving
+         between pages (owner's instruction, 2026-11-19). Never under reduced motion or for
+         automated browsers, and always cleared after 5 s whatever happens. -->
+    <script is:inline>(function(){var d=document.documentElement;try{if(sessionStorage.getItem("kuchi-splash"))return;sessionStorage.setItem("kuchi-splash","1")}catch(e){return}if(navigator.webdriver||matchMedia("(prefers-reduced-motion: reduce)").matches)return;d.dataset.splash="1";setTimeout(function(){delete d.dataset.splash},5000)})();</script>
     <meta name="description" content={description}>
     <title>{title}</title>
     <link rel="canonical" href={canonical}>
@@ -70,6 +75,7 @@ const image = Astro.props.image ?? new URL(ogImage.src, Astro.site).href;
     <link rel="apple-touch-icon" href="/favicon-180.png?v=popcorn-2">
   </head>
   <body>
+    <SiteSplash />
     <slot />
     <script>
       import { initSmoothScroll } from '../scripts/motion';

@@ -1201,7 +1201,8 @@ const VIDEO_PLAYER_STYLES = /* css */ `
 }
 @media (min-width: 1024px) {
   .media-01.has-details.details-side {
-    --side-space: clamp(320px, 27vw, 380px);
+    /* Wide enough for the whole prompt in Geist Mono without a scroll box (owner, 2026-11-19). */
+    --side-space: clamp(360px, 31vw, 440px);
 
     .frame {
       width: min(
@@ -1219,7 +1220,12 @@ const VIDEO_PLAYER_STYLES = /* css */ `
       left: calc(100% + 16px);
       right: auto;
       width: calc(var(--side-space) - 16px);
-      max-height: max(100%, min(560px, calc(100dvh - 48px)));
+      /* As tall as the video at least, so the panel lines up with it; taller when the
+         prompt needs it, up to the viewport. */
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+      max-height: calc(100dvh - 48px);
       overflow-y: auto;
       overscroll-behavior: contain;
       padding: 18px;

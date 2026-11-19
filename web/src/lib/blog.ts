@@ -8,6 +8,7 @@
 import { components } from './components-catalog';
 import { harnesses, MCP_URL, PLUGIN_COMMAND, SKILL_COMMAND, SETUP_PROMPT } from './harnesses';
 import { SITE_URL } from './video-links.js';
+import { harnessPosts } from './blog-harnesses';
 
 export type Block =
   | { type: 'h2'; id: string; text: string }
@@ -39,6 +40,8 @@ export interface Post {
   faq: Faq[];
   /** HowTo steps, for posts that are a procedure. */
   howTo?: { name: string; steps: { name: string; text: string }[] };
+  /** The agent harness this post is about (lib/blog-harnesses.ts); its /agents page links back. */
+  harness?: string;
   /** Further reading at the foot of the post. */
   related: { label: string; href: string }[];
 }
@@ -324,4 +327,5 @@ export const posts: Post[] = [
       { label: 'Remotion components your AI agent can install', href: '/blog/remotion-components-for-ai-agents' },
     ],
   },
+  ...harnessPosts,
 ];

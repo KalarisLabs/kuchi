@@ -1,5 +1,5 @@
 // GradientASCII from React Bits (https://reactbits.dev), JavaScript + CSS variant, MIT.
-// Unmodified. Used as the hero background (HeroBackground.jsx).
+// Unmodified. Used as the footer backdrop (HeroBackground.jsx, mounted in SiteFooter).
 'use client';
 
 import { useEffect, useRef } from 'react';

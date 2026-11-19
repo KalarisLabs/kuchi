@@ -1,0 +1,73 @@
+---
+// Logo splash: about two seconds, only on the first page a visitor opens in a browser
+// session. Moving between pages never plays it (owner's instruction, 2026-11-19).
+// The popcorn mark rises through a liquid-glass tile (components/ui/liquid-glass-logo-reveal),
+// "Kuchi by Kalaris Labs" blurs in under it, and the sheet fades to the page.
+//
+// The sheet is in the HTML so it covers the page from the first paint, but it only shows
+// while <html data-splash> is set. The head script in BaseLayout sets it (once per session;
+// never under reduced motion or for automated browsers) and clears it after 5 s whatever
+// happens, so a failed script can never leave the page covered. A click or Esc skips it.
+// The glass (WebGL + React) is loaded only when the splash plays.
+import wordmarkBlack from '../assets/kalaris-wordmark-black.png';
+import wordmarkWhite from '../assets/kalaris-wordmark-white.png';
+---
+<div class="site-splash" data-site-splash aria-hidden="true">
+  <div class="site-splash-stage" data-splash-stage></div>
+  <!-- The words are drawn by CSS (data-text), so they stay out of the page's text. -->
+  <div class="site-splash-lockup">
+    <span class="site-splash-name" data-text="Kuchi"></span>
+    <span class="site-splash-by" data-text="BY"></span>
+    <img class="site-splash-wordmark site-splash-wordmark-light" src={wordmarkBlack.src} width="1200" height="400" alt="">
+    <img class="site-splash-wordmark site-splash-wordmark-dark" src={wordmarkWhite.src} width="1200" height="400" alt="">
+  </div>
+</div>
+
+<style is:global>
+  .site-splash { display: none; }
+  html[data-splash] { overflow: hidden; }
+  html[data-splash] .site-splash {
+    position: fixed; inset: 0; z-index: 2147483000;
+    display: grid; place-items: center; align-content: center; gap: 4px;
+    background: var(--k-paper, #fff); color: var(--k-ink, #171717);
+    cursor: pointer;
+    /* Backstop if the script never runs: fade away on its own. */
+    animation: site-splash-backstop 300ms ease 4s forwards;
+  }
+  .site-splash-stage { width: min(320px, 80vw); aspect-ratio: 1; }
+  .site-splash-lockup {
+    display: flex; align-items: center; gap: 8px; margin: 0;
+    font-size: 24px; font-weight: 600; letter-spacing: -0.01em;
+    opacity: 0; filter: blur(8px); transform: translateY(6px);
+    transition: opacity 420ms cubic-bezier(0.23, 1, 0.32, 1) 600ms,
+                filter 420ms cubic-bezier(0.23, 1, 0.32, 1) 600ms,
+                transform 420ms cubic-bezier(0.23, 1, 0.32, 1) 600ms;
+  }
+  .site-splash-name::before, .site-splash-by::before { content: attr(data-text); }
+  .site-splash-by { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; color: var(--k-muted, #6b6b6b); }
+  /* The wordmark file has empty space around the letters, so it is drawn larger than the name. */
+  .site-splash-wordmark { height: 64px; width: auto; margin-left: -6px; }
+  .site-splash-wordmark-dark { display: none; }
+  html[data-theme="dark"] .site-splash-wordmark-light { display: none; }
+  html[data-theme="dark"] .site-splash-wordmark-dark { display: block; }
+
+  .site-splash.is-playing .site-splash-lockup { opacity: 1; filter: none; transform: none; }
+  .site-splash.is-leaving {
+    opacity: 0; filter: blur(6px); pointer-events: none;
+    transition: opacity 350ms cubic-bezier(0.23, 1, 0.32, 1), filter 350ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+
+  @keyframes site-splash-backstop { to { opacity: 0; visibility: hidden; } }
+</style>
+
+<script>
+  const shell = document.querySelector<HTMLElement>('[data-site-splash]');
+  if (shell && document.documentElement.dataset.splash) {
+    import('../scripts/site-splash').then(({ playSplash }) => playSplash(shell)).catch(() => {
+      shell.remove();
+      delete document.documentElement.dataset.splash;
+    });
+  } else {
+    shell?.remove();
+  }
+</script>

@@ -11,7 +11,7 @@ import Faq from '../components/Faq.astro';
 import LatestVideos from '../components/LatestVideos.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Toast from '../components/Toast.astro';
-import { videos, newestFirst, totalImpressions } from '../lib/catalog';
+import { videos, newestFirst } from '../lib/catalog';
 import { SITE_URL } from '../lib/video-links.js';
 
 // Nothing on this page depends on the request, so it is built once as static HTML.
@@ -46,7 +46,7 @@ const jsonLd = [
   <SkipLink href="#latest" label="Skip to videos" />
   <SiteHeader />
   <main class="document">
-    <Intro totalVideos={videos.length} totalImpressions={totalImpressions} />
+    <Intro />
     <LatestVideos videos={newestFirst.slice(0, HOME_VIDEOS)} total={videos.length} />
     <AgentConnect />
     <Faq />

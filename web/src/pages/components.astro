@@ -7,6 +7,9 @@ import SkipLink from '../components/SkipLink.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Toast from '../components/Toast.astro';
+import ComponentsSidebar from '../components/ComponentsSidebar';
+import { COMPONENTS_SETUP_PROMPT } from '../lib/component-prompts';
+import { MCP_URL, PLUGIN_COMMAND, SKILL_COMMAND } from '../lib/harnesses';
 import { components, categories, categoryLabels, installCommand, posterUrl, videoUrl, SITE } from '../lib/components-catalog';
 import { favButtonsHTML } from '../lib/favorites.js';
 
@@ -41,6 +44,67 @@ const jsonLd = [
   },
 ];
 
+
+// The sidebar directory: every category with its components, in page order.
+const sidebarGroups = categories
+  .map((key) => ({
+    key,
+    label: categoryLabels[key] || key,
+    items: components.filter((item) => item.category === key).map(({ name, title }) => ({ name, title })),
+  }))
+  .filter((group) => group.items.length > 0);
+
+// Category shortcuts at the top of the sidebar box: an icon each (24px grid, stroke icons).
+const ICONS: Record<string, string> = {
+  templates: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+  text: '<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
+  scenes: '<path d="M4 11v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8H4Z"/><path d="m4 11-.9-3.2a1 1 0 0 1 .7-1.2l13.5-3.6a1 1 0 0 1 1.2.7L19.4 7 4 11Z"/><path d="m8.5 5.6 3 3.4M13.3 4.3l3 3.4"/>',
+  screens: '<rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  'ai-chat': '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>',
+  code: '<path d="m4 17 6-6-6-6M12 19h8"/>',
+  captions: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/>',
+  transitions: '<path d="M3 12h18M15 6l6 6-6 6M9 6 3 12l6 6"/>',
+};
+const iconCats = Object.keys(ICONS).filter((key) => categories.includes(key));
+
+// The hero's agent setup tabs. Every command is a real install path (see lib/harnesses.ts).
+// The first tab is one prompt that sets up any agent (owner, 2026-11-19).
+const agentSetups: { id: string; label: string; note: string; prompt?: string; commands: { prompt: string; code: string; copied: string }[] }[] = [
+  {
+    id: 'any',
+    label: 'Any agent',
+    note: 'One prompt for Claude Code, Codex, Cursor, Gemini CLI, OpenCode or any agent that can run commands: it connects the MCP server, adds the registry and installs on request.',
+    prompt: COMPONENTS_SETUP_PROMPT,
+    commands: [],
+  },
+  {
+    id: 'claude-code',
+    label: 'Claude Code',
+    note: 'One plugin adds the Kuchi MCP server and the Kuchi skill together.',
+    commands: [{ prompt: '>', code: PLUGIN_COMMAND, copied: 'Plugin command copied' }],
+  },
+  {
+    id: 'codex',
+    label: 'Codex',
+    note: 'Add the MCP server, then the skill so Codex knows how to use the components.',
+    commands: [
+      { prompt: '$', code: `codex mcp add kuchi --url ${MCP_URL}`, copied: 'MCP command copied' },
+      { prompt: '$', code: SKILL_COMMAND, copied: 'Skill command copied' },
+    ],
+  },
+  {
+    id: 'skill',
+    label: 'Agent skill',
+    note: 'Install the Kuchi skill into your project for Cursor, Gemini CLI and other agents that read skills.',
+    commands: [{ prompt: '$', code: SKILL_COMMAND, copied: 'Skill command copied' }],
+  },
+  {
+    id: 'mcp',
+    label: 'Any MCP client',
+    note: 'Paste this server URL into Cursor, VS Code, Claude, ChatGPT or any MCP client. No sign-in, no API key.',
+    commands: [{ prompt: 'URL', code: MCP_URL, copied: 'MCP server URL copied' }],
+  },
+];
 ---
 <BaseLayout
   title="Video components · Kuchi"
@@ -54,44 +118,38 @@ const jsonLd = [
     <div class="cmp-layout">
       <!-- Left Sidebar Navigation -->
       <aside class="cmp-sidebar" id="cmp-sidebar" aria-label="Component directory">
-        <div class="cmp-sidebar-inner">
-          <div class="cmp-sidebar-header">
-            <span class="cmp-sidebar-badge">Video Registry</span>
-            <label class="cmp-sidebar-search-label">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
-              <input type="search" id="cmp-sidebar-search" placeholder="Quick find component…" aria-label="Quick find component" />
-            </label>
+        <div class="cmp-box">
+          <div class="cmp-box-head">
+            <span class="cmp-box-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+            <span class="cmp-box-title">Components</span>
+            <span class="cmp-box-count">{components.length}</span>
           </div>
 
-          <nav class="cmp-sidebar-nav" aria-label="Components navigation">
-            {categories.map((catKey) => {
-              const catItems = components.filter((item) => item.category === catKey);
-              if (!catItems.length) return null;
-              return (
-                <div class="cmp-sidebar-group" data-sidebar-cat={catKey}>
-                  <div class="cmp-sidebar-group-title">
-                    <span>{categoryLabels[catKey] || catKey}</span>
-                    <span class="cmp-count-tag">{catItems.length}</span>
-                  </div>
-                  <ul class="cmp-sidebar-links">
-                    {catItems.map((item) => (
-                      <li>
-                        <a
-                          href={`#cmp-${item.name}`}
-                          class="cmp-sidebar-link"
-                          data-name={item.name}
-                          data-cat={item.category}
-                        >
-                          <span class="link-dot"></span>
-                          {item.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </nav>
+          <div class="cmp-box-cats" aria-label="Jump to a category">
+            {iconCats.map((key) => (
+              <a class="cmp-box-cat" href={`#cat-${key}`} title={categoryLabels[key]} aria-label={categoryLabels[key]}>
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICONS[key]} />
+              </a>
+            ))}
+          </div>
+
+          <label class="cmp-sidebar-search-label">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+            <input type="search" id="cmp-sidebar-search" placeholder="Filter…" aria-label="Filter components" />
+          </label>
+
+          <div class="cmp-sidebar-nav">
+            <p class="cmp-box-section">Get started</p>
+            <ul class="cmp-box-links">
+              <li><a href="#cmp-title">Introduction</a></li>
+              <li><a href="#setup">Installation</a></li>
+              <li><a href="/blog/remotion-components-for-ai-agents">MCP server</a></li>
+              <li><button type="button" data-sidebar-saved><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21V3Z"/></svg>Saved</button></li>
+            </ul>
+            <nav aria-label="Components navigation">
+              <ComponentsSidebar client:load groups={sidebarGroups} />
+            </nav>
+          </div>
         </div>
       </aside>
 
@@ -106,21 +164,60 @@ const jsonLd = [
           <p class="cmp-hero-desc">
             Production-ready Remotion motion components for the shots a viral launch video is made of.
             Open-source Remotion components (MIT).
-            One command copies the full source code into your project so you own every frame.
+            Connect your agent once and it can browse every component, read its source and drop it into your project.
           </p>
 
-          <div class="cmp-hero-cli">
-            <div class="cmp-cli-box">
-              <span class="cmp-cli-prompt">$</span>
-              <code class="cmp-cli-text">npx shadcn@latest add https://kuchi.kalarislabs.com/r/text-reveal.json</code>
+          <!-- Agent setup: the Kuchi MCP server (kuchi_list_components, kuchi_get_component) plus
+               the Kuchi skill that teaches the workflow. Same commands as the /agents guides. -->
+          <div class="cmp-agent" id="setup" data-agent-tabs>
+            <div class="cmp-agent-tabs" role="tablist" aria-label="Connect your agent">
+              {agentSetups.map((setup, i) => (
+                <button
+                  type="button"
+                  role="tab"
+                  id={`cmp-agent-tab-${setup.id}`}
+                  aria-controls={`cmp-agent-panel-${setup.id}`}
+                  aria-selected={i === 0 ? 'true' : 'false'}
+                  tabindex={i === 0 ? 0 : -1}
+                  class="cmp-agent-tab"
+                >
+                  {setup.label}
+                </button>
+              ))}
             </div>
-            <button
-              type="button"
-              class="pill pill-secondary cmp-cli-copy"
-              data-copy-cmd="npx shadcn@latest add https://kuchi.kalarislabs.com/r/text-reveal.json"
-            >
-              Copy command
-            </button>
+            {agentSetups.map((setup, i) => (
+              <div
+                class="cmp-agent-panel"
+                role="tabpanel"
+                id={`cmp-agent-panel-${setup.id}`}
+                aria-labelledby={`cmp-agent-tab-${setup.id}`}
+                hidden={i !== 0}
+              >
+                <p class="cmp-agent-note">{setup.note}</p>
+                {setup.prompt && (
+                  <div class="cmp-prompt">
+                    <pre class="cmp-prompt-text" tabindex="0">{setup.prompt}</pre>
+                    <button type="button" class="pill cmp-prompt-copy" data-copy-setup-prompt>Copy setup prompt</button>
+                  </div>
+                )}
+                {setup.commands.map((cmd) => (
+                  <div class="cmp-hero-cli">
+                    <div class="cmp-cli-box">
+                      <span class="cmp-cli-prompt">{cmd.prompt}</span>
+                      <code class="cmp-cli-text">{cmd.code}</code>
+                    </div>
+                    <button type="button" class="pill pill-secondary cmp-cli-copy" data-copy-cmd={cmd.code} data-copy-label={cmd.copied}>
+                      Copy
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <p class="cmp-agent-next">
+              Then ask: <em>“Find a Kuchi component for a kinetic headline and add it to my Remotion project.”</em>{' '}
+              Your agent finds it with <code>kuchi_list_components</code> and reads the source with <code>kuchi_get_component</code>.{' '}
+              <a href="/agents">Guides for every agent →</a>
+            </p>
           </div>
         </div>
 
@@ -279,11 +376,8 @@ const jsonLd = [
         <strong>Remotion tip:</strong> If a frame renders black, the component is drawing on a transparent layer: put a background behind it in your composition (e.g. <code>&lt;AbsoluteFill style=&#123;&#123; background: "#faf9f6" &#125;&#125;&gt;&lt;Component /&gt;&lt;/AbsoluteFill&gt;</code>).
       </div>
 
-      <div class="cmp-d-code-head">
-        <span id="cmp-d-file">Source code</span>
-        <button type="button" class="pill pill-secondary" id="cmp-copy-src">Copy code</button>
-      </div>
-      <pre class="cmp-code" tabindex="0"><code id="cmp-d-src">Loading…</code></pre>
+      <!-- The source, in the code-block UI (SourceCode), mounted when the dialog opens. -->
+      <div id="cmp-d-src" class="cmp-d-src"><p class="cmp-d-src-status">Loading…</p></div>
     </div>
   </dialog>
 
@@ -311,62 +405,73 @@ const jsonLd = [
     align-items: flex-start;
   }
 
-  /* Sidebar */
+  /* Sidebar: a floating box (owner, 2026-11-19, after a reference): header with the count,
+     category shortcuts, the filter, Get started links, then the directory, which scrolls on
+     its own inside the box. */
   .cmp-sidebar {
-    width: 264px;
+    width: 268px;
     flex-shrink: 0;
     position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-    padding: 32px 14px 48px clamp(16px, 2vw, 28px);
-    border-right: 1px solid var(--k-line);
-    scrollbar-width: thin;
+    top: 76px;
+    height: calc(100dvh - 92px);
+    margin: 20px 0 16px clamp(12px, 1.6vw, 24px);
   }
-
-  .cmp-sidebar::-webkit-scrollbar {
-    width: 4px;
-  }
-  .cmp-sidebar::-webkit-scrollbar-thumb {
-    background: var(--k-line);
-    border-radius: 4px;
-  }
-
-  .cmp-sidebar-inner {
+  .cmp-box {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
+    height: 100%;
+    padding: 14px 12px 0;
+    border: 1px solid var(--k-line);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--k-wash) 55%, var(--k-paper));
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 12px 32px -18px rgb(0 0 0 / 0.25);
+    overflow: hidden;
   }
-
-  .cmp-sidebar-header {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--k-line);
+  .cmp-box-head { display: flex; align-items: center; gap: 8px; padding: 0 2px; }
+  .cmp-box-icon {
+    display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px;
+    background: var(--k-paper); border: 1px solid var(--k-line); color: var(--k-ink);
   }
-
-  .cmp-sidebar-badge {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--k-muted);
+  .cmp-box-title { font-size: 14px; font-weight: 600; color: var(--k-ink); }
+  .cmp-box-count {
+    margin-left: auto; padding: 1px 7px; border-radius: 999px; font-size: 11.5px; font-variant-numeric: tabular-nums;
+    color: var(--k-muted); border: 1px solid var(--k-line); background: var(--k-paper);
   }
+  .cmp-box-cats { display: flex; justify-content: space-between; gap: 4px; padding-bottom: 12px; border-bottom: 1px solid var(--k-line); }
+  .cmp-box-cat {
+    display: grid; place-items: center; width: 27px; height: 27px; border-radius: 7px;
+    color: var(--k-muted); text-decoration: none;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+  .cmp-box-cat:hover { background: var(--k-paper); color: var(--k-ink); text-decoration: none; }
+  .cmp-box-cat:focus-visible { outline: 2px solid var(--k-ink); outline-offset: 1px; }
+  .cmp-box-section {
+    margin: 4px 0 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--k-muted);
+  }
+  .cmp-box-links { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 1px; }
+  .cmp-box-links a, .cmp-box-links button {
+    display: flex; align-items: center; gap: 7px; width: 100%; padding: 5px 8px; border: 0; border-radius: 7px;
+    background: none; font: inherit; font-size: 13px; color: var(--k-ink); text-align: left; text-decoration: none; cursor: pointer;
+    transition: background-color 150ms ease;
+  }
+  .cmp-box-links a:hover, .cmp-box-links button:hover { background: var(--k-paper); text-decoration: none; }
+  .cmp-box-links button svg { color: var(--k-muted); }
 
   .cmp-sidebar-search-label {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: var(--k-wash);
+    background: var(--k-paper);
     border: 1px solid var(--k-line);
-    border-radius: 8px;
-    padding: 6px 10px;
+    border-radius: 9px;
+    padding: 7px 10px;
     color: var(--k-muted);
-    transition: border-color 140ms ease;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
   }
   .cmp-sidebar-search-label:focus-within {
-    border-color: var(--k-ink);
+    border-color: var(--k-accent, var(--k-ink));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--k-accent, var(--k-ink)) 22%, transparent);
     color: var(--k-ink);
   }
   .cmp-sidebar-search-label input {
@@ -377,86 +482,53 @@ const jsonLd = [
     outline: none;
     width: 100%;
   }
-
+  /* Everything under the filter scrolls inside the box. */
   .cmp-sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 0 -12px;
+    padding: 0 12px 32px;
+    scrollbar-width: thin;
   }
 
-  .cmp-sidebar-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  /* The setup prompt (first hero tab), set in Geist Mono like every prompt preview. */
+  .cmp-prompt { display: grid; gap: 10px; max-width: 720px; }
+  .cmp-prompt-text {
+    margin: 0; padding: 14px 16px; border-radius: 12px;
+    border: 1px solid var(--k-line); background: var(--k-wash);
+    font-family: var(--font-prompt); font-size: 13.5px; line-height: 1.65; color: var(--k-ink);
+    white-space: pre-wrap; overflow-wrap: anywhere;
   }
+  .cmp-prompt-copy { justify-self: start; }
 
-  .cmp-sidebar-group-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--k-muted);
-    padding: 0 4px;
-  }
-
-  .cmp-count-tag {
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 999px;
-    background: var(--k-wash);
-    color: var(--k-muted);
-    font-weight: 600;
-  }
-
-  .cmp-sidebar-links {
+  /* The list itself is ComponentsSidebar (bounce-sidebar): React renders it, so these
+     rules reach in with :global. The active row is the one the bouncing dot sits on. */
+  .cmp-sidebar-nav :global([data-slot='bounce-sidebar']) {
     list-style: none;
     margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
   }
-
-  .cmp-sidebar-link {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 8px;
-    border-radius: 6px;
+  .cmp-sidebar-nav :global(.cmp-sidebar-link) {
     font-size: 13px;
+    line-height: 1.35;
     color: var(--k-muted);
     text-decoration: none;
-    transition: all 140ms ease;
+    transition: color 160ms ease;
   }
-
-  .link-dot {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--k-line);
-    transition: background-color 140ms ease;
-  }
-
-  .cmp-sidebar-link:hover {
+  .cmp-sidebar-nav :global(.cmp-sidebar-link:hover) {
     color: var(--k-ink);
-    background: var(--k-wash);
     text-decoration: none;
   }
-  .cmp-sidebar-link:hover .link-dot {
-    background: var(--k-ink);
-  }
-
-  .cmp-sidebar-link.active {
+  .cmp-sidebar-nav :global(.cmp-sidebar-link[data-active='true']) {
     color: var(--k-ink);
     font-weight: 600;
-    background: var(--k-wash);
   }
-  .cmp-sidebar-link.active .link-dot {
-    background: var(--k-accent, #3b82f6);
-    transform: scale(1.5);
+  .cmp-sidebar-nav :global([data-slot='bounce-sidebar-heading']) {
+    padding-top: 22px;
+  }
+  .cmp-sidebar-nav :global([data-slot='bounce-sidebar-heading']:first-of-type) {
+    padding-top: 0;
   }
 
   /* Main Content */
@@ -511,7 +583,6 @@ const jsonLd = [
     flex-wrap: wrap;
     align-items: center;
     gap: 12px;
-    max-width: 680px;
   }
 
   .cmp-cli-box {
@@ -536,6 +607,55 @@ const jsonLd = [
     white-space: nowrap;
     color: var(--k-ink);
   }
+
+  .cmp-agent {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 720px;
+  }
+  .cmp-agent-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .cmp-agent-tab {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--k-line);
+    background: transparent;
+    color: var(--k-muted);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+  }
+  .cmp-agent-tab:hover { color: var(--k-ink); }
+  .cmp-agent-tab[aria-selected='true'] {
+    color: var(--k-paper);
+    background: var(--k-ink);
+    border-color: var(--k-ink);
+  }
+  .cmp-agent-tab:focus-visible { outline: 2px solid var(--k-accent); outline-offset: 2px; }
+  .cmp-agent-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cmp-agent-note,
+  .cmp-agent-next {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--k-muted);
+  }
+  .cmp-agent-next code {
+    font-family: var(--k-mono);
+    font-size: 12.5px;
+    color: var(--k-ink);
+  }
+  .cmp-agent-next em { color: var(--k-ink); font-style: normal; }
+  .cmp-agent-next a { color: var(--k-ink); white-space: nowrap; }
 
   .cmp-section-header {
     margin-bottom: 24px;
@@ -971,28 +1091,14 @@ const jsonLd = [
     color: var(--k-ink);
   }
 
-  .cmp-d-code-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    font-family: var(--k-mono);
-    font-size: 13px;
-    color: var(--k-muted);
-    margin-top: 4px;
-  }
-
-  .cmp-code {
+  .cmp-d-src { margin-top: 4px; }
+  .cmp-d-src-status {
     margin: 0;
-    max-height: 46dvh;
-    overflow: auto;
     padding: 16px;
     border-radius: 12px;
-    background: var(--k-wash);
     border: 1px solid var(--k-line);
-    font-family: var(--k-mono);
-    font-size: 12.5px;
-    line-height: 1.6;
+    color: var(--k-muted);
+    font-size: 13px;
   }
 
   /* Responsive Breakpoints */

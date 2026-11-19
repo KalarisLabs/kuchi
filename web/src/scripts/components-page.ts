@@ -3,6 +3,7 @@
 // source (fetched from /r/<name>.json).
 import { playVideo } from '../lib/play-video.js';
 import { isFavorite, onFavoritesChange } from '../lib/favorites.js';
+import { componentPrompt, COMPONENTS_SETUP_PROMPT } from '../lib/component-prompts';
 
 // Page views and clicks, like every other page (privacy rules in analytics.mjs).
 void import('./analytics.mjs').catch(() => null);
@@ -66,6 +67,16 @@ function apply() {
     const hit = inCategory(linkName, linkCat) && (!q || cardSearch.includes(q));
     (link.parentElement as HTMLElement).hidden = !hit;
   }
+
+  // Hide sidebar headings whose components are all filtered out, then let the dot re-measure.
+  for (const heading of $$('[data-sidebar-heading]')) {
+    const key = heading.dataset.sidebarHeading ?? '';
+    const anyShown = $$(`.cmp-sidebar-link[data-cat="${CSS.escape(key)}"]`).some(
+      (link) => !(link.parentElement as HTMLElement).hidden,
+    );
+    heading.hidden = !anyShown;
+  }
+  window.dispatchEvent(new Event('kuchi:cmp-relayout'));
 
   // Hide empty category sections
   for (const section of $$('.cmp-cat-section')) {
@@ -153,7 +164,7 @@ for (const btn of $$('[data-copy-cmd]')) {
     e.stopPropagation();
     const cmd = btn.getAttribute('data-copy-cmd') || '';
     if (cmd) {
-      copy(cmd, 'Install command copied');
+      copy(cmd, btn.getAttribute('data-copy-label') || 'Install command copied');
     }
   });
 }
@@ -164,11 +175,22 @@ const dTitle = $('#cmp-d-title')!;
 const dDesc = $('#cmp-d-desc')!;
 const dCmd = $('#cmp-d-cmd')!;
 const dDeps = $('#cmp-d-deps')!;
-const dFile = $('#cmp-d-file')!;
-const dSrc = $('#cmp-d-src')!;
+// While loading (or on error) the source area shows a line of text. React owns the mounted
+// code block, so the status swaps in a fresh container instead of writing into React's node.
+let dSrc = $('#cmp-d-src')!;
+function showStatus(text: string) {
+  const fresh = document.createElement('div');
+  fresh.id = 'cmp-d-src';
+  fresh.className = dSrc.className;
+  const p = document.createElement('p');
+  p.className = 'cmp-d-src-status';
+  p.textContent = text;
+  fresh.append(p);
+  dSrc.replaceWith(fresh);
+  dSrc = fresh;
+}
 let current = '';
 let lastTrigger: HTMLElement | null = null;
-let sourceText = '';
 
 async function openItem(name: string, trigger?: HTMLElement) {
   current = name;
@@ -178,9 +200,7 @@ async function openItem(name: string, trigger?: HTMLElement) {
   dDesc.textContent = '';
   dCmd.textContent = `npx shadcn@latest add ${SITE}/r/${name}.json`;
   dDeps.textContent = '';
-  dFile.textContent = '';
-  dSrc.textContent = 'Loading…';
-  sourceText = '';
+  showStatus('Loading…');
   if (!dialog.open) dialog.showModal();
   try {
     const res = await fetch(`/r/${name}.json`);
@@ -191,11 +211,13 @@ async function openItem(name: string, trigger?: HTMLElement) {
     const deps: string[] = item.dependencies ?? [];
     dDeps.textContent = deps.length ? `Installs dependencies: ${deps.join(', ')}.` : '';
     const main = item.files?.[0];
-    dFile.textContent = main?.target ?? '';
-    sourceText = main?.content ?? '';
-    dSrc.textContent = sourceText;
+    const { mountSourceCode } = await import('../components/SourceCode');
+    if (current !== name) return;
+    // Same as /components/<name>: the licence notice travels with the installed copy, not the view.
+    const code = String(main?.content ?? '').replace(/^\/\*! Portions Copyright[^\n]*\*\/\n/, '');
+    mountSourceCode(dSrc, { code, filename: main?.target ?? `${name}.tsx`, maxHeight: 520 });
   } catch {
-    dSrc.textContent = 'Could not load the source. Check your connection and try again.';
+    showStatus('Could not load the source. Check your connection and try again.');
   }
 }
 
@@ -213,8 +235,10 @@ function playItem(name: string) {
     src,
     title,
     subtitle: card?.querySelector('.cmp-desc-snippet')?.textContent?.trim() ?? '',
+    // The install prompt works in any agent; the command is there for people who run it themselves.
+    prompt: { label: 'Install prompt', hint: 'Paste into any agent', text: componentPrompt(name, title) },
     command: `npx shadcn@latest add ${SITE}/r/${name}.json`,
-    onCopy: (ok) => toast(ok ? 'Install command copied' : 'Copy failed. Select the text and copy it manually.'),
+    onCopy: (ok, what) => toast(ok ? (what === 'prompt' ? 'Prompt copied. Paste it into your agent.' : 'Install command copied') : 'Copy failed. Select the text and copy it manually.'),
     action: { label: 'View component', hint: 'Preview, props, source and install', href: `/components/${name}` },
     favorite: { kind: 'component', id: name },
   });
@@ -234,30 +258,42 @@ dialog.addEventListener('click', (event) => {
 });
 dialog.addEventListener('close', () => lastTrigger?.focus());
 $('#cmp-copy-cmd')?.addEventListener('click', () => copy(dCmd.textContent ?? '', 'Install command copied'));
-$('#cmp-copy-src')?.addEventListener('click', () => {
-  if (sourceText) copy(sourceText, 'Code copied');
+
+// Sidebar: one delegated click handler (the list is a React island, so its nodes may be
+// replaced when it hydrates). The dot moves on its own; this scrolls to the card.
+let spyPausedUntil = 0;
+$('#cmp-sidebar')?.addEventListener('click', (e) => {
+  const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a.cmp-sidebar-link');
+  const targetId = link?.getAttribute('href')?.replace('#', '');
+  const targetEl = targetId ? document.getElementById(targetId) : null;
+  if (!targetEl) return;
+  e.preventDefault();
+  // Hold the scroll spy while the page glides there, so the dot doesn't hop card by card.
+  spyPausedUntil = performance.now() + 1000;
+  targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  targetEl.classList.add('cmp-target-highlight');
+  setTimeout(() => targetEl.classList.remove('cmp-target-highlight'), 1800);
+  history.replaceState(null, '', `#${targetId}`);
 });
 
-// Sidebar links smooth scroll & highlight
-for (const link of $$<HTMLAnchorElement>('.cmp-sidebar-link')) {
-  link.addEventListener('click', (e) => {
-    const targetId = link.getAttribute('href')?.replace('#', '');
-    if (!targetId) return;
-    const targetEl = document.getElementById(targetId);
-    if (targetEl) {
-      e.preventDefault();
-      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      targetEl.classList.add('cmp-target-highlight');
-      setTimeout(() => targetEl.classList.remove('cmp-target-highlight'), 1800);
-      history.replaceState(null, '', `#${targetId}`);
-      // Mark active link
-      for (const other of $$('.cmp-sidebar-link')) {
-        other.classList.remove('active');
-      }
-      link.classList.add('active');
+// Scroll spy: the card crossing a band a third of the way down the viewport is the one
+// the sidebar dot points at.
+const announce = (name: string) =>
+  window.dispatchEvent(new CustomEvent('kuchi:cmp-active', { detail: { name } }));
+let lastActive = '';
+const spy = new IntersectionObserver(
+  (entries) => {
+    if (performance.now() < spyPausedUntil) return;
+    const hit = entries.find((entry) => entry.isIntersecting && !(entry.target as HTMLElement).hidden);
+    const name = (hit?.target as HTMLElement | undefined)?.dataset.name;
+    if (name && name !== lastActive) {
+      lastActive = name;
+      announce(name);
     }
-  });
-}
+  },
+  { rootMargin: '-33% 0px -62% 0px' },
+);
+for (const card of cards) spy.observe(card);
 
 // Deep link from hash e.g. /components#cmp-text-reveal or /components#text-reveal
 function fromHash() {
@@ -275,3 +311,40 @@ function fromHash() {
 }
 fromHash();
 window.addEventListener('hashchange', fromHash);
+
+// Hero agent setup tabs (roving tabindex, arrow keys move between tabs).
+for (const root of $$('[data-agent-tabs]')) {
+  const tabs = $$<HTMLButtonElement>('[role="tab"]', root);
+  const select = (tab: HTMLButtonElement, focus = false) => {
+    for (const other of tabs) {
+      const on = other === tab;
+      other.setAttribute('aria-selected', String(on));
+      other.tabIndex = on ? 0 : -1;
+      const panel = document.getElementById(other.getAttribute('aria-controls') ?? '');
+      if (panel) panel.hidden = !on;
+    }
+    if (focus) tab.focus();
+  };
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => select(tab));
+    tab.addEventListener('keydown', (e) => {
+      const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (step) {
+        e.preventDefault();
+        select(tabs[(i + step + tabs.length) % tabs.length], true);
+      }
+    });
+  });
+}
+
+// The "Any agent" setup prompt in the hero.
+$('[data-copy-setup-prompt]')?.addEventListener('click', () =>
+  copy(COMPONENTS_SETUP_PROMPT, 'Setup prompt copied. Paste it into your agent.'),
+);
+
+// "Saved" in the sidebar box: pick the Saved chip and bring the browser into view.
+$('[data-sidebar-saved]')?.addEventListener('click', () => {
+  const chip = $<HTMLElement>('.cmp-chip[data-cat="saved"]');
+  chip?.click();
+  (chip?.closest('section') ?? chip)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});

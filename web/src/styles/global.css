@@ -10,6 +10,8 @@
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "@fontsource-variable/inter/opsz.css";
+/* Prompt previews (remake, setup and install prompts) are set in Geist Mono (owner, 2026-11-19). */
+@import "@fontsource/geist-mono/latin-400.css";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "./legacy.css" layer(legacy);
@@ -64,6 +66,7 @@
    components match the current site. Source values: paper #fff, ink #0a0a0a,
    wash #f3f3f3, line #e6e6e6, muted text #6b6b6b, link/focus blue #0000ff. */
 :root {
+  --font-prompt: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --background: var(--k-paper);
   --foreground: var(--k-ink);
   --card: var(--k-paper);
@@ -172,10 +175,17 @@ dialog.kp-layer::backdrop { background: transparent; }
 .kp-prompt-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(255 255 255 / 0.62); }
 .kp-prompt-hint { font-size: 11.5px; color: rgb(255 255 255 / 0.45); }
 .kp-prompt-text {
-  margin: 0; padding: 10px 12px; border-radius: 10px;
+  margin: 0; padding: 12px 14px; border-radius: 12px;
   background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.1);
-  font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; line-height: 1.55; color: rgb(255 255 255 / 0.92);
+  font-family: var(--font-prompt); font-size: 13px; line-height: 1.6; color: rgb(255 255 255 / 0.94);
   white-space: pre-wrap; overflow-wrap: anywhere; max-height: 12em; overflow-y: auto; scrollbar-width: thin;
+}
+/* Beside the video (1024px and up) the panel runs the full height of the video and the prompt
+   is shown whole, never in a scroll box (owner, 2026-11-19). */
+@media (min-width: 1024px) {
+  .details-side .kp-details { flex: 1; grid-template-rows: auto 1fr; }
+  .details-side .kp-prompt { grid-template-rows: auto 1fr auto; }
+  .details-side .kp-prompt-text { max-height: none; overflow: visible; }
 }
 .kp-prompt-text:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .kp-details .kp-copy { width: 100%; padding: 9px 12px; font-size: 13px; }
@@ -275,3 +285,8 @@ dialog.kp-layer::backdrop { background: transparent; }
 .mine-tabs button[aria-pressed="true"] { background: var(--k-paper); color: var(--k-ink); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
 .mine-count:empty { display: none; }
 .mine-count { font-variant-numeric: tabular-nums; opacity: .7; }
+
+/* Gooey section nav (SectionNav) on /agents and /blog. Preflight is off, so reset the list. */
+.section-nav { margin: 28px 0 20px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.section-nav ul { list-style: none; margin: 0; padding: 0; }
+.section-nav a, .section-nav a:hover { text-decoration: none; }

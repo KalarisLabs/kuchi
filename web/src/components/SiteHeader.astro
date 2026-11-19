@@ -6,6 +6,7 @@ import wordmarkBlack from '../assets/kalaris-wordmark-black.png';
 import wordmarkWhite from '../assets/kalaris-wordmark-white.png';
 import { KuchiPlayer } from './KuchiPlayer';
 import CommandPalette from './CommandPalette.astro';
+import LaunchBanner from './LaunchBanner.astro';
 import { videos } from '../lib/catalog';
 import { components } from '../lib/components-catalog';
 
@@ -22,6 +23,7 @@ const isVideos = pathname.startsWith('/videos');
 const isAgents = pathname === '/agents' || pathname.startsWith('/agents/') || pathname.startsWith('/agents.');
 const isBlog = pathname === '/blog' || pathname.startsWith('/blog/') || pathname.startsWith('/blog.');
 ---
+<LaunchBanner />
 <header class="masthead site-header" data-site-header data-site-page={isComponents ? "components" : isVideos ? "launch-videos" : "home"}>
   <div class="brand">
     <a class="logo" href="/" aria-label="Kuchi by Kalaris Labs, home">

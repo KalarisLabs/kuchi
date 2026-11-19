@@ -23,6 +23,7 @@ const videosPage = await read(dist, 'videos.html');
 // its own content is checked by the footer test below.
 const body = (html) => html.match(/<body[^>]*>([\s\S]*)<\/body>/)[1]
   .replace(/<header class="masthead[\s"][\s\S]*?<\/header>/, '')
+  .replace(/<aside class="launch[\s"][\s\S]*?<\/aside>/, '')
   .replace(/<footer\b[\s\S]*?<\/footer>/, '')
   // Copy that exists only in web/ on purpose (e.g. the theme-storage note on the privacy
   // page) is marked data-web-only and left out; everything else must match the reference.
@@ -372,6 +373,18 @@ test('masthead: Videos, Components, Agents and Blog with icons, a search trigger
     assert.ok(!nav.includes('38+'), `${file}: stale component badge`);
     assert.match(masthead, /data-cmdk-open/, `${file}: search trigger`);
     assert.match(masthead, /<dialog id="cmdk"/, `${file}: command palette`);
+  }
+});
+
+test('launch week banner: above the masthead on every page, an accordion, free with no tiers or end date', async () => {
+  for (const file of ['index.html', 'videos.html', 'components.html', 'agents.html', 'blog.html', 'privacy.html']) {
+    const html = await read(dist, file);
+    const banner = html.match(/<aside class="launch[\s"][\s\S]*?<\/aside>/)?.[0];
+    assert.ok(banner, `${file}: no launch banner`);
+    assert.ok(html.indexOf('<aside class="launch') < html.indexOf('<header class="masthead'), `${file}: banner is not above the masthead`);
+    assert.match(banner, /aria-expanded="false"[^>]*aria-controls="launch-panel"/, `${file}: toggle is not an accordion button`);
+    for (const href of ['/videos', '/components', '/agents', '/#connect']) assert.ok(banner.includes(`href="${href}"`), `${file}: banner links ${href}`);
+    assert.ok(!/pricing|\bpaid\b|\bpro\b|discount|limited time|ends|trial/i.test(banner.replace(/<[^>]+>/g, ' ')), `${file}: banner copy implies a paid tier or an end date`);
   }
 });
 

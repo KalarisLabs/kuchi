@@ -1,0 +1,29 @@
+{
+  "name": "kuchi-launch-film",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts KuchiLaunch out/kuchi-launch.mp4",
+    "still": "remotion still src/index.ts KuchiLaunch"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.545",
+    "@remotion/google-fonts": "4.0.545",
+    "culori": "^4.0.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "remotion": "4.0.545"
+  },
+  "devDependencies": {
+    "@remotion/bundler": "^4.0.545",
+    "@remotion/renderer": "^4.0.545",
+    "@types/culori": "^4.0.1",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true
+  }
+}

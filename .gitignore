@@ -20,3 +20,5 @@ videos/*.mp4
 .agents/
 .claude/skills/
 skills-lock.json
+scratch/
+

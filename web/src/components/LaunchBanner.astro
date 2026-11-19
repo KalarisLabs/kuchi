@@ -1,0 +1,211 @@
+---
+// Launch-week announcement, above the masthead on every page (owner's request, 2026-11-20).
+// A slim accent bar; its button opens an accordion with what's in launch week. Dismissable,
+// remembered per browser (localStorage, best effort). Copy stays positive: Kuchi is free,
+// with no end date, limits or tiers implied (see the "everything free" decision).
+import { videos } from '../lib/catalog';
+import { components } from '../lib/components-catalog';
+import { harnesses } from '../lib/harnesses';
+
+const items = [
+  { href: '/videos', title: `${videos.length} launch videos`, body: 'Real launches, measured frame by frame, ready to use as templates.' },
+  { href: '/components', title: `${components.length} components`, body: 'Remotion pieces for kinetic type, captions, UI screens and logos. One command each.' },
+  { href: '/agents', title: `${harnesses.length} agent guides`, body: 'Connect Claude, Cursor, Codex and the rest to Kuchi in a minute.' },
+  { href: '/#connect', title: 'Open MCP server', body: 'No sign-in, no keys. Your agent plans the remake, you ship it.' },
+];
+---
+<script is:inline>(function(){try{if(localStorage.getItem("kuchi-launch-week")==="hidden")document.documentElement.dataset.launchHidden="1"}catch(e){}})();</script>
+<aside class="launch" data-launch aria-label="Launch week announcement">
+  <div class="launch-bar">
+    <button class="launch-toggle" type="button" aria-expanded="false" aria-controls="launch-panel" data-launch-toggle>
+      <span class="launch-tag">Launch week</span>
+      <span class="launch-text">Everything on Kuchi is free: videos, components and the MCP.</span>
+      <span class="launch-more">See what's inside</span>
+      <svg class="launch-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <button class="launch-close" type="button" aria-label="Dismiss the launch week announcement" data-launch-close>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="launch-panel" id="launch-panel" data-launch-panel inert>
+    <div class="launch-panel-inner">
+      <ul class="launch-grid">
+        {items.map((item) => (
+          <li>
+            <a class="launch-card" href={item.href}>
+              <strong>{item.title}</strong>
+              <span>{item.body}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .launch {
+    /* Brand blue in both themes: the dark-theme accent is too light for white text. */
+    --launch-bg: #1a2cff;
+    --launch-fg: #fff;
+    position: relative;
+    z-index: 41;
+    background: var(--launch-bg);
+    color: var(--launch-fg);
+    font-family: var(--k-sans);
+  }
+  :global(:root[data-launch-hidden]) .launch { display: none; }
+
+  .launch-bar {
+    display: flex;
+    align-items: center;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 clamp(8px, 2vw, 24px);
+  }
+  .launch-toggle {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 40px;
+    padding: 6px 8px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 13.5px;
+    line-height: 1.35;
+    text-align: center;
+    cursor: pointer;
+  }
+  .launch-tag {
+    flex: none;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .launch-text { min-width: 0; }
+  .launch-more {
+    flex: none;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(255, 255, 255, 0.5);
+  }
+  .launch-chevron {
+    flex: none;
+    transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .launch[data-open] .launch-chevron { transform: rotate(180deg); }
+  .launch-close {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 150ms ease, background-color 150ms ease;
+  }
+  .launch-toggle:focus-visible,
+  .launch-close:focus-visible,
+  .launch-card:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+  /* Accordion: grid rows 0fr -> 1fr animates to the content's real height. */
+  .launch-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 260ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .launch[data-open] .launch-panel { grid-template-rows: 1fr; }
+  .launch-panel-inner { overflow: hidden; min-height: 0; }
+  .launch-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 4px clamp(16px, 3vw, 32px) 16px;
+    list-style: none;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 200ms ease-out, transform 260ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .launch[data-open] .launch-grid { opacity: 1; transform: none; }
+  .launch-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    height: 100%;
+    padding: 12px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+  .launch-card strong { font-size: 14px; font-weight: 600; }
+  .launch-card span { font-size: 12.5px; line-height: 1.45; opacity: 0.85; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .launch-close:hover { opacity: 1; background: rgba(255, 255, 255, 0.14); }
+    .launch-card:hover { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.4); text-decoration: none; }
+    .launch-toggle:hover .launch-more { text-decoration-color: #fff; }
+  }
+  .launch-card:active { background: rgba(255, 255, 255, 0.2); }
+
+  @media (max-width: 900px) {
+    .launch-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .launch-text { display: none; }
+    .launch-toggle::after { content: "Everything is free"; order: 1; }
+    .launch-more { display: none; }
+    .launch-chevron { order: 2; }
+  }
+  @media (max-width: 420px) {
+    .launch-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .launch-panel, .launch-grid, .launch-chevron { transition: none; }
+  }
+</style>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-launch]');
+  const toggle = root?.querySelector<HTMLButtonElement>('[data-launch-toggle]');
+  const panel = root?.querySelector<HTMLElement>('[data-launch-panel]');
+  const close = root?.querySelector<HTMLButtonElement>('[data-launch-close]');
+
+  const setOpen = (open: boolean) => {
+    if (!root || !toggle || !panel) return;
+    root.toggleAttribute('data-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    panel.inert = !open;
+  };
+
+  toggle?.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+  root?.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && root.hasAttribute('data-open')) {
+      setOpen(false);
+      toggle?.focus();
+    }
+  });
+  close?.addEventListener('click', () => {
+    try { localStorage.setItem('kuchi-launch-week', 'hidden'); } catch { /* private mode */ }
+    document.documentElement.dataset.launchHidden = '1';
+    document.querySelector<HTMLElement>('[data-site-header] a.logo')?.focus();
+  });
+</script>

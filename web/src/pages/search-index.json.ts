@@ -5,6 +5,7 @@ import { newestFirst } from '../lib/catalog';
 import { components, categoryLabels, posterUrl } from '../lib/components-catalog';
 import { videoPath } from '../lib/video-links.js';
 import { harnesses, harnessPath } from '../lib/harnesses';
+import { posts, postPath } from '../lib/blog';
 
 export const prerender = true;
 
@@ -29,6 +30,8 @@ const pages: SearchEntry[] = [
   { k: 'page', t: 'Video components', s: `${components.length} copy-paste Remotion components`, h: '/components', w: 'registry shadcn remotion library' },
   { k: 'page', t: 'Connect your agent', s: 'Add the Kuchi MCP to Claude, ChatGPT, Codex, Cursor', h: '/#connect', w: 'mcp install claude codex cursor chatgpt agent setup' },
   { k: 'page', t: 'Agent guides', s: 'Make a launch video with Claude Code, Codex, Cursor and more', h: '/agents', w: 'harness guide how to setup install mcp' },
+  { k: 'page', t: 'Blog', s: 'Guides to launch videos with AI agents', h: '/blog', w: 'articles guides posts how to' },
+  ...posts.map((p): SearchEntry => ({ k: 'page', t: p.heading, s: p.summary, h: postPath(p), w: `blog ${p.keywords.join(' ')}` })),
   { k: 'page', t: 'FAQ', s: 'How Kuchi works', h: '/#faq', w: 'questions help' },
   { k: 'page', t: 'Support', s: 'Get help', h: '/support', w: 'contact help email' },
   { k: 'page', t: 'Privacy', s: 'What Kuchi collects', h: '/privacy', w: 'data analytics' },

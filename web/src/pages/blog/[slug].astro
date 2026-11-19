@@ -1,0 +1,226 @@
+---
+// /blog/<slug>: one post, prerendered for search, with BlogPosting, FAQPage, BreadcrumbList
+// and (for walkthroughs) HowTo JSON-LD. Content lives in lib/blog.ts.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SkipLink from '../../components/SkipLink.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import Toast from '../../components/Toast.astro';
+import ogImage from '../../assets/og-image.jpg';
+import { SITE_URL } from '../../lib/video-links.js';
+import { posts, postPath, postUrl, inline, type Post } from '../../lib/blog';
+import { SETUP_PROMPT } from '../../lib/harnesses';
+
+export const prerender = true;
+
+export function getStaticPaths() {
+  return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const url = postUrl(post);
+const image = new URL(ogImage.src, SITE_URL).href;
+const toc = post.body.filter((b): b is Extract<Post['body'][number], { type: 'h2' }> => b.type === 'h2');
+const others = posts.filter((p) => p.slug !== post.slug);
+const longDate = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+const org = { '@type': 'Organization', name: 'Kalaris Labs', url: 'https://kalarislabs.com' };
+
+const jsonLd: Record<string, unknown>[] = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.heading,
+    description: post.description,
+    url,
+    mainEntityOfPage: url,
+    image,
+    datePublished: post.published,
+    dateModified: post.updated,
+    keywords: post.keywords.join(', '),
+    author: org,
+    publisher: { ...org, logo: { '@type': 'ImageObject', url: `${SITE_URL}/favicon-180.png` } },
+    isPartOf: { '@type': 'Blog', name: 'Kuchi blog', url: `${SITE_URL}/blog` },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: post.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Kuchi', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+      { '@type': 'ListItem', position: 3, name: post.heading, item: url },
+    ],
+  },
+];
+if (post.howTo) {
+  jsonLd.push({
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: post.howTo.name,
+    description: post.description,
+    url,
+    step: post.howTo.steps.map((s, i) => ({ '@type': 'HowToStep', position: i + 1, name: s.name, text: s.text })),
+  });
+}
+const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+---
+<BaseLayout title={post.title} description={post.description} ogType="article" jsonLd={jsonLd}>
+  <SkipLink href="#post-title" label="Skip to the article" />
+  <SiteHeader />
+  <main class="document bp">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">Kuchi</a><span aria-hidden="true">/</span>
+      <a href="/blog">Blog</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{post.heading}</span>
+    </nav>
+
+    <div class="bp-layout">
+      <article class="bp-article" aria-labelledby="post-title">
+        <header class="bp-head">
+          <p class="bp-meta"><time datetime={post.published}>{longDate(post.published)}</time><span aria-hidden="true">·</span>{post.minutes} min read</p>
+          <h1 id="post-title">{post.heading}</h1>
+        </header>
+
+        <div class="bp-body">
+          {post.body.map((b) => {
+            switch (b.type) {
+              case 'h2': return <h2 id={b.id}>{b.text}</h2>;
+              case 'h3': return <h3>{b.text}</h3>;
+              case 'p': return <p set:html={inline(b.text)} />;
+              case 'ul': return <ul>{b.items.map((i) => <li set:html={inline(i)} />)}</ul>;
+              case 'ol': return <ol>{b.items.map((i) => <li set:html={inline(i)} />)}</ol>;
+              case 'note': return <p class="bp-note" set:html={inline(b.text)} />;
+              case 'code': return (
+                <figure class="bp-code">
+                  {b.label && <figcaption>{b.label}</figcaption>}
+                  <pre tabindex="0"><code>{b.code}</code></pre>
+                  <button type="button" class="bp-copy" data-copy-text={b.code} data-setup-prompt={b.code === SETUP_PROMPT ? '' : undefined} aria-label="Copy" title="Copy" set:html={copyIcon} />
+                </figure>
+              );
+              case 'table': return (
+                <div class="bp-table" tabindex="0">
+                  <table>
+                    <thead><tr>{b.head.map((h) => <th scope="col">{h}</th>)}</tr></thead>
+                    <tbody>{b.rows.map((row) => <tr>{row.map((cell) => <td set:html={inline(cell)} />)}</tr>)}</tbody>
+                  </table>
+                </div>
+              );
+            }
+          })}
+        </div>
+
+        <section class="bp-faq" aria-labelledby="faq-title">
+          <h2 id="faq-title">Questions</h2>
+          {post.faq.map((f) => <details><summary>{f.q}</summary><p>{f.a}</p></details>)}
+        </section>
+      </article>
+
+      <aside class="bp-side" aria-label="On this page">
+        <nav class="bp-toc" aria-labelledby="toc-title">
+          <h2 id="toc-title">On this page</h2>
+          <ol>
+            {toc.map((h) => <li><a href={`#${h.id}`}>{h.text}</a></li>)}
+            <li><a href="#faq-title">Questions</a></li>
+          </ol>
+        </nav>
+        <div class="bp-card">
+          <p>Connect your agent to Kuchi. No sign-in, no API key.</p>
+          <a class="bp-btn" href="/agents">Agent setup guides</a>
+        </div>
+      </aside>
+    </div>
+
+    <nav class="bp-more" aria-labelledby="more-title">
+      <h2 id="more-title">Keep reading</h2>
+      <ul>
+        {post.related.map((r) => <li><a href={r.href}>{r.label} <span aria-hidden="true">→</span></a></li>)}
+        {others.filter((o) => !post.related.some((r) => r.href === postPath(o))).map((o) => <li><a href={postPath(o)}>{o.heading} <span aria-hidden="true">→</span></a></li>)}
+      </ul>
+    </nav>
+  </main>
+
+  <Toast />
+  <SiteFooter />
+
+  <script>
+    import '../../scripts/blog-page';
+  </script>
+</BaseLayout>
+
+<style>
+  .bp { padding-top: 28px; }
+  .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--k-muted); margin-bottom: 28px; }
+  .crumbs a { color: var(--k-muted); text-decoration: none; }
+  .crumbs a:hover { color: var(--k-ink); }
+  .crumbs [aria-current] { color: var(--k-ink); }
+
+  .bp-layout { display: grid; grid-template-columns: minmax(0, 720px) 260px; justify-content: space-between; column-gap: 48px; align-items: start; }
+  .bp-article { min-width: 0; }
+  .bp-head { margin-bottom: 32px; }
+  .bp-meta { display: flex; gap: 8px; font-size: 13px; color: var(--k-muted); margin: 0 0 12px; }
+  .bp-head h1 { font-size: clamp(32px, 4.6vw, 52px); line-height: 1.04; letter-spacing: -0.04em; margin: 0; text-wrap: balance; }
+
+  .bp-body { font-size: 17px; line-height: 1.7; color: var(--k-soft); }
+  .bp-body :global(h2) { font-size: 26px; line-height: 1.2; letter-spacing: -0.025em; color: var(--k-ink); margin: 48px 0 14px; scroll-margin-top: 24px; }
+  .bp-body :global(h3) { font-size: 19px; letter-spacing: -0.015em; color: var(--k-ink); margin: 32px 0 10px; }
+  .bp-body :global(p) { margin: 0 0 18px; }
+  .bp-body :global(ul), .bp-body :global(ol) { margin: 0 0 20px; padding-left: 22px; display: grid; gap: 8px; }
+  .bp-body :global(a) { color: var(--k-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--k-line-strong, var(--k-line)); }
+  .bp-body :global(a:hover) { text-decoration-color: currentColor; }
+  .bp-body :global(strong) { color: var(--k-ink); font-weight: 600; }
+  .bp-body :global(code) { font-family: var(--k-mono); font-size: 0.86em; padding: 1px 5px; border-radius: 5px; background: var(--k-wash); color: var(--k-ink); overflow-wrap: anywhere; }
+
+  .bp-note { padding: 14px 16px; border-left: 3px solid var(--k-ink); background: var(--k-wash); border-radius: 0 10px 10px 0; color: var(--k-ink); }
+
+  .bp-code { position: relative; margin: 0 0 22px; }
+  .bp-code figcaption { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--k-muted); margin-bottom: 6px; }
+  .bp-code pre { margin: 0; padding: 14px 48px 14px 14px; border-radius: 12px; background: var(--k-wash); border: 1px solid var(--k-line); font-family: var(--k-mono); font-size: 13px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--k-ink); }
+  .bp-code pre :global(code) { padding: 0; background: none; font-size: inherit; }
+  .bp-copy { position: absolute; right: 8px; bottom: 8px; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: var(--k-muted); cursor: pointer; transition: background-color 150ms ease, color 150ms ease; }
+  .bp-copy:hover { background: var(--k-paper); color: var(--k-ink); }
+
+  .bp-table { overflow-x: auto; margin: 0 0 24px; border: 1px solid var(--k-line); border-radius: 12px; }
+  .bp-table table { width: 100%; border-collapse: collapse; font-size: 14.5px; line-height: 1.55; }
+  .bp-table th { text-align: left; font-weight: 600; color: var(--k-ink); background: var(--k-wash); padding: 10px 14px; }
+  .bp-table td { padding: 10px 14px; border-top: 1px solid var(--k-line); vertical-align: top; }
+  .bp-table td:first-child { color: var(--k-ink); white-space: nowrap; }
+  /* A URL or command in a cell widens its column rather than breaking mid-word; the table scrolls if it must. */
+  .bp-table td :global(code) { overflow-wrap: normal; white-space: nowrap; }
+
+  .bp-faq { margin-top: 56px; }
+  .bp-faq h2 { font-size: 26px; letter-spacing: -0.025em; margin: 0 0 8px; }
+  .bp-faq details { border-bottom: 1px solid var(--k-line); padding: 14px 0; }
+  .bp-faq summary { cursor: pointer; font-weight: 600; font-size: 16px; }
+  .bp-faq details p { margin: 10px 0 0; color: var(--k-soft); line-height: 1.65; }
+
+  .bp-side { position: sticky; top: 24px; display: grid; gap: 16px; }
+  .bp-toc h2 { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--k-muted); margin: 0 0 10px; }
+  .bp-toc ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: 14px; }
+  .bp-toc a { color: var(--k-soft); text-decoration: none; }
+  .bp-toc a:hover { color: var(--k-ink); }
+  .bp-card { border: 1px solid var(--k-line); border-radius: 14px; padding: 16px; }
+  .bp-card p { margin: 0 0 12px; font-size: 14px; line-height: 1.5; }
+  .bp-btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; height: 38px; border-radius: 10px; background: var(--k-ink); color: var(--k-on-ink); font-size: 14px; font-weight: 600; text-decoration: none; transition: background-color 150ms ease, scale 160ms var(--ease-out-strong); }
+  .bp-btn:hover { background: var(--k-ink-hover); text-decoration: none; }
+  .bp-btn:active { scale: 0.98; }
+
+  .bp-more { margin: 72px 0 24px; max-width: 720px; }
+  .bp-more h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 12px; }
+  .bp-more ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .bp-more a { display: block; padding: 12px 14px; border: 1px solid var(--k-line); border-radius: 12px; color: var(--k-ink); text-decoration: none; font-size: 15px; transition: background-color 150ms ease; }
+  .bp-more a:hover { background: var(--k-wash); }
+
+  @media (max-width: 960px) {
+    .bp-layout { grid-template-columns: minmax(0, 1fr); }
+    .bp-side { position: static; order: -1; margin-bottom: 32px; }
+    .bp-toc { display: none; }
+  }
+  @media (max-width: 560px) {
+    .bp-body { font-size: 16px; }
+    .bp-table td:first-child { white-space: normal; }
+  }
+</style>

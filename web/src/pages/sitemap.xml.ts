@@ -6,6 +6,7 @@ import { components, posterUrl, videoUrl } from '../lib/components-catalog';
 import { newestFirst } from '../lib/catalog';
 import { videoPath } from '../lib/video-links.js';
 import { harnesses, harnessPath } from '../lib/harnesses';
+import { posts, postPath } from '../lib/blog';
 
 export const prerender = true;
 
@@ -37,6 +38,8 @@ const ENTRIES: Entry[] = [
   })),
   { path: '/agents', lastmod: latest },
   ...harnesses.map((h) => ({ path: harnessPath(h), lastmod: latest })),
+  { path: '/blog', lastmod: posts.map((p) => p.updated).sort().at(-1) },
+  ...posts.map((p) => ({ path: postPath(p), lastmod: p.updated })),
   { path: '/support' },
   { path: '/privacy' },
   { path: '/terms' },

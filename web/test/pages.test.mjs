@@ -302,7 +302,8 @@ test('every component has an indexable page: canonical, preview image, JSON-LD, 
     const html = await read(dist, `components/${item.name}.html`);
     const url = `https://kuchi.kalarislabs.com/components/${item.name}`;
     assert.ok(html.includes(`<link rel="canonical" href="${url}">`), `${item.name}: canonical`);
-    assert.match(html, /<meta property="og:image" content="https:\/\/kuchi-media\.kalarislabs\.com\/components\/posters\/[\w-]+\.webp">/, `${item.name}: og:image`);
+    // Owner decision 2026-11-19: component pages share the Kuchi link-preview card.
+    assert.match(html, /<meta property="og:image" content="https:\/\/kuchi\.kalarislabs\.com\/_astro\/og-image\.[\w-]+\.jpg">/, `${item.name}: og:image`);
     const ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
     assert.ok(ld, `${item.name}: JSON-LD`);
     const types = JSON.parse(ld[1]).map((x) => x['@type']);
@@ -417,4 +418,35 @@ test('every agent harness has an indexable guide: canonical, HowTo/FAQ JSON-LD, 
     assert.ok(!html.includes('github.com') || !/<a[^>]+github\.com/.test(html.replace(/<footer[\s\S]*<\/footer>/, '')), `${slug}: links GitHub`);
   }
   assert.ok(/href="\/agents"/.test(index), 'the home page does not link the agent guides');
+});
+
+test('every blog post is indexable: canonical, BlogPosting/FAQ JSON-LD, unique title, sitemap, search, footer link', async () => {
+  const sitemap = await read(dist, 'sitemap.xml');
+  const search = JSON.parse(await read(dist, 'search-index.json'));
+  const hrefs = new Set(search.map((e) => e.h));
+  const hub = await read(dist, 'blog.html');
+  assert.ok(hub.includes('<link rel="canonical" href="https://kuchi.kalarislabs.com/blog">'), 'blog canonical');
+  assert.ok(sitemap.includes('<loc>https://kuchi.kalarislabs.com/blog</loc>'), 'blog not in the sitemap');
+  const slugs = [...new Set([...hub.matchAll(/href="\/blog\/([\w-]+)"/g)].map((m) => m[1]))];
+  assert.ok(slugs.length >= 3, 'the blog index lost posts');
+  const titles = new Set();
+  for (const slug of slugs) {
+    const html = await read(dist, `blog/${slug}.html`);
+    const url = `https://kuchi.kalarislabs.com/blog/${slug}`;
+    assert.ok(html.includes(`<link rel="canonical" href="${url}">`), `${slug}: canonical`);
+    assert.ok(html.includes('<meta property="og:type" content="article">'), `${slug}: og:type`);
+    const title = html.match(/<title>([^<]+)<\/title>/)[1];
+    assert.ok(!titles.has(title), `${slug}: duplicate title`);
+    titles.add(title);
+    const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    const types = ld.map((x) => x['@type']);
+    assert.deepEqual(types.slice(0, 3), ['BlogPosting', 'FAQPage', 'BreadcrumbList'], `${slug}: JSON-LD types`);
+    assert.ok(ld[1].mainEntity.length >= 3, `${slug}: FAQ`);
+    assert.ok(sitemap.includes(`<loc>${url}</loc>`), `${slug}: not in the sitemap`);
+    assert.ok(hrefs.has(`/blog/${slug}`), `${slug}: not in search`);
+    // Owner decisions of 2026-11-14: no shell downloads of SKILL.md, no GitHub links.
+    assert.ok(!/curl[^<]*SKILL\.md|Invoke-WebRequest/i.test(html), `${slug}: shell skill install`);
+    assert.ok(!/<a[^>]+github\.com/.test(html.replace(/<footer[\s\S]*<\/footer>/, '')), `${slug}: links GitHub`);
+  }
+  assert.ok(/href="\/blog"/.test(index), 'the home page does not link the blog');
 });

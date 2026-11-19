@@ -4,6 +4,9 @@
 import { playVideo } from '../lib/play-video.js';
 import { isFavorite, onFavoritesChange } from '../lib/favorites.js';
 
+// Page views and clicks, like every other page (privacy rules in analytics.mjs).
+void import('./analytics.mjs').catch(() => null);
+
 const $ = <T extends HTMLElement = HTMLElement>(sel: string, root: ParentNode = document) =>
   root.querySelector<T>(sel);
 const $$ = <T extends HTMLElement = HTMLElement>(sel: string, root: ParentNode = document) =>

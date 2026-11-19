@@ -1,0 +1,87 @@
+---
+// /blog: every post, newest first. Posts live in lib/blog.ts.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SkipLink from '../components/SkipLink.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Toast from '../components/Toast.astro';
+import { SITE_URL } from '../lib/video-links.js';
+import { posts, postPath, postUrl } from '../lib/blog';
+
+export const prerender = true;
+
+const sorted = [...posts].sort((a, b) => b.published.localeCompare(a.published));
+const description = 'Guides to making launch videos with AI agents: connecting the Kuchi MCP server and agent skill, installing Remotion components over MCP, and the full launch-video workflow.';
+const longDate = (d: string) => new Date(`${d}T12:00:00Z`).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'Kuchi blog',
+    description,
+    url: `${SITE_URL}/blog`,
+    publisher: { '@type': 'Organization', name: 'Kalaris Labs', url: 'https://kalarislabs.com' },
+    blogPost: sorted.map((p) => ({ '@type': 'BlogPosting', headline: p.heading, url: postUrl(p), datePublished: p.published, description: p.description })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Kuchi', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/blog` },
+    ],
+  },
+];
+---
+<BaseLayout title="Blog: launch videos with AI agents — Kuchi" description={description} jsonLd={jsonLd}>
+  <SkipLink href="#blog-title" label="Skip to the posts" />
+  <SiteHeader />
+  <main class="document bl">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Kuchi</a><span aria-hidden="true">/</span><span aria-current="page">Blog</span></nav>
+
+    <header class="bl-hero">
+      <h1 id="blog-title">Launch videos with AI agents</h1>
+      <p>How to connect Kuchi to your agent, how agents use its components, and what making a launch video looks like from the first prompt to the rendered file.</p>
+    </header>
+
+    <ul class="bl-list">
+      {sorted.map((p) => (
+        <li>
+          <a class="bl-card" href={postPath(p)}>
+            <p class="bl-meta"><time datetime={p.published}>{longDate(p.published)}</time><span aria-hidden="true">·</span>{p.minutes} min read</p>
+            <h2>{p.heading}</h2>
+            <p class="bl-summary">{p.summary}</p>
+            <span class="bl-read">Read <span aria-hidden="true">→</span></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </main>
+
+  <Toast />
+  <SiteFooter />
+
+  <script>
+    import '../scripts/blog-page';
+  </script>
+</BaseLayout>
+
+<style>
+  .bl { padding-top: 28px; }
+  .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--k-muted); margin-bottom: 28px; }
+  .crumbs a { color: var(--k-muted); text-decoration: none; }
+  .crumbs a:hover { color: var(--k-ink); }
+  .crumbs [aria-current] { color: var(--k-ink); }
+
+  .bl-hero { max-width: 720px; margin-bottom: 40px; }
+  .bl-hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -0.04em; margin: 0 0 16px; text-wrap: balance; }
+  .bl-hero p { font-size: 17px; line-height: 1.6; color: var(--k-soft); margin: 0; }
+
+  .bl-list { list-style: none; padding: 0; margin: 0 0 48px; display: grid; gap: 14px; max-width: 820px; }
+  .bl-card { display: block; padding: 22px; border: 1px solid var(--k-line); border-radius: 16px; color: inherit; text-decoration: none; transition: background-color 150ms ease, border-color 150ms ease; }
+  .bl-card:hover { background: var(--k-wash); text-decoration: none; }
+  .bl-meta { display: flex; gap: 8px; font-size: 13px; color: var(--k-muted); margin: 0 0 8px; }
+  .bl-card h2 { font-size: 22px; line-height: 1.25; letter-spacing: -0.02em; margin: 0 0 8px; color: var(--k-ink); text-wrap: balance; }
+  .bl-summary { margin: 0 0 12px; color: var(--k-soft); line-height: 1.55; }
+  .bl-read { font-size: 14px; font-weight: 600; color: var(--k-ink); }
+</style>

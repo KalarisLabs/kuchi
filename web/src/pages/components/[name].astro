@@ -91,11 +91,6 @@ const jsonLd = [
 <BaseLayout
   title={`${item.title}: Remotion video component · Kuchi`}
   description={metaDescription}
-  image={posterUrl(item.name)}
-  imageAlt={`${item.title} video component preview`}
-  imageType="image/webp"
-  imageWidth={640}
-  imageHeight={360}
   ogType="article"
   jsonLd={jsonLd}
 >
@@ -204,6 +199,8 @@ const jsonLd = [
   <SiteFooter />
 
   <script>
+    // Page views and clicks, like every other page (privacy rules in analytics.mjs).
+    void import('../../scripts/analytics.mjs').catch(() => null);
     let timer: number | undefined;
     const showToast = (message: string) => {
       const el = document.getElementById('toast');

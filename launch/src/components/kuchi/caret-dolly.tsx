@@ -427,12 +427,21 @@ export function CaretDolly({
   if (layout && cams.length > 0) {
     const L = layout;
     const f = frame;
-    const cam = cams[Math.min(cams.length - 1, Math.floor(f))];
-    const prev =
-      cams[Math.max(0, Math.min(cams.length - 1, Math.floor(f) - 1))];
+    // Camera samples are per whole frame; blend neighbours so fractional frames (the
+    // 60 fps master) move smoothly, and clamp so a frame just before 0 reads sample 0.
+    const camAt = (t: number) => {
+      const c = Math.max(0, Math.min(cams.length - 1, t));
+      const i = Math.floor(c);
+      const a = cams[i]!;
+      const b = cams[Math.min(cams.length - 1, i + 1)]!;
+      const k = c - i;
+      return k === 0 ? a : { x: a.x + (b.x - a.x) * k, y: a.y + (b.y - a.y) * k, s: Math.exp(Math.log(a.s) + (Math.log(b.s) - Math.log(a.s)) * k) };
+    };
+    const cam = camAt(f);
+    const prev = camAt(f - 1);
     const push =
       f >= pullEnd
-        ? interpolate(f, [pullEnd, durationInFrames], [1, 1.03], CLAMP)
+        ? interpolate(f, [pullEnd, Math.max(pullEnd + 1, durationInFrames)], [1, 1.03], CLAMP)
         : 1;
     const s = cam.s * push;
     const zoomV = Math.abs(Math.log(cam.s) - Math.log(prev.s));

@@ -5,6 +5,7 @@
   "scripts": {
     "studio": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts KuchiLaunch out/kuchi-launch.mp4",
+    "render:4k": "remotion render src/index.ts KuchiLaunch4K60 out/kuchi-launch-4k60.mp4 --scale=2 --codec=h264 --crf=14 --audio-codec=aac --audio-bitrate=320k --timeout=180000 --concurrency=3",
     "still": "remotion still src/index.ts KuchiLaunch"
   },
   "dependencies": {

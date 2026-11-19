@@ -385,13 +385,13 @@ export const SHOTS: Shot[] = [
   },
   {
     id: "12-status-cycle",
-    // Ends on "free to start": its chip act is replaced by the shader reveal.
+    // Ends on "free for everyone": its chip act is replaced by the shader reveal.
     frames: 24 + 4 * 34 + 6,
     drift: 0.04,
     node: (
       <StatusCycle
         prefix="Kuchi is"
-        statuses={["a launch video library", "an MCP server", "a component registry", "free to start"]}
+        statuses={["a launch video library", "an MCP server", "a component registry", "free for everyone"]}
         chips={["Kinetic type", "Captions", "UI screens", "Cursors", "Logos"]}
         fieldColor={C.paper}
         pageColor={C.paper}
@@ -449,7 +449,7 @@ export const SHOTS: Shot[] = [
   },
   {
     id: "15-end-card",
-    frames: 136,
+    frames: 170,
     node: <EndCard />,
   },
 ];

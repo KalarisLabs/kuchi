@@ -1,6 +1,8 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { useContext } from "react";
+import { RemapContext } from "@/lib/remap-context";
 import {
   Easing,
   getRemotionEnvironment,
@@ -252,6 +254,9 @@ function Media({
   from?: number;
 }) {
   const { fps } = useVideoConfig();
+  // Under TimeRemap (60 fps master) the clip's clock is the authored one: play at
+  // factor x and trim in output frames, so clips keep real speed and in-points.
+  const factor = useContext(RemapContext);
   const resolved = resolveSrc(src.replace(/#.*$/, ""));
   if (!isVideoSrc(src)) return <Img src={resolved} style={style} />;
   return (
@@ -259,7 +264,9 @@ function Media({
       <OffthreadVideo
         src={resolved}
         muted
-        trimBefore={Math.round(clipStart(src) * fps)}
+        trimBefore={Math.round(clipStart(src) * fps * factor)}
+        playbackRate={factor}
+        delayRenderTimeoutInMilliseconds={180000}
         style={style}
       />
     </Sequence>

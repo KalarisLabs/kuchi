@@ -1,6 +1,6 @@
 # Kuchi launch film: storyboard
 
-> **Built.** `npm run studio` to preview, `npm run render` for the MP4 (silent: no music yet). The source of truth for timing is `SHOTS` in `src/Film.tsx`. Where the build changed the plan, it is noted under "As built" at the bottom of this file.
+> **Built.** `npm run studio` to preview, `npm run render` for the silent 1080p30 cut, `npm run render:4k` for the master: 3840×2160, 60 fps, with the music (`public/music/launch-in-motion.mp3`). The master is composition `KuchiLaunch4K60`: the film is still authored at 30 fps, and `TimeRemap` (src/lib/time-remap.tsx) plays it on a 60 fps clock so every frame in between is a real in-between, not a repeat; `src/remotion-shim.ts` keeps `useVideoConfig().fps` at 30 inside it. The source of truth for timing is `SHOTS` in `src/Film.tsx`. Where the build changed the plan, it is noted under "As built" at the bottom of this file.
 
 60 seconds · 1920×1080 · 30fps · 1800 frames · Remotion · built only from Kuchi registry components.
 
@@ -378,3 +378,11 @@ The film is no longer held to 60s. It runs as long as its beats need: 54.4s, 163
 - **Orb Swarm opens on a question.** Script: `launch day? | what if | your launch video | was already made | like the best ones | ever shipped`. "launch day?" fades in and holds for about 1.6s (`openHold={1.4}`, a slow drift through the card's first six beats) before the swarm runs; the shot is 195 frames.
 - **Grammar fix.** The component revealed only two words of cards 3 and 4 and three of card 5, so "your launch video" showed as "your launch". Vendored edit: each card's last reveal beat brings in every remaining word. The old "made by the best ever shipped" is now "made like the best ones ever shipped".
 - **Shader Text Reveal** no longer lists "Kinetic type / Captions / UI screens / Cursors / Logos". It says "Launch your idea" → "before your product." (44 frames each), and "Available as an MCP server" rises under the second line and holds.
+
+### Revision 6 (2026-11-20): social cut
+
+63.0s, 1890 frames.
+
+- **Status Cycle** ends on "free for everyone" (was "free to start", which read as a paid tier; Kuchi is entirely free).
+- **End card** holds 170 frames (was 136) and adds the ask under the URL: "Add it to your agent and make yours. Free, no sign-in." (`CTA_IN` 100).
+- Posts for X and LinkedIn are in `SOCIAL_POSTS.md`; the thumbnail is a frame at 38.6s (`out/cover.jpg`).

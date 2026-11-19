@@ -2,6 +2,7 @@ import type React from "react";
 import { AbsoluteFill, Easing, Img, interpolate, staticFile, useCurrentFrame } from "remotion";
 import { TitleSweep } from "@/components/kuchi/title-sweep";
 import { C, FONT } from "./brand";
+import { Caption } from "./Caption";
 
 // The sweep's colour where the type sits is the colour it reads in. Both ends are
 // the page, so a title arrives and leaves by the white passing over it. The last
@@ -22,6 +23,8 @@ const STOPS = [
 
 /** The popcorn arrives over the URL once the URL has settled. */
 const MARK_IN = 88;
+/** The call to action rises under the URL just after the mark. */
+const CTA_IN = 100;
 
 export const EndCard: React.FC = () => {
   const f = useCurrentFrame();
@@ -52,6 +55,8 @@ export const EndCard: React.FC = () => {
           }}
         />
       </AbsoluteFill>
+      {/* The ask: one line telling the viewer what to do next. */}
+      <Caption text="Add it to your agent and make yours. Free, no sign-in." top={640} delay={CTA_IN} size={46} color={C.muted} />
     </AbsoluteFill>
   );
 };

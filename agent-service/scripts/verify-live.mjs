@@ -10,7 +10,7 @@ import {StreamableHTTPClientTransport as LegacyHTTP} from '@modelcontextprotocol
 
 const url = process.argv[2] ?? 'https://kuchi.kalarislabs.com/mcp';
 const QUIET = {'User-Agent':'kuchi-verify/1.2'};
-const TOOLS = ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_component', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_components', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'kuchi_suggest_templates', 'search'];
+const TOOLS = ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_component', 'kuchi_get_skill', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_components', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'kuchi_suggest_templates', 'search'];
 const parse = r => r.structuredContent ?? JSON.parse(r.content[0].text);
 const head = async link => (await fetch(link, {method:'HEAD', headers:QUIET})).status;
 

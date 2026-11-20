@@ -1,0 +1,221 @@
+---
+// /skills/product-launch-video: the Kuchi product launch video skill. What it does, how to
+// install it (the MCP server, the skills CLI, the Claude Code plugin), a starter prompt, the
+// steps it runs, what it delivers, an FAQ and the full SKILL.md, inline so agents and search
+// engines read the real file. Data: lib/skills.ts. Skill file: agent/skills/<name>/SKILL.md.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SkipLink from '../../components/SkipLink.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import SectionNav from '../../components/SectionNav';
+import SiteFooter from '../../components/SiteFooter.astro';
+import Toast from '../../components/Toast.astro';
+import AuthorByline from '../../components/AuthorByline.astro';
+import { SITE_URL } from '../../lib/video-links.js';
+import { AUTHOR, authorLd } from '../../lib/authors';
+import { harnesses, harnessPath } from '../../lib/harnesses';
+import { installWays, launchSkill, launchSteps, launchOutputs, launchFaq, STARTER_PROMPT, LAUNCH_SKILL_PATH, LAUNCH_SKILL_COMMAND, skills } from '../../lib/skills';
+import skillMd from '../../../../agent/skills/kuchi-product-launch-video/SKILL.md?raw';
+
+export const prerender = true;
+
+const UPDATED = '2026-11-20';
+const url = `${SITE_URL}${LAUNCH_SKILL_PATH}`;
+const title = 'Product launch video skill for Claude Code, Codex and any AI agent';
+const description = 'A free agent skill that turns a product URL or brief into a launch video modelled shot for shot on a real one: brief, reference, plan, Remotion build, sound and checks. Comes with the Kuchi MCP server or installs into any agent.';
+const coding = harnesses.filter((h) => h.kind === 'coding').slice(0, 12);
+const chat = harnesses.filter((h) => h.kind === 'chat').slice(0, 6);
+const body = skillMd.replace(/^---[\s\S]*?---\s*/, '');
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Kuchi product launch video skill',
+    alternateName: launchSkill.name,
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Any',
+    description,
+    url,
+    downloadUrl: launchSkill.url,
+    installUrl: url,
+    softwareVersion: '1.4.2',
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    publisher: { '@type': 'Organization', name: 'Kalaris Labs', url: 'https://kalarislabs.com' },
+    author: authorLd(new URL(AUTHOR.photo.src, SITE_URL).href),
+    dateModified: UPDATED,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: 'Make a product launch video with an AI agent and the Kuchi skill',
+    description,
+    step: launchSteps.map((s, i) => ({ '@type': 'HowToStep', position: i + 1, name: s.title, text: s.text })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: launchFaq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Kuchi', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Skills', item: `${SITE_URL}/skills` },
+      { '@type': 'ListItem', position: 3, name: 'Product launch video', item: url },
+    ],
+  },
+];
+const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+---
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <SkipLink href="#skill-title" label="Skip to the skill" />
+  <SiteHeader />
+  <main class="document sk">
+    <SectionNav client:load pathname={Astro.url.pathname} />
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">Kuchi</a><span aria-hidden="true">/</span>
+      <a href="/skills">Skills</a><span aria-hidden="true">/</span>
+      <span aria-current="page">Product launch video</span>
+    </nav>
+
+    <header class="sk-hero">
+      <p class="sk-kicker">Agent skill · <code>{launchSkill.name}</code> · free</p>
+      <h1 id="skill-title">Product launch video skill</h1>
+      <p class="sk-lede">Ask your agent for a launch video and get one that moves like a real launch that worked. The skill picks a real product-launch video from Kuchi's library with you, copies its timing, entrances and layout to the frame, fills every shot with your product, adds sound on the right frames and checks the result before it hands you the MP4.</p>
+      <div class="sk-cmd"><code>{LAUNCH_SKILL_COMMAND}</code><button type="button" class="sk-copy" data-copy-text={LAUNCH_SKILL_COMMAND} aria-label="Copy install command" title="Copy" set:html={copyIcon} /></div>
+      <p class="sk-hint">Or connect the <a href="/#connect">Kuchi MCP server</a>: the skill comes with it.</p>
+      <AuthorByline date={UPDATED} />
+    </header>
+
+    <div class="sk-body">
+      <section class="sk-section" id="usage" aria-labelledby="usage-title">
+        <h2 id="usage-title">Install it</h2>
+        <ol class="sk-ways">
+          {installWays.map((way, i) => (
+            <li>
+              <span class="sk-n">{i + 1}</span>
+              <div>
+                <h3>{way.title}</h3>
+                <p>{way.text}</p>
+                <div class="sk-code"><code>{way.code}</code><button type="button" class="sk-copy" data-copy-text={way.code} aria-label={`Copy: ${way.title}`} title="Copy" set:html={copyIcon} /></div>
+                {'link' in way && way.link && <a class="sk-link" href={way.link.href}>{way.link.label} <span aria-hidden="true">→</span></a>}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section class="sk-section" id="prompt" aria-labelledby="prompt-title">
+        <h2 id="prompt-title">Your first prompt</h2>
+        <p>Paste this into your agent and fill in the brackets. The skill asks for anything you leave out, and never invents a feature, a number or a logo.</p>
+        <div class="sk-code sk-prompt"><pre><code>{STARTER_PROMPT}</code></pre><button type="button" class="sk-copy" data-copy-text={STARTER_PROMPT} aria-label="Copy starter prompt" title="Copy" set:html={copyIcon} /></div>
+      </section>
+
+      <section class="sk-section" id="how" aria-labelledby="how-title">
+        <h2 id="how-title">What it does, step by step</h2>
+        <ol class="sk-flow">
+          {launchSteps.map((s, i) => (
+            <li><span class="sk-n">{i + 1}</span><div><h3>{s.title}</h3><p>{s.text}</p><code>{s.tool}</code></div></li>
+          ))}
+        </ol>
+      </section>
+
+      <section class="sk-section" id="output" aria-labelledby="output-title">
+        <h2 id="output-title">What you get</h2>
+        <ul class="sk-list">{launchOutputs.map((o) => <li>{o}</li>)}</ul>
+      </section>
+
+      <section class="sk-section" id="agents" aria-labelledby="agents-title">
+        <h2 id="agents-title">Works with your agent</h2>
+        <p>Coding agents run the whole skill, from the brief to the render:</p>
+        <ul class="sk-chips">{coding.map((h) => <li><a href={harnessPath(h)}><img class:list={['brand-icon', { 'brand-color': h.brandColor }]} src={h.logo} alt="" width="18" height="18">{h.name}</a></li>)}</ul>
+        <p>Chat apps choose the reference, study it and plan the remake, then hand the plan to a coding agent:</p>
+        <ul class="sk-chips">{chat.map((h) => <li><a href={harnessPath(h)}><img class:list={['brand-icon', { 'brand-color': h.brandColor }]} src={h.logo} alt="" width="18" height="18">{h.name}</a></li>)}</ul>
+        <p class="sk-more"><a href="/agents">Guides for every agent <span aria-hidden="true">→</span></a></p>
+      </section>
+
+      <section class="sk-section" id="family" aria-labelledby="family-title">
+        <h2 id="family-title">The skills it calls</h2>
+        <p>The launch video skill runs the job and loads three deeper skills when it reaches them. All of them come with the MCP server.</p>
+        <ul class="sk-family">
+          {skills.filter((s) => s.name !== launchSkill.name).map((s) => (
+            <li><strong>{s.title}</strong> <code>{s.name}</code><p>{s.summary}</p><a href={s.url} target="_blank" rel="noopener">SKILL.md <span aria-hidden="true">↗</span></a></li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="sk-section" id="faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">Questions</h2>
+        <dl class="sk-faq">{launchFaq.map((f) => <div><dt>{f.q}</dt><dd>{f.a}</dd></div>)}</dl>
+      </section>
+
+      <section class="sk-section" id="skill-file" aria-labelledby="file-title">
+        <h2 id="file-title">The full SKILL.md</h2>
+        <p>This is the file your agent reads, word for word. It is also served at <a href={launchSkill.url}>{launchSkill.url.replace('https://', '')}</a>.</p>
+        <details class="sk-file">
+          <summary>Read the skill file</summary>
+          <pre><code>{body}</code></pre>
+        </details>
+      </section>
+
+      <AuthorByline variant="card" />
+    </div>
+  </main>
+  <Toast />
+  <SiteFooter />
+  <script>
+    import '../../scripts/agent-page';
+  </script>
+</BaseLayout>
+
+<style>
+  .sk { padding-top: 28px; }
+  .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--k-muted); margin-bottom: 28px; }
+  .crumbs a { color: var(--k-muted); text-decoration: none; }
+  .crumbs [aria-current] { color: var(--k-ink); }
+  .sk-hero { max-width: 780px; margin-bottom: 40px; }
+  .sk-kicker { margin: 0 0 12px; color: var(--k-muted); font-size: 13px; }
+  .sk-kicker code { font-family: var(--k-mono); font-size: 12px; }
+  .sk-hero h1 { margin: 0 0 18px; font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -.04em; }
+  .sk-lede { margin: 0 0 22px; color: var(--k-soft); font-size: 17px; line-height: 1.6; }
+  .sk-hint { margin: 10px 0 22px; color: var(--k-muted); font-size: 14px; }
+  .sk-hint a { color: var(--k-ink); }
+  .sk-body { max-width: 780px; }
+  .sk-section { margin: 0 0 52px; scroll-margin-top: 90px; }
+  .sk-section h2 { margin: 0 0 14px; font-size: 24px; letter-spacing: -.025em; }
+  .sk-section > p { margin: 0 0 14px; color: var(--k-soft); font-size: 15.5px; line-height: 1.65; }
+  .sk-cmd, .sk-code { position: relative; padding: 12px 46px 12px 14px; border: 1px solid var(--k-line); border-radius: 12px; background: var(--k-wash); font-family: var(--k-mono); font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; }
+  .sk-prompt pre { margin: 0; white-space: pre-wrap; font: inherit; }
+  .sk-copy { position: absolute; top: 7px; right: 7px; display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--k-muted); cursor: pointer; transition: background-color 150ms ease, color 150ms ease, scale 160ms ease-out; }
+  .sk-copy:active { scale: .94; }
+  .sk-ways, .sk-flow { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+  .sk-ways li, .sk-flow li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 14px; padding: 18px; border: 1px solid var(--k-line); border-radius: 14px; }
+  .sk-n { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--k-wash); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .sk-ways h3, .sk-flow h3 { margin: 2px 0 6px; font-size: 16px; letter-spacing: -.01em; }
+  .sk-ways p, .sk-flow p { margin: 0 0 12px; color: var(--k-soft); font-size: 14.5px; line-height: 1.6; }
+  .sk-flow p { margin-bottom: 8px; }
+  .sk-flow code { font-family: var(--k-mono); font-size: 12.5px; color: var(--k-muted); }
+  .sk-link { display: inline-block; margin-top: 10px; color: var(--k-ink); font-size: 14px; font-weight: 600; text-decoration: none; }
+  .sk-list { margin: 0; padding-left: 20px; color: var(--k-soft); font-size: 15.5px; line-height: 1.8; }
+  .sk-chips { list-style: none; margin: 0 0 18px; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .sk-chips a { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border: 1px solid var(--k-line); border-radius: 999px; color: var(--k-ink); font-size: 14px; text-decoration: none; transition: background-color 150ms ease; }
+  .sk-more a { color: var(--k-ink); font-weight: 600; text-decoration: none; }
+  .sk-family { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .sk-family li { padding: 16px 18px; border: 1px solid var(--k-line); border-radius: 14px; }
+  .sk-family code { font-family: var(--k-mono); font-size: 12px; color: var(--k-muted); }
+  .sk-family p { margin: 6px 0 8px; color: var(--k-soft); font-size: 14.5px; line-height: 1.55; }
+  .sk-family a { color: var(--k-muted); font-size: 13px; }
+  .sk-faq { margin: 0; display: grid; gap: 18px; }
+  .sk-faq dt { font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+  .sk-faq dd { margin: 0; color: var(--k-soft); font-size: 15px; line-height: 1.65; }
+  .sk-file { border: 1px solid var(--k-line); border-radius: 14px; overflow: hidden; }
+  .sk-file summary { padding: 14px 18px; font-weight: 600; cursor: pointer; }
+  .sk-file pre { margin: 0; max-height: 640px; overflow: auto; padding: 18px; border-top: 1px solid var(--k-line); background: var(--k-wash); font-family: var(--k-mono); font-size: 12.5px; line-height: 1.6; white-space: pre-wrap; }
+  @media (hover: hover) and (pointer: fine) {
+    .sk-copy:hover { background: var(--k-paper); color: var(--k-ink); }
+    .sk-chips a:hover { background: var(--k-wash); }
+    .sk-link:hover, .sk-more a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  }
+</style>

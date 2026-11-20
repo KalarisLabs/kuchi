@@ -76,6 +76,7 @@ Build one shot at a time, in order, from the blueprint.
 
 **Read the build skills before writing code.** `kuchi_get_skill` serves them:
 
+- `kuchi-product-launch-video`: the whole job in one skill, from the brief to the delivered MP4: brief, choosing the reference with the user, study, plan, storyboard, build, sound, check, and render sizes for X, LinkedIn, Product Hunt and vertical video. It loads the three below when it reaches them.
 - `kuchi-remotion`: project setup, the `@` alias Kuchi components need (in `remotion.config.ts`, not only `tsconfig.json`), one `<Sequence>` per blueprint shot, entrances, fonts, assets, rendering and exporting frames to compare.
 - `kuchi-sound`: sound without hearing it. It turns each shot's `sound` cue into an open-license sound effect on its exact frame, chosen and trimmed by measuring with ffmpeg, with every license logged.
 - `kuchi-audio-check`: measuring the rendered mix (loudness, true peak, silence, and whether each sound lands on its cue frame) before delivering.

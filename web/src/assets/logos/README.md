@@ -3,7 +3,8 @@ scripts/stage.mjs, so site-only assets live here).
 
 From Lobe Icons, @lobehub/icons-static-svg 1.102.0 (MIT), https://github.com/lobehub/lobe-icons:
 grokbot, devin, pi, metaai (Muse Code), opencode, cline, amp, kiro, githubcopilot, kimi, qwen,
-antigravity, mistral (Le Chat), manus. Brand names and trademarks belong to their owners.
+antigravity, mistral (Le Chat), manus; and for the footer's "Ask your everyday AI" row: openai
+(ChatGPT), claude-mono, gemini-mono, grok-mono, perplexity, copilot (Microsoft Copilot), deepseek. Brand names and trademarks belong to their owners.
 
 t3code.svg, zed.svg, droid.svg and xum.svg are plain letter marks drawn for this site (no brand
 artwork), because Lobe Icons has no mark for them.

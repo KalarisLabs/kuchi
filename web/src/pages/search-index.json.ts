@@ -30,6 +30,8 @@ const pages: SearchEntry[] = [
   { k: 'page', t: 'Video components', s: `${components.length} copy-paste Remotion components`, h: '/components', w: 'registry shadcn remotion library' },
   { k: 'page', t: 'Connect your agent', s: 'Add the Kuchi MCP to Claude, ChatGPT, Codex, Cursor', h: '/#connect', w: 'mcp install claude codex cursor chatgpt agent setup' },
   { k: 'page', t: 'Agent guides', s: 'Make a launch video with Claude Code, Codex, Cursor and more', h: '/agents', w: 'harness guide how to setup install mcp' },
+  { k: 'page', t: 'Product launch video skill', s: 'Install the skill that makes a launch video end to end', h: '/skills/product-launch-video', w: 'skill install npx skills claude code codex agent skill launch promo teaser' },
+  { k: 'page', t: 'Agent skills', s: 'Every Kuchi skill: launch video, Remotion, sound, audio check', h: '/skills', w: 'skills install skill.md remotion sound audio' },
   { k: 'page', t: 'Blog', s: 'Guides to launch videos with AI agents', h: '/blog', w: 'articles guides posts how to' },
   ...posts.map((p): SearchEntry => ({ k: 'page', t: p.heading, s: p.summary, h: postPath(p), w: `blog ${p.keywords.join(' ')}` })),
   { k: 'page', t: 'FAQ', s: 'How Kuchi works', h: '/#faq', w: 'questions help' },

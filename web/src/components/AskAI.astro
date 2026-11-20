@@ -1,0 +1,103 @@
+---
+// "Ask your everyday AI about Kuchi": a row of assistant marks in the footer. Each opens the
+// assistant with the question filled in where the assistant supports a prefill link; every
+// click also copies the question, so the ones without a prefill (Gemini, DeepSeek) only need
+// a paste. "View or copy the question" shows the exact text. The marks are monochrome
+// (currentColor) so they sit quietly on the dark footer. Sources: assets/logos/README.md.
+import openai from '../assets/logos/openai.svg?raw';
+import claude from '../assets/logos/claude-mono.svg?raw';
+import gemini from '../assets/logos/gemini-mono.svg?raw';
+import grok from '../assets/logos/grok-mono.svg?raw';
+import perplexity from '../assets/logos/perplexity.svg?raw';
+import copilot from '../assets/logos/copilot.svg?raw';
+import metaai from '../assets/logos/metaai.svg?raw';
+import mistral from '../assets/logos/mistral.svg?raw';
+import deepseek from '../assets/logos/deepseek.svg?raw';
+
+import { QUESTION } from '../lib/ask-ai';
+const q = encodeURIComponent(QUESTION);
+// Strip fixed sizes and inline styles from the source files; CSS sizes the marks.
+const mark = (svg: string) => svg.replace(/\s(width|height|style)="[^"]*"/g, '').replace('<svg', '<svg aria-hidden="true" focusable="false"');
+
+const assistants = [
+  { name: 'ChatGPT', svg: openai, href: `https://chatgpt.com/?q=${q}` },
+  { name: 'Claude', svg: claude, href: `https://claude.ai/new?q=${q}` },
+  { name: 'Gemini', svg: gemini, href: 'https://gemini.google.com/app', paste: true },
+  { name: 'Grok', svg: grok, href: `https://grok.com/?q=${q}` },
+  { name: 'Perplexity', svg: perplexity, href: `https://www.perplexity.ai/search?q=${q}` },
+  { name: 'Copilot', svg: copilot, href: `https://copilot.microsoft.com/?q=${q}` },
+  { name: 'Meta AI', svg: metaai, href: `https://www.meta.ai/?q=${q}` },
+  { name: 'Le Chat', svg: mistral, href: `https://chat.mistral.ai/chat?q=${q}` },
+  { name: 'DeepSeek', svg: deepseek, href: 'https://chat.deepseek.com/', paste: true },
+];
+---
+<section class="ask-ai" aria-labelledby="ask-ai-title" data-ask-ai>
+  <h2 id="ask-ai-title">Ask your everyday AI about Kuchi.</h2>
+  <ul class="ask-ai-row">
+    {assistants.map((a) => (
+      <li>
+        <a class="ask-ai-mark" href={a.href} target="_blank" rel="noopener" data-ask={a.name} data-paste={a.paste ? '' : undefined} aria-label={a.paste ? `Open ${a.name} (the question is copied for you to paste)` : `Ask ${a.name} about Kuchi`} title={a.name} set:html={mark(a.svg)} />
+      </li>
+    ))}
+  </ul>
+  <details class="ask-ai-question">
+    <summary>View or copy the question</summary>
+    <div class="ask-ai-box">
+      <p>{QUESTION}</p>
+      <button type="button" class="ask-ai-copy" data-ask-copy>Copy</button>
+    </div>
+  </details>
+</section>
+
+<style>
+  .ask-ai { display: flex; flex-direction: column; align-items: center; gap: 22px; max-width: 1180px; margin: clamp(56px, 7vw, 88px) auto 0; padding: 0 34px; text-align: center; }
+  .ask-ai h2 { margin: 0; font-size: clamp(18px, 2vw, 22px); font-weight: 500; letter-spacing: -.02em; color: var(--f-ink); }
+  .ask-ai-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; margin: 0; padding: 0; list-style: none; }
+  .ask-ai-mark { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; color: var(--f-ink); opacity: .78; transition: opacity 150ms var(--k-ease-out, ease-out), background-color 150ms var(--k-ease-out, ease-out), scale 160ms var(--k-ease-out, ease-out); }
+  .ask-ai-mark :global(svg) { width: 30px; height: 30px; }
+  .ask-ai-mark:active { scale: .94; }
+  .ask-ai-question { display: flex; flex-direction: column; align-items: center; }
+  .ask-ai-question summary { list-style: none; color: var(--f-muted); font-size: 14px; text-decoration: underline; text-decoration-color: rgba(255, 255, 255, .3); text-underline-offset: 5px; cursor: pointer; transition: color 150ms var(--k-ease-out, ease-out); }
+  .ask-ai-question summary::-webkit-details-marker { display: none; }
+  .ask-ai-box { display: flex; align-items: center; gap: 12px; max-width: 620px; margin-top: 14px; padding: 12px 12px 12px 16px; border: 1px solid var(--f-line); border-radius: 12px; background: rgba(255, 255, 255, .04); text-align: left; }
+  .ask-ai-box p { margin: 0; color: var(--f-ink); font-size: 14px; line-height: 1.55; }
+  .ask-ai-copy { flex: none; height: 34px; padding: 0 14px; border: 0; border-radius: 9px; background: var(--f-ink); color: var(--f-bg); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 150ms ease, scale 160ms ease-out; }
+  .ask-ai-copy:active { scale: .96; }
+  @media (hover: hover) and (pointer: fine) {
+    .ask-ai-mark:hover { opacity: 1; background: rgba(255, 255, 255, .07); }
+    .ask-ai-question summary:hover { color: var(--f-ink); }
+    .ask-ai-copy:hover { opacity: .88; }
+  }
+  @media (max-width: 860px) { .ask-ai { padding: 0 20px; } }
+  @media (max-width: 520px) {
+    .ask-ai-mark { width: 44px; height: 44px; }
+    .ask-ai-mark :global(svg) { width: 26px; height: 26px; }
+    .ask-ai-box { flex-direction: column; align-items: stretch; }
+  }
+</style>
+
+<script>
+  import { QUESTION } from '../lib/ask-ai';
+  const root = document.querySelector<HTMLElement>('[data-ask-ai]');
+  const toast = document.getElementById('toast');
+  let timer = 0;
+  const say = (text: string) => {
+    if (!toast) return;
+    toast.textContent = text;
+    toast.classList.add('visible');
+    clearTimeout(timer);
+    timer = window.setTimeout(() => toast.classList.remove('visible'), 2600);
+  };
+  const copy = () => navigator.clipboard?.writeText(QUESTION).then(() => true, () => false) ?? Promise.resolve(false);
+  root?.querySelectorAll<HTMLAnchorElement>('[data-ask]').forEach((link) => {
+    // Copy on every click (it doesn't hold up the new tab); say so where a paste is needed.
+    link.addEventListener('click', () => {
+      copy().then((ok) => { if (ok && link.hasAttribute('data-paste')) say(`Question copied. Paste it into ${link.dataset.ask}.`); });
+    });
+  });
+  root?.querySelector<HTMLButtonElement>('[data-ask-copy]')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget as HTMLButtonElement;
+    if (await copy()) { button.textContent = 'Copied'; setTimeout(() => { button.textContent = 'Copy'; }, 1800); say('Question copied'); }
+    else say('Copy unavailable. Select and copy the text.');
+  });
+</script>

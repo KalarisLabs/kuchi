@@ -38,6 +38,8 @@ const ENTRIES: Entry[] = [
   })),
   { path: '/agents', lastmod: latest },
   ...harnesses.map((h) => ({ path: harnessPath(h), lastmod: latest })),
+  { path: '/skills', lastmod: '2026-11-20' },
+  { path: '/skills/product-launch-video', lastmod: '2026-11-20' },
   { path: '/blog', lastmod: posts.map((p) => p.updated).sort().at(-1) },
   ...posts.map((p) => ({ path: postPath(p), lastmod: p.updated })),
   { path: '/support' },

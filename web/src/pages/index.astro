@@ -8,6 +8,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import Intro from '../components/Intro.astro';
 import AgentConnect from '../components/AgentConnect.astro';
 import Faq from '../components/Faq.astro';
+import SkillInstall from '../components/SkillInstall.astro';
 import LatestVideos from '../components/LatestVideos.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import Toast from '../components/Toast.astro';
@@ -33,8 +34,8 @@ const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'SiteNavigationElement',
-    name: ['Launch videos', 'Video components', 'Connect your agent'],
-    url: [`${SITE_URL}/videos`, `${SITE_URL}/components`, `${SITE_URL}/#connect`],
+    name: ['Launch videos', 'Video components', 'Connect your agent', 'Product launch video skill'],
+    url: [`${SITE_URL}/videos`, `${SITE_URL}/components`, `${SITE_URL}/#connect`, `${SITE_URL}/skills/product-launch-video`],
   },
 ];
 ---
@@ -49,6 +50,7 @@ const jsonLd = [
     <Intro />
     <LatestVideos videos={newestFirst.slice(0, HOME_VIDEOS)} total={videos.length} />
     <AgentConnect />
+    <SkillInstall home id="skill" />
     <Faq />
   </main>
 

@@ -11,7 +11,7 @@ Kuchi measures and plans. You look at the frames, analyse each shot and build th
 
 Connect the Kuchi MCP server: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, no sign-in). Never ask the user for credentials.
 
-Before a first remake, call kuchi_get_workflow. It returns the full method for each step below.
+Before a first remake, call kuchi_get_workflow. It returns the full method for each step below. To make a whole launch video, from the brief to the delivered MP4, call kuchi_get_skill with name="kuchi-product-launch-video" and follow it.
 
 ## Steps
 

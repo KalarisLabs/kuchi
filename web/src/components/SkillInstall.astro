@@ -1,0 +1,86 @@
+---
+// "Install your skill": the Kuchi product launch video skill and the three real ways to get
+// it (the MCP server, the skills CLI, the Claude Code plugin). Used on the home page, /agents,
+// the coding-agent guides and the use-case pages. Copy buttons use data-skill-copy (not
+// data-copy-text) so pages that already wire data-copy-text don't bind them twice.
+import { installWays, launchSkill, LAUNCH_SKILL_PATH } from '../lib/skills';
+
+interface Props {
+  /** Heading level and id prefix; the home page uses its numbered-section style. */
+  id?: string;
+  home?: boolean;
+  /** Shorter copy for pages where the skill is a side note. */
+  compact?: boolean;
+}
+const { id = 'skill', home = false, compact = false } = Astro.props;
+const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const ways = compact ? installWays.filter((w) => w.id !== 'mcp') : installWays;
+---
+<section class:list={['skill-install', { 'section numbered': home, compact }]} id={id} data-line={home ? '004' : undefined} aria-labelledby={`${id}-title`} data-skill-install>
+  <div class="si-head">
+    <p class="si-kicker">Agent skill · free</p>
+    <h2 id={`${id}-title`}>Install your skill.</h2>
+    <p class="si-sub">The <a href={LAUNCH_SKILL_PATH}>product launch video skill</a> takes your agent from a product URL or brief to a finished, checked MP4, modelled shot for shot on a real launch video. {compact ? 'Install it once and ask for a launch video.' : 'It comes with the MCP server, or install it into any agent.'}</p>
+  </div>
+  <ol class="si-ways">
+    {ways.map((way) => (
+      <li class="si-way">
+        <h3>{way.title}</h3>
+        <p>{way.text}</p>
+        <div class="si-code"><code>{way.code}</code><button type="button" class="si-copy" data-skill-copy={way.code} aria-label={`Copy: ${way.title}`} title="Copy" set:html={copyIcon} /></div>
+        {'link' in way && way.link && <a class="si-link" href={way.link.href}>{way.link.label} <span aria-hidden="true">→</span></a>}
+      </li>
+    ))}
+  </ol>
+  <p class="si-foot"><a href={LAUNCH_SKILL_PATH}>How the skill works <span aria-hidden="true">→</span></a><a href="/skills">All Kuchi skills <span aria-hidden="true">→</span></a><a href={launchSkill.url} target="_blank" rel="noopener">Read the SKILL.md <span aria-hidden="true">↗</span></a></p>
+</section>
+
+<style>
+  .skill-install { margin: 64px 0; }
+  .skill-install.compact { margin: 40px 0; }
+  .si-head { max-width: 720px; margin-bottom: 22px; }
+  .si-kicker { margin: 0 0 8px; color: var(--k-muted); font-size: 12.5px; letter-spacing: .02em; }
+  .si-head h2 { margin: 0 0 10px; font-size: clamp(26px, 3.4vw, 38px); line-height: 1.05; letter-spacing: -.035em; }
+  .compact .si-head h2 { font-size: 22px; letter-spacing: -.02em; }
+  .si-sub { margin: 0; color: var(--k-soft); font-size: 15.5px; line-height: 1.6; }
+  .si-sub a { color: var(--k-ink); text-underline-offset: 3px; }
+  .si-ways { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .si-way { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding: 18px; border: 1px solid var(--k-line); border-radius: 14px; background: var(--k-paper); }
+  .si-way h3 { margin: 0; font-size: 15.5px; letter-spacing: -.01em; }
+  .si-way p { margin: 0; color: var(--k-soft); font-size: 13.5px; line-height: 1.55; flex: 1; }
+  .si-code { position: relative; padding: 11px 42px 11px 12px; border: 1px solid var(--k-line); border-radius: 10px; background: var(--k-wash); font-family: var(--k-mono); font-size: 12.5px; line-height: 1.5; overflow-wrap: anywhere; }
+  .si-copy { position: absolute; top: 6px; right: 6px; display: grid; place-items: center; width: 30px; height: 30px; border: 0; border-radius: 8px; background: transparent; color: var(--k-muted); cursor: pointer; transition: background-color 150ms ease, color 150ms ease, scale 160ms ease-out; }
+  .si-copy:active { scale: .94; }
+  .si-copy[data-copied] { color: var(--k-ink); }
+  .si-link { align-self: flex-start; color: var(--k-ink); font-size: 13.5px; font-weight: 600; text-decoration: none; }
+  .si-foot { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 16px 0 0; font-size: 13.5px; }
+  .si-foot a { color: var(--k-muted); text-decoration: none; transition: color 150ms ease; }
+  @media (hover: hover) and (pointer: fine) {
+    .si-copy:hover { background: var(--k-paper); color: var(--k-ink); }
+    .si-foot a:hover, .si-link:hover { color: var(--k-ink); text-decoration: underline; text-underline-offset: 3px; }
+  }
+</style>
+
+<script>
+  const toast = document.getElementById('toast');
+  let timer = 0;
+  const say = (text: string) => {
+    if (!toast) return;
+    toast.textContent = text;
+    toast.classList.add('visible');
+    clearTimeout(timer);
+    timer = window.setTimeout(() => toast.classList.remove('visible'), 2200);
+  };
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-skill-copy]')) {
+    button.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(button.dataset.skillCopy ?? '');
+        button.dataset.copied = 'true';
+        setTimeout(() => button.removeAttribute('data-copied'), 2000);
+        say('Copied to clipboard');
+      } catch {
+        say('Copy unavailable. Select and copy the text.');
+      }
+    });
+  }
+</script>

@@ -169,7 +169,7 @@ test('the build skills are bundled, served by kuchi_get_skill and in step with a
     assert.match(files['SKILL.md'], new RegExp(`^---\\nname: ${name}\\ndescription: .{80,1024}\\n---\\n`), `${name} frontmatter`);
     assert.doesNotMatch(files['SKILL.md'], /epidemic/i);
   }
-  assert.deepEqual(SKILL_NAMES, ['kuchi', 'kuchi-audio-check', 'kuchi-remotion', 'kuchi-sound']);
+  assert.deepEqual(SKILL_NAMES, ['kuchi', 'kuchi-audio-check', 'kuchi-product-launch-video', 'kuchi-remotion', 'kuchi-sound']);
   const {client, close} = await connect();
   try {
     const remotion = await call(client, 'kuchi_get_skill', {name:'kuchi-remotion'});

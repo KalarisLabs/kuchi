@@ -17,6 +17,7 @@
 // backgrounds) from kalarislabs.com/brand; never rebuild it in live text.
 import wordmarkWhite from '../assets/kalaris-wordmark-white.png';
 import HeroBackground from './HeroBackground.jsx';
+import AskAI from './AskAI.astro';
 
 interface Props {
   /** True on the gallery page, where the section anchors are on the same page. */
@@ -32,6 +33,8 @@ const columns: { title: string; links: FooterLink[] }[] = [
     { label: 'All launch videos', href: '/videos' },
     { label: 'Video components', href: '/components' },
     { label: 'Agent guides', href: '/agents' },
+    { label: 'Launch video skill', href: '/skills/product-launch-video' },
+    { label: 'Agent skills', href: '/skills' },
     { label: 'Blog', href: '/blog' },
     { label: 'Connect your agent', href: at('#connect') },
     { label: 'FAQ', href: at('#faq') },
@@ -75,6 +78,7 @@ const columns: { title: string; links: FooterLink[] }[] = [
         ))}
       </nav>
     </div>
+    <AskAI />
     <div class="footer-base">
       <p class="footer-legal">© {year} <a class="footer-maker" href="https://kalarislabs.com" target="_blank" rel="noopener" aria-label="Kalaris Labs"><img src={wordmarkWhite.src} width="1200" height="400" alt="" aria-hidden="true"></a></p>
       <a class="footer-to-top" href="#" data-footer-top>Back to top <span aria-hidden="true">↑</span></a>

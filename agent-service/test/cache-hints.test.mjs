@@ -67,7 +67,7 @@ test('skills/list gives the skill with a digest a host can approve', async () =>
   const client=new Client({name:'skill-test',version:'1'},{versionNegotiation:{mode:'auto'}});
   await client.connect(transport());
   const listed=await client.request({method:'skills/list',params:{}},z.looseObject({skills:z.array(z.any())}));
-  assert.deepEqual(listed.skills.map(s=>s.frontmatter.name).sort(),['kuchi','kuchi-audio-check','kuchi-remotion','kuchi-sound']);
+  assert.deepEqual(listed.skills.map(s=>s.frontmatter.name).sort(),['kuchi','kuchi-audio-check','kuchi-product-launch-video','kuchi-remotion','kuchi-sound']);
   const skill=listed.skills.find(s=>s.frontmatter.name==='kuchi');
   assert.deepEqual([skill.uri,skill.resources.length],['skill://kuchi/SKILL.md',1]);
   assert.match(skill.resources[0].digest,/^sha256:[0-9a-f]{64}$/);

@@ -9,6 +9,7 @@ import SiteHeader from '../../components/SiteHeader.astro';
 import SectionNav from '../../components/SectionNav';
 import SiteFooter from '../../components/SiteFooter.astro';
 import Toast from '../../components/Toast.astro';
+import SkillInstall from '../../components/SkillInstall.astro';
 import VideoCard from '../../components/VideoCard.astro';
 import AuthorByline from '../../components/AuthorByline.astro';
 import { AUTHOR, authorLd } from '../../lib/authors';
@@ -56,12 +57,12 @@ export const Root = () => (
 
 // src/Launch.tsx: one <Sequence> per blueprint shot, on its exact frames
 import { AbsoluteFill, Sequence } from 'remotion';
-import plan from '../plan.json';
+import planBlueprint from '../plan.json';
 import { shots } from './shots';
 
 export const Launch = () => (
   <AbsoluteFill>
-    {plan.blueprint.shots.map((s) => {
+    {planBlueprint.blueprint.shots.map((s) => {
       const Shot = shots[s.shot];
       return (
         <Sequence key={s.shot} from={s.start_frame}
@@ -161,6 +162,8 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
             ))}
           </ol>
         </section>
+
+        {coding && <SkillInstall id="skill" compact />}
 
         <section class="ag-section" aria-labelledby="why-title">
           <h2 id="why-title">Why use {h.name} for your launch video</h2>

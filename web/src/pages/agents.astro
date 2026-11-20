@@ -7,6 +7,7 @@ import SiteHeader from '../components/SiteHeader.astro';
 import SectionNav from '../components/SectionNav';
 import SiteFooter from '../components/SiteFooter.astro';
 import Toast from '../components/Toast.astro';
+import SkillInstall from '../components/SkillInstall.astro';
 import { SITE_URL } from '../lib/video-links.js';
 import { harnesses, harnessPath, MCP_URL, SETUP_PROMPT } from '../lib/harnesses';
 
@@ -52,6 +53,8 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
       <h1 id="agents-title">Make launch videos with your AI agent</h1>
       <p>Kuchi is a library of real product-launch videos, each measured frame by frame. Connect it to the agent you already use and it picks a template that fits your product, studies every shot and plans your remake. Pick your agent for the steps.</p>
     </header>
+
+    <SkillInstall id="skill" />
 
     {groups.map((group) => (
       <section class="ah-group" aria-labelledby={`g-${group.title}`}>

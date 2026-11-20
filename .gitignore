@@ -22,3 +22,4 @@ videos/*.mp4
 skills-lock.json
 scratch/
 
+.claude/worktrees/

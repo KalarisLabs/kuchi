@@ -39,10 +39,17 @@ jobs:
           npm ci --prefix agent-service
           npm --prefix agent-service test
 
+      # Only a version that is deployed, and not yet in the registry, is published.
+      - name: Check before publishing
+        id: before
+        run: node agent-service/scripts/check-registries.mjs --before-publish
+
       - name: Install cosign
+        if: steps.before.outputs.published != 'true'
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: Download and verify mcp-publisher
+        if: steps.before.outputs.published != 'true'
         run: |
           set -euo pipefail
           os="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -61,7 +68,14 @@ jobs:
           rm -f "$archive" "$archive.sigstore.json"
 
       - name: Sign in to the MCP Registry
+        if: steps.before.outputs.published != 'true'
         run: ./mcp-publisher login github-oidc
 
       - name: Publish server.json
+        if: steps.before.outputs.published != 'true'
         run: ./mcp-publisher publish
+
+      # The official registry must list this version as the latest. The other
+      # directories are reported in the run summary.
+      - name: Check every registry
+        run: node agent-service/scripts/check-registries.mjs

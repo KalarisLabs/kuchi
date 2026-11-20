@@ -26,6 +26,19 @@ test('server.json matches the deployed server and the registry limits', async ()
   }
 });
 
+test('every registry manifest names the deployed version', async () => {
+  const smithery = await readFile(new URL('../../smithery.yaml', import.meta.url), 'utf8');
+  assert.equal(smithery.match(/^version: "([^"]+)"$/m)?.[1], VERSION, 'smithery.yaml version');
+  for (const path of ['../../plugin/launch-archive/plugin.json', '../../plugin/launch-archive/.claude-plugin/plugin.json'])
+    assert.equal((await json(path)).version, VERSION, path);
+});
+
+test('publishing checks the deploy first and every registry after', async () => {
+  const workflow = await readFile(new URL('../../.github/workflows/publish-registry.yml', import.meta.url), 'utf8');
+  assert.match(workflow, /check-registries\.mjs --before-publish/);
+  assert.match(workflow, /name: Check every registry\r?\n\s+run: node agent-service\/scripts\/check-registries\.mjs\r?\n/);
+});
+
 test('the registry is only published by hand, from main, without stored secrets', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/publish-registry.yml', import.meta.url), 'utf8');
   assert.match(workflow, /^on:\r?\n  workflow_dispatch:\r?\n\r?\n/m);

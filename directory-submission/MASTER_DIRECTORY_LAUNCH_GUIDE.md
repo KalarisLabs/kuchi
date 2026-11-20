@@ -215,7 +215,7 @@ Kuchi is a library of real product-launch videos to use as inspiration templates
 
 | Directory / Aggregator | Reach / Traffic | Submission Method | Transport Mode | Critical Rules / Requirements |
 | :--- | :--- | :--- | :--- | :--- |
-| **Official MCP Registry** | Global Standard | GitHub Actions workflow | `streamable-http` | Published as `io.github.KalarisLabs/kuchi` v1.4.0 in `server.json`. Immutable per version. |
+| **Official MCP Registry** | Global Standard | GitHub Actions workflow | `streamable-http` | Published as `io.github.KalarisLabs/kuchi` v1.4.1 in `server.json`. Immutable per version. |
 | **Claude Directory** | Tier 1 (Anthropic) | Web Portal (`claude.ai/directory/manage`) | Streamable HTTP | Requires paid plan. 13 tools validated with titles & hints. Plugin bundle paired. |
 | **ChatGPT Plugin** | Tier 1 (OpenAI) | Platform Portal (`platform.openai.com/plugins`) | Remote HTTP | Domain challenge token at `/.well-known/openai-apps-challenge`. |
 | **Smithery.ai** | Tier 1 (MCP CLI Leader) | Web Portal (GitHub OAuth) + CLI | `http` (Native) | `smithery.yaml` in repo root with `configSchema: {properties: {}}`. Install: `npx -y @smithery/cli install @kalarislabs/kuchi --client <client>`. |
@@ -237,7 +237,7 @@ Kuchi is a library of real product-launch videos to use as inspiration templates
 ```yaml
 name: "@kalarislabs/kuchi"
 description: "Pick a real launch video as a template, get its frame-by-frame breakdown and plan your own remake without AI video generation slop."
-version: "1.4.0"
+version: "1.4.1"
 icon: "https://kuchi.kalarislabs.com/favicon-180.png"
 websiteUrl: "https://kuchi.kalarislabs.com/"
 repository: "https://github.com/KalarisLabs/kuchi"
@@ -310,7 +310,7 @@ tags:
     > We built Kuchi, a production-ready MCP server for AI coding agents (Claude, Cursor, Codex) that solves product launch video creation without AI generation slop:
     >
     > • Endpoint: https://kuchi.kalarislabs.com/mcp (Streamable HTTP, zero auth, Cloudflare Workers hosted)
-    > • GitHub: https://github.com/KalarisLabs/kuchi (server.json v1.4.0)
+    > • GitHub: https://github.com/KalarisLabs/kuchi (server.json v1.4.1)
     > • What it does: 13 tools that query real measured launch videos frame-by-frame, plan customized remake blueprints (motion styles, timing, entrances), and serve copy-paste Remotion video components.
     >
     > Would love to have Kuchi featured in the PulseMCP directory and the upcoming newsletter edition!

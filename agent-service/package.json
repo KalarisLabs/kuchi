@@ -8,7 +8,8 @@
     "deploy": "wrangler deploy",
     "test": "node --test test/*.test.mjs",
     "build:skills": "node scripts/build-skills.mjs",
-    "verify:live": "node scripts/verify-live.mjs"
+    "verify:live": "node scripts/verify-live.mjs",
+    "check:registries": "node scripts/check-registries.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.4.0",

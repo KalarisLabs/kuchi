@@ -1,0 +1,73 @@
+---
+// Legal notice (imprint). Only facts Kalaris Labs publishes on kalarislabs.com are stated.
+// The registered company name, postal address and registration details are not published
+// there, so they are left out until the owner supplies them; do not invent them.
+import LegalLayout from '../layouts/LegalLayout.astro';
+import { LEGAL_UPDATED, LEGAL_UPDATED_LABEL, CONTACT_EMAIL, FOUNDER_EMAIL, legalPage } from '../lib/legal';
+
+export const prerender = true;
+
+const description = 'Legal notice for Kuchi: who operates it (Kalaris Labs, India), who is responsible for its content, how to contact us, how creators can ask for a reference video to be removed, and trademark notices.';
+const toc = [
+  { id: 'operator', label: 'Operator' },
+  { id: 'responsible', label: 'Responsible for content' },
+  { id: 'contact', label: 'Contact' },
+  { id: 'content-concerns', label: 'Content concerns and removal' },
+  { id: 'security', label: 'Security reports' },
+  { id: 'trademarks', label: 'Trademarks' },
+  { id: 'links', label: 'Links to other sites' },
+  { id: 'legal-pages', label: 'Other legal pages' },
+];
+---
+<LegalLayout title="Legal notice — Kuchi" description={description} toc={toc} jsonLd={legalPage('AboutPage', '/legal', 'Kuchi legal notice', description)}>
+  <Fragment slot="intro">
+    <h1>Kuchi legal notice</h1>
+    <p class="legal-meta">Last updated: <time datetime={LEGAL_UPDATED}>{LEGAL_UPDATED_LABEL}</time></p>
+    <p>Kuchi is a free library of real product-launch videos, measured frame by frame, that AI agents use as templates through an open MCP server and a component registry. This page says who runs it and how to reach us.</p>
+  </Fragment>
+
+  <h2 id="operator">Operator</h2>
+  <div class="legal-table"><table>
+    <tbody>
+      <tr><th scope="row">Operator</th><td>Kalaris Labs, an independent AI research lab</td></tr>
+      <tr><th scope="row">Country</th><td>India</td></tr>
+      <tr><th scope="row">Website</th><td><a href="https://kalarislabs.com">kalarislabs.com</a></td></tr>
+      <tr><th scope="row">Service</th><td>Kuchi, at <a href="/">kuchi.kalarislabs.com</a>, with the MCP server at <code>https://kuchi.kalarislabs.com/mcp</code></td></tr>
+      <tr><th scope="row">Email</th><td><a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2 id="responsible">Responsible for content</h2>
+  <p>Sayan Chowdhury, founder of Kalaris Labs (<a href="https://kalarislabs.com/team/sayan-chowdhury">profile</a>), is responsible for Kuchi’s content and for its privacy practices. He is also Kuchi’s grievance officer under India’s Digital Personal Data Protection Act; see the <a href="/privacy#grievance">privacy policy</a>.</p>
+
+  <h2 id="contact">Contact</h2>
+  <p>For anything about Kuchi, including support, privacy, removal requests and press, email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. You can write to the founder directly at <a href={`mailto:${FOUNDER_EMAIL}`}>{FOUNDER_EMAIL}</a>. Help with connecting an agent is on the <a href="/support">support page</a>.</p>
+
+  <h2 id="content-concerns">Content concerns and removal</h2>
+  <p>Every reference in Kuchi is a public launch video, credited to its creator and linked to its original post. If you made a reference, or act for the company or person who did, and you want it corrected or removed, we will help.</p>
+  <ol>
+    <li>Email <a href={`mailto:${CONTACT_EMAIL}?subject=Removal%20request`}>{CONTACT_EMAIL}</a> with “Removal request” in the subject.</li>
+    <li>Include the Kuchi link or title of the reference, a link to the original post, and whether you want it corrected or removed.</li>
+    <li>Tell us how you are connected to the video: its creator, the company it is about, or someone acting for them.</li>
+  </ol>
+  <p>We aim to acknowledge requests within three business days. When a request comes from the creator or someone acting for them, we remove the reference from the website, the MCP server’s catalog and our media storage, and we confirm when it is done. We may ask for a little more information if we cannot tell who made the video. Copies that agents or other people saved before removal are outside our control.</p>
+  <p>The same address takes any other concern about content on Kuchi, such as an error in a credit, a broken link or material you believe infringes your rights.</p>
+
+  <h2 id="security">Security reports</h2>
+  <p>Kuchi is covered by the <a href="https://kalarislabs.com/security">Kalaris Labs security and responsible disclosure policy</a>. Email <a href={`mailto:${CONTACT_EMAIL}?subject=Security%20report`}>{CONTACT_EMAIL}</a> with “Security report” in the subject.</p>
+
+  <h2 id="trademarks">Trademarks</h2>
+  <p>Kuchi and Kalaris Labs, and their logos, are names and marks of Kalaris Labs. Product names, brands and logos that appear in reference videos, and the names and logos of AI agents and apps shown on Kuchi, belong to their owners. They are shown to identify those products, for example the agents Kuchi works with, and do not mean that their owners endorse Kuchi or are connected with it.</p>
+
+  <h2 id="links">Links to other sites</h2>
+  <p>Kuchi links to original posts, agent apps and other websites. Their content and privacy practices are the responsibility of the people who run them. If you find a link that leads somewhere it should not, tell us and we will fix it.</p>
+
+  <h2 id="legal-pages">Other legal pages</h2>
+  <ul>
+    <li><a href="/privacy">Privacy policy</a></li>
+    <li><a href="/terms">Terms of service</a></li>
+    <li><a href="/analytics-preferences">Analytics preferences</a></li>
+    <li><a href="/support">Support</a></li>
+  </ul>
+  <p><a href="/">Back to the collection ↗</a></p>
+</LegalLayout>

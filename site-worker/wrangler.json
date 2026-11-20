@@ -1,19 +1,9 @@
 {
-  "name": "kuchi-site",
+  "name": "kuchi-site-legacy",
   "main": "worker.ts",
   "compatibility_date": "2026-10-28",
   "workers_dev": false,
   "preview_urls": false,
-  "routes": [
-    {
-      "pattern": "kuchi.kalarislabs.com/*",
-      "zone_name": "kalarislabs.com"
-    },
-    {
-      "pattern": "status.kalarislabs.com/*",
-      "zone_name": "kalarislabs.com"
-    }
-  ],
   "r2_buckets": [
     {
       "binding": "MEDIA",

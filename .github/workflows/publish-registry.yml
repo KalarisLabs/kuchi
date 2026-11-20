@@ -15,19 +15,15 @@ permissions:
   contents: read
 
 jobs:
-  publish:
+  # Installs dependencies and runs their code, so it holds no identity token.
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # The registry grants the io.github.KalarisLabs namespace to this
-    # repository's identity; only the default branch may use it.
     if: github.ref == 'refs/heads/main'
-    permissions:
-      id-token: write
-      contents: read
-    env:
-      MCP_PUBLISHER_VERSION: v1.8.1
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v4
         with:
@@ -39,7 +35,28 @@ jobs:
           npm ci --prefix agent-service
           npm --prefix agent-service test
 
-      # Only a version that is deployed, and not yet in the registry, is published.
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The registry grants the io.github.KalarisLabs namespace to this
+    # repository's identity; only the default branch may use it. This job
+    # installs no packages: check-registries.mjs uses only Node built-ins.
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      MCP_PUBLISHER_VERSION: v1.8.1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
       - name: Check before publishing
         id: before
         run: node agent-service/scripts/check-registries.mjs --before-publish

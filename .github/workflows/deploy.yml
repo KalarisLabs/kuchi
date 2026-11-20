@@ -13,6 +13,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Read-only: these jobs only test and build.
+permissions:
+  contents: read
+
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -23,6 +27,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # daily-stats reads catalog history
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:
@@ -65,6 +70,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0   # the build reads catalog history for daily stats
+          persist-credentials: false
 
       - uses: actions/setup-python@v5
         with:

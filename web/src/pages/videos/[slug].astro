@@ -11,6 +11,7 @@ import Toast from '../../components/Toast.astro';
 import VideoCard from '../../components/VideoCard.astro';
 import { newestFirst, type Video } from '../../lib/catalog';
 import { full, compact, timecode, launchDate, displayDuration } from '../../lib/format.js';
+import { safeUrl } from '../../lib/safe-url.js';
 import { SITE_URL, videoPath, remakeBrief } from '../../lib/video-links.js';
 import { favButtonsHTML } from '../../lib/favorites.js';
 
@@ -111,7 +112,7 @@ const jsonLd = [
         </div>
         <div class="vp-under">
           <span>{displayDuration(v)} · {v.ratio}{v.hasAudio ? ' · Sound' : ''}</span>
-          <a href={v.source} target="_blank" rel="noopener">Original post on X ↗</a>
+          <a href={safeUrl(v.source)} target="_blank" rel="noopener">Original post on X ↗</a>
         </div>
 
         <h1 id="video-title">{v.title}</h1>

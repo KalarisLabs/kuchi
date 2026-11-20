@@ -14,7 +14,7 @@ test('the shared guard blocks MCP and agent HTTP routes before either can load u
   for (const [path, method] of [
     ['/mcp?client=a','POST'], ['/mcp?client=b','GET'],
     ['/agent/catalog.json','GET'], ['/agent/manifest.json','HEAD'],
-    ['/agent/workflow.md','GET'], ['/agent/SKILL.md','OPTIONS']
+    ['/agent/workflow.md','GET'], ['/agent/SKILL.md','GET']
   ]) {
     const r = await worker.fetch(request(path,{method,headers:{'CF-Connecting-IP':'192.0.2.10','X-Forwarded-For':crypto.randomUUID(),Authorization:`Bearer ${crypto.randomUUID()}`}}),env,{});
     assert.equal(r.status,429);
@@ -24,6 +24,11 @@ test('the shared guard blocks MCP and agent HTTP routes before either can load u
     assert.equal(r.headers.get('cache-control'),'no-store');
   }
   assert.equal(new Set(keys).size,1);
+  // Preflights do no work and are never charged, so a page cannot spend a visitor's allowance with them.
+  const charged = keys.length;
+  const preflight = await worker.fetch(request('/agent/SKILL.md',{method:'OPTIONS',headers:{'CF-Connecting-IP':'192.0.2.10'}}),env,{});
+  assert.equal(preflight.status,204);
+  assert.equal(keys.length,charged);
   assert.equal(keys[0],'kuchi:192.0.2.10');
 });
 

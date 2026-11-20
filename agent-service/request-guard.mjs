@@ -23,6 +23,9 @@ function reject(status, error, retryAfter) {
 // `batch` says whether they arrived as an array, and `hour` is how many
 // requests this client has made in the last hour.
 export async function guardRequest(request, env) {
+  // CORS preflights do no work and carry no body, so they never spend a client's
+  // allowance: a page in someone's browser cannot use them to lock that person out.
+  if (request.method === 'OPTIONS') return {request, messages:[], batch:false, hour:0};
   const body = await readBoundedBody(request);
   if (body.response) return body;
 

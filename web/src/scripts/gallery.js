@@ -4,6 +4,7 @@
 // the Astro components through the same element ids and data attributes, so keep
 // those in sync (web/test/pages.test.mjs checks them).
 import {escapeHTML, pad, full, compact, timecode, launchDate, displayDuration} from '../lib/format.js';
+import {safeUrl} from '../lib/safe-url.js';
 import {playVideo} from '../lib/play-video.js';
 import {videoPath, remakeBrief} from '../lib/video-links.js';
 import {favButtonsHTML, isFavorite, onFavoritesChange} from '../lib/favorites.js';
@@ -34,19 +35,19 @@ function card(video) {
   const v = video;
   return `<article class="video-card">
     <div class="thumb inline-player">
-      <video playsinline preload="none" data-reference-id="${v.id}" data-surface="grid" poster="${v.poster}" aria-hidden="true" tabindex="-1"></video>
+      <video playsinline preload="none" data-reference-id="${v.id}" data-surface="grid" poster="${escapeHTML(safeUrl(v.poster))}" aria-hidden="true" tabindex="-1"></video>
       <button class="inline-play play-icon" data-play-ref="${v.id}" data-surface="grid" aria-label="Play ${escapeHTML(v.title)}">▶</button>
       ${v.excerpt ? '<span class="excerpt-label">Excerpt</span>' : ''}<span class="timecode">${timecode(v.clipSeconds)}</span>
     </div>
-    <div class="card-title-row"><h3><a class="video-title" href="${videoPath(v)}">${escapeHTML(v.title)}</a></h3>${favButtonsHTML('video', v.id, v.title)}</div>
+    <div class="card-title-row"><h3><a class="video-title" href="${escapeHTML(videoPath(v))}">${escapeHTML(v.title)}</a></h3>${favButtonsHTML('video', v.id, v.title)}</div>
     <div class="byline">${escapeHTML(v.account)}</div>
-    <div class="launch-date" title="Date of the original launch post (PT)">Launch date · <time datetime="${escapeHTML(v.date)}">${launchDate(v.date)}</time></div>
+    <div class="launch-date" title="Date of the original launch post (PT)">Launch date · <time datetime="${escapeHTML(v.date)}">${escapeHTML(launchDate(v.date))}</time></div>
     <div class="card-metrics"><div><strong title="${full(v.impressions)} impressions">${compact(v.impressions)} ${v.flag ? '<span class="flag-mark" title="Video plays are below 3% of impressions">△</span>' : ''}</strong><span>Impressions</span></div><div><strong title="${full(v.views)} plays">${compact(v.views)}</strong><span>Video plays</span></div></div>
   </article>`;
 }
 
 function table() {
-  return `<table class="index-table"><thead><tr><th>Ref.</th><th>Video / creator</th><th>Category</th><th>Launch date</th><th>Impressions</th><th>Plays</th><th>Likes</th><th>Bookmarks</th><th>Duration</th></tr></thead><tbody>${filtered.map(v => `<tr><td>${pad(v.id)}</td><td><button data-open="${v.id}">▶ ${escapeHTML(v.title)}</button><br><span class="byline">${escapeHTML(v.account)}</span></td><td>${escapeHTML(v.category)}</td><td><time datetime="${escapeHTML(v.date)}" title="Original launch post date (PT)">${launchDate(v.date)}</time></td><td>${full(v.impressions)}${v.flag ? ' △' : ''}</td><td>${full(v.views)}</td><td>${full(v.likes)}</td><td>${full(v.bookmarks)}</td><td>${timecode(v.clipSeconds)}${v.excerpt ? '*' : ''}</td></tr>`).join('')}</tbody></table>`;
+  return `<table class="index-table"><thead><tr><th>Ref.</th><th>Video / creator</th><th>Category</th><th>Launch date</th><th>Impressions</th><th>Plays</th><th>Likes</th><th>Bookmarks</th><th>Duration</th></tr></thead><tbody>${filtered.map(v => `<tr><td>${pad(v.id)}</td><td><button data-open="${v.id}">▶ ${escapeHTML(v.title)}</button><br><span class="byline">${escapeHTML(v.account)}</span></td><td>${escapeHTML(v.category)}</td><td><time datetime="${escapeHTML(v.date)}" title="Original launch post date (PT)">${escapeHTML(launchDate(v.date))}</time></td><td>${full(v.impressions)}${v.flag ? ' △' : ''}</td><td>${full(v.views)}</td><td>${full(v.likes)}</td><td>${full(v.bookmarks)}</td><td>${timecode(v.clipSeconds)}${v.excerpt ? '*' : ''}</td></tr>`).join('')}</tbody></table>`;
 }
 
 function renderCollection() {
@@ -81,7 +82,7 @@ function setFeature(id) {
   $('#featured-play').dataset.playRef = String(id);
   $('#featured-play').setAttribute('aria-label', `Play ${v.title}`);
   $('#featured-duration').textContent = displayDuration(v);
-  $('#featured-info').innerHTML = `<h3>${escapeHTML(v.title)}</h3><div class="byline">${escapeHTML(v.account)}</div><div class="launch-date" title="Date of the original launch post (PT)">Launch date · <time datetime="${escapeHTML(v.date)}">${launchDate(v.date)}</time></div><div class="featured-stats"><div><strong>${compact(v.impressions)}</strong><span>Impressions</span></div><div><strong>${compact(v.views)}</strong><span>Video plays</span></div></div>${detailCard(v)}`;
+  $('#featured-info').innerHTML = `<h3>${escapeHTML(v.title)}</h3><div class="byline">${escapeHTML(v.account)}</div><div class="launch-date" title="Date of the original launch post (PT)">Launch date · <time datetime="${escapeHTML(v.date)}">${escapeHTML(launchDate(v.date))}</time></div><div class="featured-stats"><div><strong>${compact(v.impressions)}</strong><span>Impressions</span></div><div><strong>${compact(v.views)}</strong><span>Video plays</span></div></div>${detailCard(v)}`;
   document.querySelectorAll('[data-feature]').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.feature) === id)));
 }
 
@@ -89,7 +90,7 @@ const brief = remakeBrief;
 
 // Boxed link to the video's own page (DetailCard.astro renders the same markup).
 function detailCard(v, label = 'View details', hint = 'Stats, shot notes and the remake prompt') {
-  return `<a class="detail-card" href="${videoPath(v)}"><span class="detail-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg></span><span class="detail-card-text"><span class="detail-card-label">${label}</span><span class="detail-card-hint">${hint}</span></span><svg class="detail-card-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>`;
+  return `<a class="detail-card" href="${escapeHTML(videoPath(v))}"><span class="detail-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10M7 12h10M7 16h6"/></svg></span><span class="detail-card-text"><span class="detail-card-label">${label}</span><span class="detail-card-hint">${hint}</span></span><svg class="detail-card-arrow" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>`;
 }
 
 function openVideo(id, trigger) {
@@ -106,11 +107,11 @@ function openVideo(id, trigger) {
   $('#dialog-ref').textContent = v.title;
   const metrics = [['impressions','Impressions'],['views','Video plays'],['likes','Likes'],['bookmarks','Bookmarks'],['reposts','Reposts'],['replies','Replies'],['quotes','Quotes'],['followers','Followers']];
   $('#dialog-content').innerHTML = `<div class="dialog-main"><div class="dialog-left">
-    <div class="kp-frame"><video id="dialog-video" playsinline preload="none" data-reference-id="${v.id}" data-surface="detail" poster="${v.poster}" aria-hidden="true" tabindex="-1"></video><button class="play-icon" data-play-ref="${v.id}" data-surface="detail" aria-label="Play ${escapeHTML(v.title)}">▶</button></div>
-    <p class="video-error" id="media-error" hidden>Unable to play this file. <a href="${v.source}" target="_blank" rel="noopener">Watch the original post ↗</a></p>
-    <div class="clip-note"><span>${displayDuration(v)}</span><a href="${v.source}" target="_blank" rel="noopener">Original post ↗</a></div>
+    <div class="kp-frame"><video id="dialog-video" playsinline preload="none" data-reference-id="${v.id}" data-surface="detail" poster="${escapeHTML(safeUrl(v.poster))}" aria-hidden="true" tabindex="-1"></video><button class="play-icon" data-play-ref="${v.id}" data-surface="detail" aria-label="Play ${escapeHTML(v.title)}">▶</button></div>
+    <p class="video-error" id="media-error" hidden>Unable to play this file. <a href="${escapeHTML(safeUrl(v.source))}" target="_blank" rel="noopener">Watch the original post ↗</a></p>
+    <div class="clip-note"><span>${displayDuration(v)}</span><a href="${escapeHTML(safeUrl(v.source))}" target="_blank" rel="noopener">Original post ↗</a></div>
     <h2 id="dialog-title">${escapeHTML(v.title)}</h2>
-    <div class="byline">${escapeHTML(v.account)} · Posted ${v.date}</div>
+    <div class="byline">${escapeHTML(v.account)} · Posted ${escapeHTML(v.date)}</div>
     ${favButtonsHTML('video', v.id, v.title, 'fav-labeled')}
     <div class="dialog-tags">${v.styles.map(s => escapeHTML(s)).join(' / ')}</div>
     <div class="reference-feedback" aria-label="Was this reference useful?"><span>Useful reference?</span><button data-feedback="helpful" aria-label="Helpful reference">Yes</button><button data-feedback="not_helpful" aria-label="Not a helpful reference">No</button></div>
@@ -120,7 +121,7 @@ function openVideo(id, trigger) {
     <div class="stat-grid">${metrics.map(([key,label]) => `<div><strong>${full(v[key])}</strong><span>${label}</span></div>`).join('')}</div>
     ${v.flag ? `<p class="metric-warning">△ Plays are only ${(v.views / v.impressions * 100).toFixed(2)}% of impressions. A low ratio alone does not establish organic reach or paid promotion.</p>` : ''}
     <details class="file-details"><summary>File & post metadata</summary><table class="metadata-table"><tbody>
-      <tr><td title="Date of the original launch post (PT)">Launch date</td><td>${v.date}</td></tr><tr><td>Original duration</td><td>${timecode(v.originalSeconds)}</td></tr><tr><td>Included footage</td><td>${timecode(v.clipSeconds)}${v.excerpt ? ' / Excerpt' : ' / Full clip'}</td></tr><tr><td>Aspect ratio</td><td>${v.ratio}</td></tr><tr><td>Reference resolution</td><td>${v.width} × ${v.height}</td></tr><tr><td>Audio track</td><td>${v.hasAudio ? 'Yes' : 'None'}</td></tr><tr><td>Plays / impressions</td><td>${v.views == null || !v.impressions ? '—' : `${(v.views / v.impressions * 100).toFixed(2)}%`}</td></tr><tr><td>Data snapshot</td><td>${escapeHTML(v.snapshotDate || '2026-10-27')} PT</td></tr>
+      <tr><td title="Date of the original launch post (PT)">Launch date</td><td>${escapeHTML(v.date)}</td></tr><tr><td>Original duration</td><td>${timecode(v.originalSeconds)}</td></tr><tr><td>Included footage</td><td>${timecode(v.clipSeconds)}${v.excerpt ? ' / Excerpt' : ' / Full clip'}</td></tr><tr><td>Aspect ratio</td><td>${escapeHTML(v.ratio)}</td></tr><tr><td>Reference resolution</td><td>${v.width} × ${v.height}</td></tr><tr><td>Audio track</td><td>${v.hasAudio ? 'Yes' : 'None'}</td></tr><tr><td>Plays / impressions</td><td>${v.views == null || !v.impressions ? '—' : `${(v.views / v.impressions * 100).toFixed(2)}%`}</td></tr><tr><td>Data snapshot</td><td>${escapeHTML(v.snapshotDate || '2026-10-27')} PT</td></tr>
     </tbody></table></details>
     ${detailCard(v, 'Open the full page', 'A shareable page for this video')}
     <details class="brief-details" open><summary>AI remake brief</summary><label class="sr-only" for="remake-brief">Editable AI remake brief</label><textarea id="remake-brief" class="brief-text" spellcheck="false">${escapeHTML(brief(v))}</textarea><button id="copy-brief" class="solid-button">Copy AI remake brief <span aria-hidden="true">↗</span></button></details>
@@ -168,7 +169,7 @@ function playReference(id, surface) {
     src: v.video,
     title: v.title,
     subtitle: `${v.account} · ${displayDuration(v)}`,
-    link: {href: v.source, label: 'Original post on X ↗'},
+    link: {href: safeUrl(v.source), label: 'Original post on X ↗'},
     prompt: {label: 'Remake prompt', hint: 'Paste into your agent', text: brief(v)},
     onCopy: (ok, what) => {
       if (ok && what === 'prompt') track('reference_prompt_copied',{reference_id:id});

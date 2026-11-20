@@ -574,7 +574,7 @@ Returns the skill's Markdown. Use kuchi-product-launch-video when a launch video
     annotations:{...READ_ONLY, title:'Get a build skill'}
   }, handler('kuchi_get_skill', (unused, args, note) => {
     const files = skillFiles(args.name);
-    const chosen = files[args.file] !== undefined ? args.file : 'SKILL.md';
+    const chosen = Object.hasOwn(files, args.file) ? args.file : 'SKILL.md';
     note({skill:args.name, file:chosen});
     const others = Object.keys(files).filter(f => f !== chosen);
     return text([files[chosen].trim(), ...(others.length ? [`More files in this skill: ${others.join(', ')}. Call again with file set to one.`] : [])].join('\n\n'));

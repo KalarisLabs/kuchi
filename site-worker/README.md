@@ -1,4 +1,8 @@
-# Gallery delivery
+# Gallery delivery (legacy)
+
+Retired: the live site is `web/` (Worker `kuchi-site`). This Worker is named
+`kuchi-site-legacy` and has no routes, so deploying it cannot replace the live
+site. `scripts/sync_media_r2.py` still reads its R2 binding.
 
 The gallery Worker owns collection data, media, the gallery UI (`site/`) and
 static legal/setup pages.
@@ -12,7 +16,7 @@ node --test site-worker/worker.test.mjs
 npx wrangler deploy --config site-worker/wrangler.json
 ```
 
-MP4s are served from the `kuchi-media` R2 bucket, which slices
+MP4s are served from the `kuchi-bucket` R2 bucket, which slices
 byte ranges natively. Slicing the bundled asset in JS used 20-300 ms CPU per
 request, past the Workers Free 10 ms limit. `sync_media_r2.py` uploads new or
 changed MP4s; a video not yet in R2 still plays from the bundled asset.

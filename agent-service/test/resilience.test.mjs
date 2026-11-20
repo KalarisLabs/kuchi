@@ -178,6 +178,12 @@ test('the build skills are bundled, served by kuchi_get_skill and in step with a
     const guessed = await call(client, 'kuchi_get_skill', {name:'sound'});
     assert.notEqual(guessed.isError, true);
     assert.match(guessed.content[0].text, /^---\nname: kuchi-sound/);
+    // Inherited object keys are not skill files: they fall back to SKILL.md.
+    for (const file of ['__proto__', 'constructor', 'toString', 'hasOwnProperty']) {
+      const inherited = await call(client, 'kuchi_get_skill', {name:'kuchi-remotion', file});
+      assert.notEqual(inherited.isError, true, file);
+      assert.equal(inherited.content[0].text.split('\n\n')[0], skillFiles('kuchi-remotion')['SKILL.md'].trim().split('\n\n')[0], file);
+    }
   } finally { await close(); }
 });
 

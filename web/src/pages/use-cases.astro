@@ -1,0 +1,134 @@
+---
+// /use-cases: the hub for the audience pages (/use-cases/<slug>). Targets "launch video for
+// <audience>" searches and links every use-case page, the agent guides and the library.
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SkipLink from '../components/SkipLink.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SectionNav from '../components/SectionNav';
+import SiteFooter from '../components/SiteFooter.astro';
+import Toast from '../components/Toast.astro';
+import AuthorByline from '../components/AuthorByline.astro';
+import { AUTHOR, authorLd } from '../lib/authors';
+import { SITE_URL } from '../lib/video-links.js';
+import { SETUP_PROMPT } from '../lib/harnesses';
+import { useCases, useCasePath, STEP_TOOLS, USE_CASES_UPDATED } from '../lib/use-cases';
+
+export const prerender = true;
+
+const title = 'Launch video use cases: founders, product teams, developers and makers';
+const description = 'How startup founders, product teams, developers, indie hackers, agencies and open-source maintainers make launch videos with an AI agent and a real launch video as the template.';
+const steps = [
+  ['Find', 'A short list of real launch videos ranked for your product.'],
+  ['Study', 'Every shot\'s frames, entrance, motion and colours, with storyboard sheets.'],
+  ['Plan', 'Your product mapped onto the reference\'s frames, with a list of what is missing.'],
+  ['Build', 'Your coding agent writes the video in Remotion from Kuchi components and renders it.'],
+  ['Check', 'Timing, reused assets and placeholders checked, with frames to compare.'],
+];
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: title,
+    description,
+    url: `${SITE_URL}/use-cases`,
+    dateModified: USE_CASES_UPDATED,
+    author: authorLd(new URL(AUTHOR.photo.src, SITE_URL).href),
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: useCases.map((u, i) => ({ '@type': 'ListItem', position: i + 1, url: `${SITE_URL}${useCasePath(u)}`, name: u.h1 })),
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Kuchi', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Use cases', item: `${SITE_URL}/use-cases` },
+    ],
+  },
+];
+const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+---
+<BaseLayout title={title} description={description} jsonLd={jsonLd}>
+  <SkipLink href="#use-cases-title" label="Skip to the use cases" />
+  <SiteHeader />
+  <main class="document uh">
+    <SectionNav client:load pathname={Astro.url.pathname} />
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Kuchi</a><span aria-hidden="true">/</span><span aria-current="page">Use cases</span></nav>
+
+    <header class="uh-hero">
+      <h1 id="use-cases-title">Launch videos for every kind of team</h1>
+      <p>A founder announcing a startup, a product marketer shipping a feature and a maintainer tagging a release all need the same thing: a short video that explains the product before the clip loops. Kuchi is a free library of real product-launch videos, each measured frame by frame, that your AI agent uses as a template to plan and build your own video with your own assets.</p>
+      <p>The workflow is the same for everyone. What changes is the reference you pick, the length and format you cut, and what you put on screen. Choose the guide that matches your job.</p>
+      <AuthorByline date={USE_CASES_UPDATED} />
+    </header>
+
+    <section class="uh-group" aria-labelledby="audiences-title">
+      <h2 id="audiences-title" class="uh-h2">Who it is for</h2>
+      <ul class="uh-grid">
+        {useCases.map((u) => (
+          <li>
+            <a class="uh-card" href={useCasePath(u)}>
+              <span class="uh-kicker">{u.kicker}</span>
+              <strong>{u.h1}</strong>
+              <span class="uh-tag">{u.tagline}</span>
+              <span class="uh-go">Read the guide →</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="uh-group" aria-labelledby="steps-title">
+      <h2 id="steps-title" class="uh-h2">The same five steps, whoever you are</h2>
+      <ol class="uh-steps">
+        {steps.map(([name, text], i) => <li><span class="uh-n">{i + 1}</span><div><h3>{name}</h3><p>{text}</p><code>{STEP_TOOLS[i]}</code></div></li>)}
+      </ol>
+      <p class="uh-note">Kuchi measures references and plans the remake; it never renders a video. A coding agent such as Claude Code, Codex or Cursor does the build on your machine, and a chat app such as Claude or ChatGPT can choose and plan. <a href="/agents">Find the guide for your agent</a>, browse <a href="/videos">the launch videos</a> or the <a href="/components">Remotion components</a>.</p>
+    </section>
+
+    <section class="uh-any" aria-labelledby="start-title">
+      <h2 id="start-title">Start in any agent</h2>
+      <p>Connect the MCP server at https://kuchi.kalarislabs.com/mcp with no sign-in, then paste the setup prompt.</p>
+      <button type="button" class="uh-copy-wide" data-copy-text={SETUP_PROMPT}><Fragment set:html={copyIcon} /><span>Copy setup prompt</span></button>
+    </section>
+  </main>
+  <Toast />
+  <SiteFooter />
+  <script>
+    import '../scripts/use-case-page';
+  </script>
+</BaseLayout>
+
+<style>
+  .uh { padding-top: 28px; }
+  .crumbs { display: flex; gap: 8px; font-size: 13px; color: var(--k-muted); margin-bottom: 28px; }
+  .crumbs a { color: var(--k-muted); text-decoration: none; }
+  .crumbs [aria-current] { color: var(--k-ink); }
+  .uh-hero { max-width: 760px; margin-bottom: 48px; }
+  .uh-hero h1 { font-size: clamp(34px, 5vw, 56px); line-height: 1.02; letter-spacing: -0.04em; margin: 0 0 18px; }
+  .uh-hero p { font-size: 17px; line-height: 1.6; color: var(--k-soft); margin: 0 0 12px; }
+  .uh-group { margin-bottom: 52px; }
+  .uh-h2 { font-size: 20px; letter-spacing: -0.02em; margin: 0 0 16px; }
+  .uh-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .uh-card { display: grid; gap: 8px; height: 100%; padding: 18px; border: 1px solid var(--k-line); border-radius: 14px; background: var(--k-paper); color: var(--k-ink); text-decoration: none; transition: background-color 150ms ease; }
+  .uh-card:hover { background: var(--k-wash); text-decoration: none; }
+  .uh-kicker { font-size: 12px; color: var(--k-muted); }
+  .uh-card strong { font-size: 16.5px; letter-spacing: -0.01em; line-height: 1.3; }
+  .uh-tag { font-size: 13.5px; color: var(--k-soft); line-height: 1.5; }
+  .uh-go { font-size: 13px; color: var(--k-muted); margin-top: 4px; }
+  .uh-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .uh-steps li { display: flex; gap: 12px; padding: 14px; border: 1px solid var(--k-line); border-radius: 12px; }
+  .uh-n { flex: none; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px; background: var(--k-ink); color: var(--k-on-ink); font-size: 12px; font-weight: 600; }
+  .uh-steps h3 { font-size: 15px; margin: 2px 0 4px; }
+  .uh-steps p { margin: 0 0 6px; color: var(--k-soft); line-height: 1.5; font-size: 14px; }
+  .uh-steps code { font-family: var(--k-mono); font-size: 11.5px; color: var(--k-muted); overflow-wrap: anywhere; }
+  .uh-note { max-width: 760px; margin: 18px 0 0; color: var(--k-soft); line-height: 1.6; font-size: 15px; }
+  .uh-note a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  .uh-any { max-width: 640px; padding: 20px; border: 1px solid var(--k-line); border-radius: 14px; margin-bottom: 24px; }
+  .uh-any h2 { font-size: 18px; margin: 0 0 8px; }
+  .uh-any p { margin: 0 0 14px; color: var(--k-soft); line-height: 1.6; font-size: 14.5px; overflow-wrap: anywhere; }
+  .uh-copy-wide { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 40px; border: 0; border-radius: 10px; background: var(--k-ink); color: var(--k-on-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, scale 160ms var(--ease-out-strong); }
+  .uh-copy-wide:hover { background: var(--k-ink-hover); }
+  .uh-copy-wide:active { scale: 0.98; }
+</style>

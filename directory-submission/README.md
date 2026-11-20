@@ -39,6 +39,7 @@ Thirteen tools. Each has a title, and `readOnlyHint`, `destructiveHint`, `idempo
 | `kuchi_check_remake` | Check a remake before delivering | Checks the agent's shot list for reused brand text, reference assets and invented UI, and its timing against the reference |
 | `kuchi_list_components` | List video components | Copy-paste Remotion video components (kinetic type, captions, UI, transitions), searchable by keyword and category |
 | `kuchi_get_component` | Get a video component | One component's source files, dependencies and install command |
+| `kuchi_get_skill` | Get a build skill | A bundled agent skill: building in Remotion, sound design without hearing, and measuring the audio mix |
 | `kuchi_send_feedback` | Send feedback to Kuchi | The agent reports a failure or a missing capability (the one tool that writes) |
 | `search` | Search Kuchi | Search for ChatGPT connectors and deep research: returns ids, titles and URLs |
 | `fetch` | Fetch a Kuchi video | One reference by id from `search` |

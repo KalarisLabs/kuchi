@@ -49,6 +49,12 @@ test('normal requests, MCP preflights and copied setup remain available', async 
   const bootstrap=await worker.fetch(request('/agent/SKILL.md'),allow,{});
   assert.equal(bootstrap.status,200);
   assert.match(await bootstrap.text(),/Call kuchi_plan_remake with what the user has told you/);
+  // The build skills, for agents without MCP.
+  const sound=await worker.fetch(request('/agent/skills/kuchi-sound/SKILL.md'),allow,{});
+  assert.equal(sound.status,200);
+  assert.match(sound.headers.get('Content-Type'),/text\/markdown/);
+  assert.match(await sound.text(),/^---\nname: kuchi-sound/);
+  assert.equal((await worker.fetch(request('/agent/skills/kuchi-nope/SKILL.md'),allow,{})).status,404);
 });
 
 test('oversized bodies are rejected by both declared length and actual streamed bytes', async () => {

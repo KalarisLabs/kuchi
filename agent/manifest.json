@@ -87,6 +87,7 @@
     "kuchi_check_remake",
     "kuchi_list_components",
     "kuchi_get_component",
+    "kuchi_get_skill",
     "kuchi_send_feedback",
     "search",
     "fetch"

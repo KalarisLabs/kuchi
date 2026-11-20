@@ -59,7 +59,7 @@ It returns `missing_inputs`: questions worded for this reference (for example, h
 - 1 to 3 features or moments to show
 - the closing call to action
 
-Optional: brand colors, fonts, tone, proof (a real metric or quote), target length (offer 15s, 30s, 60s or the reference's length), aspect ratio, and a music track or voiceover the user has rights to.
+Optional: brand colors, fonts, tone, proof (a real metric or quote), target length (offer 15s, 30s, 60s or the reference's length), aspect ratio, and how it should sound. Pass that as `sound`: open-license sound effects by default, an open-license music bed too, a music track or voiceover the user has rights to, or silent.
 
 Call `kuchi_plan_remake` again with the answers until `ready` is true and `blueprint.precision` is `analysed`. Pass `fps` if you won't render at the reference's frame rate. The plan then holds the **blueprint**: the reference's real shots re-timed to the target length on whole frames, each with:
 
@@ -72,14 +72,28 @@ Call `kuchi_plan_remake` again with the answers until `ready` is true and `bluep
 
 Build one shot at a time, in order, from the blueprint.
 
-If you build in Remotion, check `kuchi_list_components` for a ready-made component that fits a shot (kinetic type, captions, prompt and chat UI, cursors, logo lockups, transitions). `kuchi_get_component` returns its source, dependencies and install command. Pass the user's own text, colors and assets in its props, then time it to the shot's frames.
+**Start from Kuchi's components.** Each analysed blueprint shot lists `components`: ready-made Remotion components from Kuchi's library that rebuild that kind of shot, best fit first. `kuchi_get_component` returns one's source, props, dependencies and install command. Pass the user's own text, colors and assets in its props, then time it to the shot's frames. Write a shot from scratch only when none fits; search `kuchi_list_components` first.
+
+**Read the build skills before writing code.** `kuchi_get_skill` serves them:
+
+- `kuchi-remotion`: project setup, the `@` alias Kuchi components need (in `remotion.config.ts`, not only `tsconfig.json`), one `<Sequence>` per blueprint shot, entrances, fonts, assets, rendering and exporting frames to compare.
+- `kuchi-sound`: sound without hearing it. It turns each shot's `sound` cue into an open-license sound effect on its exact frame, chosen and trimmed by measuring with ffmpeg, with every license logged.
+- `kuchi-audio-check`: measuring the rendered mix (loudness, true peak, silence, and whether each sound lands on its cue frame) before delivering.
+
+The plan's `build` block gives the composition's width, height, fps and length in frames.
 
 - **Timing.** Start and end each shot on its `start_frame` and `end_frame`. Render at the blueprint's `fps`. Don't round a shot to a tidy half second.
 - **Entrance.** A `cut` changes the whole picture on the shot's first frame. A `transition` finishes on the shot's first frames: look at the detail sheets to see whether it wipes, zooms, morphs or dissolves, and for how long. A `hold` freezes the previous picture, then moves. A blank entrance passes through an empty black or white frame.
 - **Amount of motion.** Match the shot's motion level. `still` means nothing moves. `low` means one small thing moves. `medium` means a panel or a block of text moves. `high` means the whole frame moves. Put your biggest moves on the seconds where `motion_per_second` peaks, scaled to your length.
 - **Layout.** Put the user's content where your analysis says the reference's content sat: the same position, size, alignment and number of elements. A reference with three cards gets three of the user's cards.
 - **Color.** Put the user's brand colors into the reference's color roles and keep each role's share of the frame.
-- **Sound.** If the user gave a track, place its hits on the peaks of `loudness_per_second`. Otherwise keep the video silent.
+- **Sound.** The plan's `sound.mode` says how the video sounds:
+  - `sfx`: open-license sound effects. The default.
+  - `music_and_sfx`: sound effects plus an open-license music bed.
+  - `user_track`: the user's own track. The default when they gave you one.
+  - `silent`: no audio.
+
+  Each blueprint shot's `sound` names its cue (`whoosh`, `hit`, `tick`, `reveal`, `drop`) and the frame it lands on, plus sounds `within` the shot (`clicks`, `riser`, `ticks`). Follow `kuchi-sound` to place them and `kuchi-audio-check` to measure the mix to -14 LUFS with a true peak under -1 dBTP. Never use the reference's music or sound effects. List every sound's source and license for the user.
 - **Camera.** Keep movement smooth: no added shake, jitter or drift.
 
 Don't add shots, drop shots or reorder them without telling the user. A shot whose content the user can't supply (a chart with no numbers, a character with no mascot) is dropped or filled as `your_content` says, and you tell the user.

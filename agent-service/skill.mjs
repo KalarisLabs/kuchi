@@ -1,5 +1,6 @@
 import {SkillsExtension, memorySkillFiles} from '@modelcontextprotocol/server/ext/skills';
 import {SITE_URL} from './catalog.mjs';
+import {EXTRA_SKILLS} from './skills.generated.mjs';
 
 // The skill every agent gets: installed as a file, bundled in the plugin,
 // served at /agent/SKILL.md and offered through the MCP skills extension.
@@ -25,7 +26,7 @@ Before a first remake, call kuchi_get_workflow. It returns the full method for e
 1. **Find.** Call kuchi_suggest_templates with what you know: the product, the feel wanted and the assets the user has. Show every choice with its poster and Kuchi link and let the user choose: a number in chat, or any video they pick at https://kuchi.kalarislabs.com and paste the link of. kuchi_search_videos searches the whole library. Rank by fit with their product, not popularity.
 2. **Study.** Call kuchi_get_breakdown with storyboard="overview" for the pick. Read every shot's exact frames, entrance and motion. Then look at each shot's frame on the sheet and write down its kind (one of the 14 the breakdown lists) and one line on what it shows and where it sits. Open the detail sheets for shots that move, and for any shot that is not on the overview.
 3. **Plan.** Call kuchi_plan_remake with what the user has told you and your shot_analysis. Ask the user every required question in missing_inputs in one message. Never guess a logo, a screenshot, a feature or a number. Call it again until ready is true and every shot has a kind.
-4. **Build.** Follow the blueprint shot by shot with your own tools: the same start_frame and end_frame, entrance, amount of motion and layout, with the user's content in each shot. Put the user's brand colors in the reference's color roles.
+4. **Build.** Follow the blueprint shot by shot: the same start_frame and end_frame, entrance, amount of motion and layout, with the user's content in each shot. Put the user's brand colors in the reference's color roles. Start each shot from the Kuchi components the blueprint lists for it (kuchi_get_component has the source and install command). Before writing code, call kuchi_get_skill with name="kuchi-remotion" (Remotion setup and layout). Unless the plan's sound is silent, also call it with name="kuchi-sound" (placing each shot's sound cue on its frame) and name="kuchi-audio-check" (measuring the mix, since you can't listen).
 5. **Check.** Call kuchi_check_remake with your shot list, giving each shot its reference_shot. Fix every error and timing warning. Export your frame at each time in compare_frames and set it beside the reference frame. Tell the user about each placeholder and each difference.
 
 ## Copy and replace
@@ -43,11 +44,18 @@ If a tool fails, misleads you, or Kuchi lacks something you needed, call kuchi_s
 Without MCP, read ${SITE_URL}/agent/workflow.md, ${SITE_URL}/agent/catalog.json and ${SITE_URL}/agent/breakdowns/<id>.json.
 `;
 
-// The skill as an MCP skills catalog (skill://kuchi/SKILL.md), built once per
-// isolate. It changes only on deploy, so clients may cache it for an hour.
+// The skills the build step uses, bundled from agent/skills (scripts/build-skills.mjs).
+export {EXTRA_SKILLS};
+export const SKILL_NAMES = ['kuchi', ...Object.keys(EXTRA_SKILLS)];
+// One skill's files by name: kuchi's own SKILL.md, or a bundled one's files.
+export const skillFiles = name => name === 'kuchi' ? {'SKILL.md':SKILL} : EXTRA_SKILLS[name] ?? null;
+
+// Every skill as an MCP skills catalog (skill://<name>/SKILL.md), built once
+// per isolate. They change only on deploy, so clients may cache them for an hour.
 let catalog = null;
 export function skillCatalog() {
-  catalog ??= SkillsExtension.load(memorySkillFiles({'kuchi/SKILL.md':SKILL}), {strict:true, cacheHint:{ttlMs:60 * 60 * 1000, cacheScope:'public'}})
+  const files = Object.fromEntries(SKILL_NAMES.flatMap(name => Object.entries(skillFiles(name)).map(([file, text]) => [`${name}/${file}`, text])));
+  catalog ??= SkillsExtension.load(memorySkillFiles(files), {strict:true, cacheHint:{ttlMs:60 * 60 * 1000, cacheScope:'public'}})
     .catch(error => { catalog = null; throw error; });
   return catalog;
 }

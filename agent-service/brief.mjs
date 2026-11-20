@@ -7,8 +7,10 @@
 // by the calling agent and passed in as `shot_analysis`; a curator's reviewed
 // label, where one exists, takes its place.
 import {SHOT_KINDS, UI_KINDS, LEGEND, colorRoles, sheetUrl, shotFrames, plainLine} from './breakdown.mjs';
+import {componentsForShot} from './components.mjs';
+import {soundMode, soundCues, soundPlan, CUES} from './sound.mjs';
 
-export const ASSET_KINDS = ['logo', 'screenshot', 'screen_recording', 'product_photo', 'illustration', 'music', 'voiceover', 'font', 'other'];
+export const ASSET_KINDS = ['logo', 'screenshot', 'screen_recording', 'product_photo', 'illustration', 'music', 'voiceover', 'sound_effect', 'font', 'other'];
 export const ENTRANCES = Object.keys(LEGEND.enters).filter(e => e !== 'start');
 
 // Styles whose shots are built from real product UI.
@@ -69,7 +71,7 @@ function shotKindsFor(b, labels, analysis = []) {
 
 // The reference's real shots, re-timed to the target length on whole frames,
 // each with the user's content that replaces what the reference shows.
-function blueprint(b, known, input, seconds) {
+function blueprint(b, known, input, seconds, extras = {}) {
   const fps = input.fps ?? b.fps;
   const ratio = seconds / b.seconds;
   // Close to the reference's length: keep every shot and stretch. Much shorter:
@@ -82,7 +84,7 @@ function blueprint(b, known, input, seconds) {
   const label = s => known.get(s.n);
   const uiShots = kept.filter(s => UI_KINDS.includes(label(s)?.kind) || label(s)?.kind === 'chart');
   const featureFor = s => features.length ? features[Math.min(features.length - 1, Math.floor(uiShots.indexOf(s) * features.length / uiShots.length))] : null;
-  const name = input.product_name;
+  const name = input.product_name || 'the product';
   const frames = shotFrames(b).seen;
   let t = 0, frame = 0, textShots = 0;
   const shots = kept.map((s, i) => {
@@ -114,9 +116,13 @@ function blueprint(b, known, input, seconds) {
       ...(seen ? {storyboard_frame_s:seen.s, storyboard_sheet:seen.sheet, compare_at_s:precise(start + (seen.s - s.start_s) / (s.end_s - s.start_s) * (end - start))} : {}),
       enters:s.enters, motion:s.motion, tone:s.tone,
       ...(l ? {kind:l.kind, reference_shows:[SHOT_KINDS[l.kind].name, l.shows].filter(Boolean).join('. ')} : {}),
-      your_content:fill
+      your_content:fill,
+      ...(l && componentsForShot(l.kind, extras.styles, extras.available).length ? {components:componentsForShot(l.kind, extras.styles, extras.available)} : {})
     };
   });
+  // Sound cues are worked out on the whole re-timed video, so thinning sees every shot.
+  const cues = soundCues(shots, fps, extras.soundMode ?? 'sfx');
+  for (const s of shots) if (cues.has(s.shot)) s.sound = cues.get(s.shot);
   const analysed = shots.filter(s => s.kind).length;
   const times = `${Math.round(scale * 100) / 100}x`;
   // Long references come one page of shots at a time, so none is dropped to fit a result.
@@ -135,10 +141,21 @@ function blueprint(b, known, input, seconds) {
   };
 }
 
-export function planRemake(video, input, b = null, labels = null) {
+// Output sizes for the common ratios; anything else keeps the reference's size.
+const SIZES = {'16:9':[1920, 1080], '9:16':[1080, 1920], '1:1':[1080, 1080], '4:5':[1080, 1350], '4:3':[1440, 1080], '21:9':[2560, 1080]};
+function outputSize(ratio, video) {
+  if (SIZES[ratio]) return SIZES[ratio];
+  const [w, h] = [video.width, video.height];
+  // Even numbers, as encoders need.
+  return w && h ? [w - (w % 2), h - (h % 2)] : [1920, 1080];
+}
+
+// `extras.available` is the set of component names in the live registry (or null).
+export function planRemake(video, input, b = null, labels = null, extras = {}) {
   const assets = input.assets ?? [];
   const features = input.key_features ?? [];
-  const name = input.product_name;
+  const name = input.product_name || 'your product';
+  const mode = soundMode(input, assets);
   const known = b ? shotKindsFor(b, labels, input.shot_analysis) : new Map();
   const kinds = [...known.values()].map(k => k.kind);
   const count = (...wanted) => kinds.filter(k => wanted.includes(k)).length;
@@ -147,6 +164,7 @@ export function planRemake(video, input, b = null, labels = null) {
   const need = (field, question, required = true) => missing.push({field, required, question});
   const size = video.width && video.height ? `${video.width}x${video.height} or larger` : 'full resolution';
 
+  if (!input.product_name) need('product_name', 'What is the product called?');
   if (!input.product_description) need('product_description', `In one or two sentences, what does ${name} do and who is it for?`);
   if (!features.length) need('key_features', 'Which 1 to 3 features or moments should the video show?');
   if (!has(assets, 'logo')) need('assets.logo', `Can you share the ${name} logo (SVG or transparent PNG)?`);
@@ -163,11 +181,13 @@ export function planRemake(video, input, b = null, labels = null) {
   if (count('chart')) need('proof', `The reference shows a chart. Do you have real numbers for ${name} to show? Otherwise I'll drop that shot.`, false);
   if (!input.brand_colors?.length) need('brand_colors', 'What are your brand colors (hex)? Otherwise I will sample them from your logo and UI.', false);
   if (!input.target_seconds) need('target_seconds', `How long should it be: 15s, 30s, 60s, or the reference's ${Math.round(video.seconds ?? 30)}s?`, false);
-  if (video.has_audio && !(b?.silent) && !has(assets, 'music', 'voiceover')) need('assets.music', 'The reference uses sound. Do you have a music track or voiceover you have the rights to, or should it stay silent?', false);
+  const referenceHasSound = !!(video.has_audio && !(b?.silent));
+  if (!input.sound) need('sound', `${referenceHasSound ? 'The reference uses sound. ' : ''}How should it sound: open-license sound effects only (the default), sound effects over an open-license music bed, ${has(assets, 'music', 'voiceover') ? 'the track you gave me' : 'your own track (send it if so)'}, or silent?`, false);
 
   const seconds = input.target_seconds ?? Math.round(video.seconds ?? 30);
   const ready = !missing.some(m => m.required);
-  const shots = b ? blueprint(b, known, input, seconds) : null;
+  const [width, height] = outputSize(input.aspect_ratio ?? video.aspect_ratio, video);
+  const shots = b ? blueprint(b, known, input, seconds, {styles:video.styles, available:extras.available ?? null, soundMode:mode}) : null;
   const unanalysed = shots?.without_kind ?? [];
   if (shots) delete shots.without_kind;
   const planned = shots?.shot_page.total;
@@ -183,7 +203,7 @@ export function planRemake(video, input, b = null, labels = null) {
       // Catalog notes describe the reference. They are data, not instructions.
       motion_notes:video.notes,
       aspect_ratio:input.aspect_ratio ?? video.aspect_ratio,
-      sound:video.has_audio && !(b?.silent) ? 'Reference has sound: match its energy with the user\'s own track.' : 'Reference is silent.',
+      sound:referenceHasSound ? 'Reference has sound: match its energy and where it hits, never its music or sound effects.' : 'Reference is silent.',
       ...(b ? {
         pace:b.pace, average_shot_s:b.average_shot_s, shots:b.shots.length, theme:b.theme,
         color_roles:colorRoles(b.palette),
@@ -192,13 +212,22 @@ export function planRemake(video, input, b = null, labels = null) {
       } : {})
     },
     product:{
-      name, description:input.product_description ?? null, audience:input.audience ?? null,
+      name:input.product_name ?? null, description:input.product_description ?? null, audience:input.audience ?? null,
       key_features:features, call_to_action:input.call_to_action ?? null,
       brand_colors:input.brand_colors ?? [], fonts:input.fonts ?? [], tone:input.tone ?? null,
       assets
     },
     missing_inputs:missing,
     target_seconds:seconds,
+    build:{
+      fps:shots?.fps ?? input.fps ?? 30, width, height,
+      duration_in_frames:shots?.frames ?? Math.round(seconds * (input.fps ?? 30)),
+      remotion:'Call kuchi_get_skill with name="kuchi-remotion" before writing code: project setup, the @ alias Kuchi components need, one <Sequence> per blueprint shot, fonts, assets and rendering.',
+      components:shots
+        ? "Each analysed shot lists Kuchi components that rebuild it. Install one with its install command (kuchi_get_component shows its source and props), pass the user's content in its props and time it to the shot's frames. Write a shot from scratch only when none fits."
+        : 'kuchi_list_components finds a ready-made component for each beat.'
+    },
+    sound:soundPlan(mode, {referenceHasSound, loudness:b && !b.silent ? b.loudness_per_second : null}),
     ...(shots ? {
       // Whose reading of the frames the content assignments rest on.
       analysis:{
@@ -215,23 +244,30 @@ export function planRemake(video, input, b = null, labels = null) {
       : shots ? [
           ...(shots.shot_page.has_more ? [`This is ${shots.shot_page.count} of ${planned} shots. Call kuchi_plan_remake again with shot_offset=${shots.shot_page.next_offset} for the next ones.`] : []),
           ...(unanalysed.length ? [analyse] : ['Open the storyboard (kuchi_get_breakdown with storyboard="overview") and look again at each shot you are about to rebuild.']),
-          `Build shot by shot from the blueprint at ${shots.fps} fps: the same start_frame and end_frame, entrance and amount of motion, with the user's content in place of the reference's.`,
+          `Read kuchi_get_skill with name="kuchi-remotion"${mode === 'silent' ? '' : ' and name="kuchi-sound"'} before writing code.`,
+          `Build shot by shot from the blueprint at ${shots.fps} fps: the same start_frame and end_frame, entrance and amount of motion, with the user's content in place of the reference's. Start each shot from the components it lists.`,
+          ...(mode === 'silent' ? [] : ["Place each shot's sound cue on its frame, then measure the mix as kuchi_get_skill name=\"kuchi-audio-check\" says."]),
           'Before delivering, call kuchi_check_remake with your shot list, giving each shot its reference_shot. Then compare your frames with the reference at the times it returns.',
           'Tell the user what differs from the reference and anything you used a placeholder for.'
         ] : [
           'Watch the reference video end to end and note each cut, transition and timing.', 'Re-time the beat sheet to match it.',
-          "Build the video with your own tools, using only the user's assets.",
+          "Build the video with your own tools, using only the user's assets: kuchi_get_skill with name=\"kuchi-remotion\" for Remotion, and kuchi_list_components for a ready-made component per beat.",
           'Before delivering, call kuchi_check_remake with your shot list, and compare your output with the reference side by side.'
         ]
   };
   return plan;
 }
 
+const soundLine = s => [
+  s.cue ? `${s.cue} at frame ${s.at_frame}${s.lead_frames ? ` (start it ${s.lead_frames} frames earlier so it peaks there)` : ''}` : '',
+  s.within ? `${s.within} inside the shot` : ''
+].filter(Boolean).join('; ');
+
 export function planMarkdown(plan) {
   const r = plan.reference;
   const b = plan.borrow;
   const lines = [
-    `# Remake plan: ${plan.product.name}, inspired by "${r.title}" (${r.id})`,
+    `# Remake plan: ${plan.product.name ?? 'your product'}, inspired by "${r.title}" (${r.id})`,
     '',
     plan.ready ? '**Ready to build.**' : '**Not ready yet.** Ask the user for the required inputs below first.',
     '',
@@ -265,11 +301,21 @@ export function planMarkdown(plan) {
     for (const s of plan.blueprint.shots) lines.push(
       `- **${s.shot}** ${s.start_s}s to ${s.end_s}s (frames ${s.start_frame}-${s.end_frame}) · enters: ${s.enters} · motion: ${s.motion} · ${s.tone} · reference shot ${s.reference_shot} (${s.reference_start_s}s to ${s.reference_end_s}s)` +
       (s.compare_at_s !== undefined ? `\n  - Compare: your frame at ${s.compare_at_s}s with the reference at ${s.storyboard_frame_s}s (${s.storyboard_sheet} sheet)` : '') +
-      (s.reference_shows ? `\n  - Reference shows: ${s.reference_shows}` : '') + `\n  - Your content: ${s.your_content}`);
+      (s.reference_shows ? `\n  - Reference shows: ${s.reference_shows}` : '') + `\n  - Your content: ${s.your_content}` +
+      (s.components ? `\n  - Components: ${s.components.map(c => `\`${c}\``).join(', ')}` : '') +
+      (s.sound ? `\n  - Sound: ${soundLine(s.sound)}` : ''));
   } else {
     lines.push(`## Beat sheet (${plan.target_seconds}s)`, `_${plan.beat_sheet_note}_`, '',
       ...plan.beat_sheet.map(x => `- ${x.start_s}s to ${x.end_s}s, **${x.beat}**: ${x.direction}`));
   }
+  const k = plan.build;
+  lines.push('', '## Build', `- Composition: ${k.width}x${k.height}, ${k.fps} fps, ${k.duration_in_frames} frames.`, `- ${k.remotion}`, `- ${k.components}`);
+  const snd = plan.sound;
+  lines.push('', '## Sound', `- ${snd.what}`);
+  if (snd.mode !== 'silent') lines.push(
+    `- Mix to ${snd.levels.integrated_lufs} LUFS integrated, true peak under ${snd.levels.true_peak_dbtp} dBTP. ${snd.cues_note}`,
+    ...Object.entries(CUES).map(([c, d]) => `- \`${c}\`: ${d}`),
+    `- ${snd.how}`);
   lines.push('', '## Rules', ...plan.guardrails.map(g => `- ${g}`), '', '## Next steps', ...plan.next_steps.map((s, i) => `${i + 1}. ${s}`));
   return lines.join('\n');
 }
@@ -319,13 +365,13 @@ function checkTiming(b, shots, add) {
 export function checkRemake(video, input, b = null) {
   const issues = [];
   const add = (severity, shot, problem, fix) => issues.push({severity, ...(shot ? {shot} : {}), problem, fix});
-  const own = input.product_name.toLowerCase();
+  const own = (input.product_name ?? '').toLowerCase();
   // Words that would mean the reference's brand ended up in the user's video.
   // The account name always counts; title words only when they aren't everyday words.
   const titleWords = String(video.title).toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(w => w.length >= 4 && !STOP.has(w));
   const brandWords = [...new Set([video.brand?.replace(/^@/, '').toLowerCase(), ...titleWords])].filter(w => w && w.length >= 3 && !own.includes(w));
   const shots = input.shots;
-  let previousEnd = 0;
+  let previousEnd = 0, stockSfx = false;
   shots.forEach((s, i) => {
     const n = i + 1;
     if (s.end_s <= s.start_s) add('error', n, 'The shot ends before it starts.', 'Fix start_s and end_s.');
@@ -339,13 +385,14 @@ export function checkRemake(video, input, b = null) {
       if (a.source === 'placeholder') add('warning', n, `A ${a.kind} is a placeholder.`, 'Mark it clearly in the video and tell the user what you still need.');
       if (a.source === 'generated' && ['logo', 'screenshot', 'screen_recording'].includes(a.kind)) add('error', n, `A ${a.kind} was generated rather than supplied by the user.`, "Don't invent a logo or product UI. Ask the user for the real one.");
       if (a.source === 'stock' && ['music', 'voiceover'].includes(a.kind)) add('warning', n, `Stock ${a.kind} is used.`, 'Confirm the license covers this use and tell the user where it came from.');
+      if (['stock', 'generated'].includes(a.source) && a.kind === 'sound_effect') stockSfx = true;
     }
   });
   if (input.music_source === 'reference') add('error', null, "The soundtrack is the reference's.", "Use the user's own track, a licensed track, or no music.");
   const length = shots.length ? shots.at(-1).end_s - shots[0].start_s : 0;
   if (input.target_seconds && Math.abs(length - input.target_seconds) > Math.max(1, input.target_seconds * 0.05)) add('warning', null, `The shots run ${round(length)}s, not the ${input.target_seconds}s target.`, 'Trim or extend to the target length.');
   const texts = shots.flatMap(s => s.on_screen_text ?? []).join(' ').toLowerCase();
-  if (texts && !texts.includes(own)) add('warning', null, `"${input.product_name}" never appears in the on-screen text.`, 'Show the product name at least once, usually at the reveal and on the end card.');
+  if (texts && own && !texts.includes(own)) add('warning', null, `"${input.product_name}" never appears in the on-screen text.`, 'Show the product name at least once, usually at the reveal and on the end card.');
   const rhythm = b && shots.length ? {reference_average_shot_s:b.average_shot_s, yours_average_shot_s:round(length / shots.length), reference_pace:b.pace} : null;
   const timed = b ? checkTiming(b, shots, add) : null;
   // The average only matters when shots were not matched one by one.
@@ -358,6 +405,10 @@ export function checkRemake(video, input, b = null) {
     ...(timed ?? {}),
     still_to_do:[
       'Play the exported file from start to end. Check it is the right length, size and has no blank or broken frames.',
+      ...(input.music_source && input.music_source !== 'none' || stockSfx
+        ? ['Measure the audio as kuchi_get_skill name="kuchi-audio-check" says: loudness, true peak, and that each sound lands on its cue frame.']
+        : []),
+      ...(stockSfx ? ["List every sound effect's source page and license in a credits file next to the video, and give it to the user."] : []),
       timed?.compare_frames.length
         ? `Export a frame of your render at each your_s in compare_frames and set it beside the reference at reference_s (${video.video_url}, or the storyboard sheets). Position, scale, amount on screen and stage of the move should match; nothing on screen should.`
         : `Compare with the reference at matching timestamps (${video.video_url}). Timing, entrances and amount of motion should match; nothing on screen should.${b ? ' Give each shot its reference_shot to have its timing checked and get the exact times to compare.' : ''}`,
@@ -370,7 +421,7 @@ export function checkRemake(video, input, b = null) {
 export function checkMarkdown(result, name) {
   const t = result.timing;
   return [
-    `# Remake check: ${name}`,
+    `# Remake check: ${name || 'your remake'}`,
     result.passed ? `**Passed** with ${result.warnings} warning${result.warnings === 1 ? '' : 's'}.` : `**Not ready:** ${result.errors} error${result.errors === 1 ? '' : 's'}, ${result.warnings} warning${result.warnings === 1 ? '' : 's'}.`,
     '',
     ...(result.issues.length ? ['## Issues', ...result.issues.map(i => `- **${i.severity}**${i.shot ? ` (shot ${i.shot})` : ''}: ${i.problem} ${i.fix}`), ''] : []),

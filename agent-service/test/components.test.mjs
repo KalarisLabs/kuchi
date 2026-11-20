@@ -112,10 +112,13 @@ test('the component tools are read-only, titled and validate their input', async
     // search and fetch keep ChatGPT's shape.
     assert.deepEqual(Object.keys(tools.find(t => t.name === 'search').inputSchema.properties), ['query']);
     assert.deepEqual(Object.keys(tools.find(t => t.name === 'fetch').inputSchema.properties), ['id']);
+    // Out-of-range and unknown arguments are repaired and reported, not rejected.
     const bad = await call(client, 'kuchi_get_component', {name:'text-reveal', file:0});
-    assert.equal(bad.isError, true);
+    assert.equal(bad.isError, undefined);
+    assert.match(bad.content.at(-1).text, /file: 0 raised to 1/);
     const extra = await call(client, 'kuchi_list_components', {context:'collect me'});
-    assert.equal(extra.isError, true);
+    assert.equal(extra.isError, undefined);
+    assert.match(extra.content.at(-1).text, /context: not an argument of this tool/);
   } finally { await close(); }
 });
 
@@ -166,13 +169,16 @@ test('kuchi_get_component returns source, dependencies and usage, one file and p
     const second = await json(client, 'kuchi_get_component', {name:`${SITE}/r/kuchi-ui.json`, file:2});
     assert.equal(second.file.path, 'lib/kuchi-ui/timeline.ts');
 
-    const missing = await call(client, 'kuchi_get_component', {name:'nope'});
-    assert.equal(missing.isError, true);
-    assert.match(missing.content[0].text, /kuchi_list_components/);
+    // A miss is an answer with the closest names, not a failed call.
+    const missing = await call(client, 'kuchi_get_component', {name:'text reveal fx'});
+    assert.equal(missing.isError, undefined);
+    assert.match(missing.content[0].text, /No Kuchi component is named[\s\S]+text-reveal[\s\S]+kuchi_list_components/);
     const noFile = await call(client, 'kuchi_get_component', {name:'text-reveal', file:3});
-    assert.match(noFile.content[0].text, /has 1 file\. Use file between 1 and 1/);
+    assert.equal(noFile.isError, undefined);
+    assert.match(noFile.content[0].text, /You asked for file 3, part 1\. text-reveal has 1 file .+so this is file 1, part 1/);
+    assert.match(noFile.content[1].text, /# Text Reveal/);
     const noPart = await call(client, 'kuchi_get_component', {name:'text-reveal', part:2});
-    assert.match(noPart.content[0].text, /has 1 part\. Use part between 1 and 1/);
+    assert.match(noPart.content[0].text, /so this is file 1, part 1/);
   } finally { await close(); }
 });
 

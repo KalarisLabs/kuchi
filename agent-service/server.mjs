@@ -1,14 +1,17 @@
 import {McpServer, ResourceTemplate, completable} from '@modelcontextprotocol/server';
 import {instrument} from '@posthog/mcp';
 import {z} from 'zod';
-import {record, filters, search, findVideo, SITE_URL} from './catalog.mjs';
+import {record, filters, search, findVideo, closestVideos, SITE_URL} from './catalog.mjs';
 import {planRemake, planMarkdown, checkRemake, checkMarkdown, ASSET_KINDS, ENTRANCES} from './brief.mjs';
 import {breakdown, breakdownMarkdown, SHOT_KINDS} from './breakdown.mjs';
 import {suggestTemplates, suggestMarkdown, MAX_CHOICES} from './templates.mjs';
 import {componentRegistry, listComponents, findComponent, componentDetail, componentRecord} from './components.mjs';
 import {sheetReader} from './sheets.mjs';
+import {SOUND_MODES} from './sound.mjs';
+import {SKILL_NAMES, skillFiles} from './skill.mjs';
+import {repairArguments} from './repair.mjs';
 
-export const VERSION = '1.4.0';
+export const VERSION = '1.4.1';
 export const CHARACTER_LIMIT = 25_000;
 export const FEEDBACK_TOOL = 'kuchi_send_feedback';
 const FEEDBACK_TITLE = 'Send feedback to Kuchi';
@@ -20,7 +23,7 @@ export const INSTRUCTIONS = `Kuchi is a library of real product-launch videos, e
 1. Choose a template: kuchi_suggest_templates returns a short list ranked for the user's product (kuchi_search_videos browses the whole library). Show each choice's poster and Kuchi link and let the user choose, by number in chat or by picking a video at https://kuchi.kalarislabs.com and pasting its link. Every tool accepts that link. Rank by fit, never by popularity.
 2. Study: kuchi_get_breakdown with storyboard="overview" gives every shot's exact frames, how it enters, how much moves, its colors and a sheet of real frames. Look at each shot's frame and note its kind and what it shows.
 3. Plan: kuchi_plan_remake with the user's product details, the assets they gave you and your shot_analysis. Ask the user for everything in missing_inputs before building. When ready, it returns a frame-timed blueprint with the user's content in each shot.
-4. Build with your own tools, shot by shot: the same start and end frame, entrance, amount of motion and layout. kuchi_list_components and kuchi_get_component serve ready-made Remotion components (kinetic type, captions, UI screens, cursors, logos) with their source. Never reuse the reference's brand, footage, UI, characters, music or copy: every product detail and asset comes from the user.
+4. Build shot by shot: the same start and end frame, entrance, amount of motion and layout. Each blueprint shot lists the Kuchi Remotion components that rebuild it; kuchi_get_component serves their source and install command, and kuchi_list_components finds others (kinetic type, captions, UI screens, cursors, logos). Before writing code, read kuchi_get_skill name="kuchi-remotion", and unless the plan's sound is silent, name="kuchi-sound" to place each shot's sound cue on its frame and name="kuchi-audio-check" to measure the mix. Never reuse the reference's brand, footage, UI, characters, music or copy: every product detail and asset comes from the user.
 5. Check: kuchi_check_remake with your shot list, then compare your frames with the reference at the times it returns, and fix what differs.
 
 Every video, breakdown and component is also a resource (kuchi://videos/{id}, kuchi://breakdowns/{id}, kuchi://components/{name}) a host can list, autocomplete and attach, and results link media files to open directly.
@@ -57,8 +60,18 @@ const ICONS = [
   {src:`${SITE_URL}/favicon.svg`, mimeType:'image/svg+xml', sizes:['any']}
 ];
 
+// Nothing to return for what was asked (an unknown id, a page past the end).
+// It is answered as a normal result that says what to do instead: an empty
+// lookup is not a failure, any more than a search with no hits.
 class UserError extends Error {}
-const notFound = ref => new UserError(`No Kuchi video matches "${ref}". Call kuchi_suggest_templates or kuchi_search_videos to find valid ids.`);
+function notFound(archive, ref) {
+  const close = archive ? closestVideos(archive, ref) : [];
+  return new UserError([
+    `No Kuchi video matches "${String(ref).slice(0, 80)}".`,
+    ...(close.length ? ['Closest videos:', ...close.map(v => `- id ${v.id}: ${v.title} (${v.brand}, ${v.seconds ?? '?'}s) ${v.page_url}`)] : []),
+    'Pass one of these ids as reference, or call kuchi_suggest_templates or kuchi_search_videos to find the right one.'
+  ].join('\n'));
+}
 const CATALOG_UNAVAILABLE = "Kuchi's catalog is temporarily unavailable. Retry in a minute.";
 const COMPONENTS_UNAVAILABLE = "Kuchi's component registry is temporarily unavailable. Retry in a minute.";
 // The source of one file fits in a result with the component's details around it.
@@ -208,7 +221,7 @@ export function createServer(load, {posthog = null, media = null, properties = {
       if (result.isError) outcome = 'user_error';
       return result;
     } catch (error) {
-      if (error instanceof UserError) { outcome = 'user_error'; return {isError:true, content:[{type:'text', text:error.message}]}; }
+      if (error instanceof UserError) { outcome = 'user_error'; return {content:[{type:'text', text:error.message}]}; }
       outcome = 'unavailable';
       console.error(JSON.stringify({event:'catalog_unavailable', tool, message:error.message}));
       return {isError:true, content:[{type:'text', text:unavailable}]};
@@ -219,11 +232,17 @@ export function createServer(load, {posthog = null, media = null, properties = {
   };
   const find = (archive, ref) => {
     const v = findVideo(archive, ref);
-    if (!v) throw notFound(ref);
+    if (!v) throw notFound(archive, ref);
     return v;
   };
+  // Each tool's input as JSON Schema, for repairing arguments before validation.
+  const schemas = new Map();
+  const registerTool = (name, config, callback) => {
+    schemas.set(name, z.toJSONSchema(config.inputSchema, {io:'input', unrepresentable:'any'}));
+    return server.registerTool(name, config, callback);
+  };
 
-  server.registerTool('kuchi_get_workflow', {
+  registerTool('kuchi_get_workflow', {
     title:'Get the remake workflow',
     description: `Get Kuchi's workflow for turning a reference into the user's own launch video: how to pick a reference, how to analyse each shot from the storyboard sheets, what to ask the user for, how to match timing to the frame, and how to check the result against the reference.
 
@@ -237,7 +256,7 @@ Returns Markdown. Pass step to get one step ("find", "study", "plan", "build" or
     return text(workflowStep(archive.workflow, step));
   }));
 
-  server.registerTool('kuchi_suggest_templates', {
+  registerTool('kuchi_suggest_templates', {
     title:'Suggest templates to choose from',
     description: `Get a short list of Kuchi launch videos for the user to choose their template from, ranked against what they want and what they can supply.
 
@@ -266,7 +285,7 @@ Use it when the user wants a launch video and has not picked a reference. Use ku
     return args.response_format === 'json' ? json(result) : text(suggestMarkdown(result));
   }));
 
-  server.registerTool('kuchi_search_videos', {
+  registerTool('kuchi_search_videos', {
     title:'Search launch videos',
     description: `Search Kuchi's launch-video references by product type, brand, motion style, format, pace, theme, aspect ratio or length.
 
@@ -310,7 +329,7 @@ Examples:
     return args.response_format === 'json' ? json(page) : text(render(page));
   }));
 
-  server.registerTool('kuchi_get_video', {
+  registerTool('kuchi_get_video', {
     title:'Get a launch video',
     description:'Get one Kuchi reference by id, slug, Kuchi link or X post URL: playable video file, poster, storyboard sheet, length, size, aspect ratio, styles, measured rhythm and notes on its motion. Use kuchi_search_videos to find ids and kuchi_get_breakdown for the shot list.',
     inputSchema:z.strictObject({reference, response_format}),
@@ -321,7 +340,7 @@ Examples:
     return withLinks(format === 'json' ? json(video) : text(videoMarkdown(video, true)), videoLinks(video));
   }));
 
-  server.registerTool('kuchi_list_filters', {
+  registerTool('kuchi_list_filters', {
     title:'List styles and formats',
     description:'List every motion style, category, format, aspect ratio, pace and theme in Kuchi, with how many videos each has, to use as filters in kuchi_search_videos. Also lists the shot kinds a shot is classified into when you analyse a storyboard.',
     inputSchema:z.strictObject({response_format}),
@@ -335,7 +354,7 @@ Examples:
       ['## Shot kinds (for analysing a storyboard, not a search filter)', ...f.shot_kinds.map(k => `- \`${k.id}\` ${k.name}: ${k.look}`)].join('\n')].join('\n\n'));
   }));
 
-  server.registerTool('kuchi_get_breakdown', {
+  registerTool('kuchi_get_breakdown', {
     title:'Get a frame-by-frame breakdown',
     description: `Get the shot-by-shot breakdown of one Kuchi reference, measured from every frame of its video file.
 
@@ -363,8 +382,12 @@ Set storyboard="overview" (one frame per shot, or per longest shot when there ar
     const result = args.response_format === 'json' ? json(data) : text(render(data));
     note({reference_id:video.id, storyboard:args.storyboard, shots:data.measured.shots, analysis:data.analysis.status});
     if (args.storyboard !== 'links') {
-      const sheet = args.storyboard === 'overview' ? data.storyboard[0] : data.storyboard[args.detail_sheet];
-      if (!sheet) throw new UserError(`Video ${video.id} has ${data.storyboard.length - 1} detail sheets. Use detail_sheet between 1 and ${data.storyboard.length - 1}.`);
+      // A detail sheet past the last one returns the last one, and says so.
+      const details = data.storyboard.length - 1;
+      const wanted = args.storyboard === 'detail' && details > 0 ? Math.min(args.detail_sheet, details) : 0;
+      if (args.storyboard === 'detail' && wanted !== args.detail_sheet)
+        result.content.push({type:'text', text:details ? `Video ${video.id} has ${details} detail sheet${details === 1 ? '' : 's'}, so this is detail sheet ${wanted}.` : `Video ${video.id} has no detail sheets, so this is the overview.`});
+      const sheet = data.storyboard[wanted];
       const image = await sheets(media, sheet.url, {revision:archive.sourceRevision, waitUntil});
       result.content.push(image
         ? {type:'image', data:image, mimeType:'image/jpeg'}
@@ -376,7 +399,7 @@ Set storyboard="overview" (one frame per shot, or per longest shot when there ar
     ]);
   }));
 
-  server.registerTool('kuchi_plan_remake', {
+  registerTool('kuchi_plan_remake', {
     title:'Plan a remake for your product',
     description: `Plan a launch video for the user's product, using a Kuchi reference as an inspiration template.
 
@@ -385,7 +408,7 @@ Pass the user's own product details and assets, and your shot_analysis: the kind
 Call it again with the user's answers and your analysis until ready=true and every shot has a kind. Only list assets the user actually gave you. It does not render video; build it with your own tools, then call kuchi_check_remake.`,
     inputSchema:z.strictObject({
       reference,
-      product_name:z.string().trim().min(1).max(100).describe("The user's product name"),
+      product_name:z.string().trim().min(1).max(100).optional().describe("The user's product name. Without it, the plan asks for it in missing_inputs."),
       product_description:z.string().max(500).optional().describe('What the product does and who it is for, in the user\'s words'),
       audience:z.string().max(200).optional().describe('Who the video is for'),
       key_features:z.array(z.string().max(120)).max(6).optional().describe('1-3 features or moments to show, most important first'),
@@ -406,14 +429,18 @@ Call it again with the user's answers and your analysis until ready=true and eve
       target_seconds:z.number().int().min(5).max(180).optional().describe("Target length in seconds; defaults to the reference's length"),
       fps:z.number().min(12).max(120).optional().describe("Frame rate you will render at, e.g. 30 or 60; defaults to the reference's. The blueprint's frame numbers use it."),
       aspect_ratio:z.string().max(20).optional().describe("Output ratio; defaults to the reference's"),
+      sound:z.enum(SOUND_MODES).optional().describe("How the video sounds: 'sfx' (open-license sound effects on each shot's cue, the default), 'music_and_sfx' (an open-license music bed too), 'user_track' (the user's own music or voiceover, the default when assets include one) or 'silent'"),
       shot_offset:z.number().int().min(0).default(0).describe('Blueprint shots to skip, for references with many shots'),
       shot_limit:z.number().int().min(1).max(40).default(40).describe('Blueprint shots per page (1-40, default 40)'),
       response_format
     }),
     annotations:{...READ_ONLY, title:'Plan a remake for your product'}
-  }, handler('kuchi_plan_remake', (archive, args, note) => {
+  }, handler('kuchi_plan_remake', async (archive, args, note) => {
     const v = find(archive, args.reference);
-    const build = limit => planRemake(record(archive, v), {...args, shot_limit:limit}, archive.breakdowns?.get(v.id), archive.labels?.get(v.id));
+    // Components are named per shot when the registry can be read; the plan never waits on it failing.
+    const index = await components.index(cacheOptions).catch(() => null);
+    const available = index ? new Set(index.components.map(c => c.name)) : null;
+    const build = limit => planRemake(record(archive, v), {...args, shot_limit:limit}, archive.breakdowns?.get(v.id), archive.labels?.get(v.id), {available});
     const render = p => args.response_format === 'json' ? JSON.stringify(p, null, 2) : planMarkdown(p);
     let limit = args.shot_limit;
     let plan = build(limit);
@@ -422,11 +449,11 @@ Call it again with the user's answers and your analysis until ready=true and eve
     note({reference_id:v.id, ready:plan.ready, missing:plan.missing_inputs.map(m => m.field).join(','), asset_kinds:[...new Set((args.assets ?? []).map(a => a.kind))].join(','),
       feature_count:(args.key_features ?? []).length, target_seconds:plan.target_seconds, plan:plan.blueprint?.mode ?? 'beat_sheet',
       analysed_shots:(args.shot_analysis ?? []).length, precision:plan.blueprint?.precision ?? 'none'},
-      {reference:String(v.id), ...(args.target_seconds ? {target_seconds:args.target_seconds} : {}), ...(args.aspect_ratio ? {aspect_ratio:args.aspect_ratio} : {}), ...(args.fps ? {fps:args.fps} : {})});
-    return args.response_format === 'json' ? json(plan) : text(planMarkdown(plan));
+      {reference:String(v.id), ...(args.target_seconds ? {target_seconds:args.target_seconds} : {}), ...(args.aspect_ratio ? {aspect_ratio:args.aspect_ratio} : {}), ...(args.fps ? {fps:args.fps} : {}), sound:plan.sound.mode});
+    return args.response_format === 'json' ? json(plan) : text(render(plan));
   }));
 
-  server.registerTool('kuchi_check_remake', {
+  registerTool('kuchi_check_remake', {
     title:'Check a remake before delivering',
     description: `Check a drafted or finished remake against the rules for using a Kuchi reference.
 
@@ -435,9 +462,9 @@ Pass your shot list: timing, the reference shot each one rebuilds, how it enters
 It checks what you report, not the rendered file: Kuchi never receives your video. Be accurate about each asset's source.`,
     inputSchema:z.strictObject({
       reference,
-      product_name:z.string().trim().min(1).max(100).describe("The user's product name"),
+      product_name:z.string().trim().min(1).max(100).optional().describe("The user's product name, to check it appears on screen"),
       target_seconds:z.number().min(1).max(600).optional().describe('The length you were aiming for'),
-      music_source:z.enum(['none', 'user', 'licensed', 'generated', 'reference']).optional().describe('Where the soundtrack came from'),
+      music_source:z.enum(['none', 'user', 'licensed', 'generated', 'reference']).optional().describe("Where the music came from: 'none' when there is no music (sound effects alone are reported as assets)"),
       shots:z.array(z.strictObject({
         start_s:z.number().min(0).max(600).describe('When the shot starts in your video, in seconds'),
         end_s:z.number().min(0).max(600).describe('When it ends, in seconds'),
@@ -445,8 +472,9 @@ It checks what you report, not the rendered file: Kuchi never receives your vide
         enters:z.enum(ENTRANCES).optional().describe('How this shot enters in your video'),
         on_screen_text:z.array(z.string().max(300)).max(20).optional().describe('Every line of text visible in this shot'),
         assets:z.array(z.strictObject({
-          kind:z.enum(ASSET_KINDS),
-          source:z.enum(['user', 'generated', 'stock', 'placeholder', 'reference']).describe("'user' = the user supplied it; 'reference' = taken from the Kuchi reference video")
+          kind:z.enum(ASSET_KINDS).describe("What the asset is; a sound effect is 'sound_effect'"),
+          source:z.enum(['user', 'generated', 'stock', 'placeholder', 'reference']).describe("'user' = the user supplied it; 'stock' = an open-license or licensed library file; 'reference' = taken from the Kuchi reference video"),
+          description:z.string().max(200).optional().describe('What it is, for your own notes. Kuchi does not keep it.')
         })).max(20).optional()
       })).min(1).max(150).describe('Your shots in order'),
       response_format
@@ -460,7 +488,7 @@ It checks what you report, not the rendered file: Kuchi never receives your vide
     return args.response_format === 'json' ? json(result) : text(checkMarkdown(result, args.product_name));
   }));
 
-  server.registerTool('kuchi_list_components', {
+  registerTool('kuchi_list_components', {
     title:'List video components',
     description: `List Kuchi's copy-paste Remotion video components: animated text and kinetic type, captions, AI-input and UI screens, cursors, logos, scenes and transitions. It is the set on ${SITE_URL}/components, read from the latest published registry.
 
@@ -494,7 +522,7 @@ Use it while building a remake, to find a ready-made component for a shot before
     return args.response_format === 'json' ? json(page) : text(render(page));
   }, options => components.index(options), COMPONENTS_UNAVAILABLE));
 
-  server.registerTool('kuchi_get_component', {
+  registerTool('kuchi_get_component', {
     title:'Get a video component',
     description: `Get one Kuchi video component by name: its description, npm and Kuchi dependencies, shadcn install command, registry URL, usage notes and the full source of its files, read from the latest published registry.
 
@@ -508,20 +536,53 @@ Returns one file's source per call (file=1 is the main file); a file longer than
     annotations:{...READ_ONLY, title:'Get a video component'}
   }, handler('kuchi_get_component', async (index, args, note) => {
     const c = findComponent(index, args.name);
-    if (!c) throw new UserError(`No Kuchi component matches "${args.name}". Call kuchi_list_components to find valid names.`);
+    if (!c) {
+      const close = listComponents(index, {query:String(args.name).replace(/[^a-z0-9]+/gi, ' '), limit:5}).components;
+      throw new UserError([`No Kuchi component is named "${String(args.name).slice(0, 80)}".`,
+        ...(close.length ? ['Closest components:', ...close.map(x => `- ${x.name}: ${x.title}`)] : []),
+        'Pass one of these names, or call kuchi_list_components to browse them.'].join('\n'));
+    }
     const item = await components.item(c.name, cacheOptions);
-    if (args.file > item.files.length) throw new UserError(`${c.name} has ${item.files.length} file${item.files.length === 1 ? '' : 's'}. Use file between 1 and ${item.files.length}.`);
-    const detail = componentDetail(c, item, {file:args.file, part:args.part, limit:COMPONENT_PART_LIMIT});
-    if (args.part > detail.file.parts) throw new UserError(`${detail.file.path} has ${detail.file.parts} part${detail.file.parts === 1 ? '' : 's'}. Use part between 1 and ${detail.file.parts}.`);
-    note({component:c.name, file:args.file, part:args.part, parts:detail.file.parts});
-    return withLinks(args.response_format === 'json' ? json(detail) : text(componentDetailMarkdown(detail)),
+    // A file or part past the last one returns the last one, and says so.
+    const file = Math.min(args.file, item.files.length);
+    let detail = componentDetail(c, item, {file, part:1, limit:COMPONENT_PART_LIMIT});
+    const part = Math.min(args.part, detail.file.parts);
+    if (part !== 1) detail = componentDetail(c, item, {file, part, limit:COMPONENT_PART_LIMIT});
+    note({component:c.name, file, part, parts:detail.file.parts});
+    const result = withLinks(args.response_format === 'json' ? json(detail) : text(componentDetailMarkdown(detail)),
       [link(detail.registry_url, `kuchi-component-${c.name}`, `${c.title}: shadcn registry item`, 'application/json', 'Every file with its source, for the shadcn CLI or any installer.')]);
+    if (file !== args.file || part !== args.part)
+      result.content.unshift({type:'text', text:`You asked for file ${args.file}, part ${args.part}. ${c.name} has ${item.files.length} file${item.files.length === 1 ? '' : 's'} and file ${file} has ${detail.file.parts} part${detail.file.parts === 1 ? '' : 's'}, so this is file ${file}, part ${part}.`});
+    return result;
   }, options => components.index(options), COMPONENTS_UNAVAILABLE));
+
+  registerTool('kuchi_get_skill', {
+    title:'Get a build skill',
+    description: `Get one of Kuchi's agent skills: step-by-step methods for the build and finish of a remake, bundled with the server so every client has them.
+
+- kuchi: the whole remake workflow in short (find, study, plan, build, check).
+- kuchi-remotion: building the blueprint in Remotion: project setup, the @ alias Kuchi components need, one Sequence per shot, entrances, fonts, assets, rendering and exporting frames to compare.
+- kuchi-sound: sound without hearing it: turning each blueprint shot's sound cue into an open-license sound effect (or the user's track) placed on its frame, chosen and trimmed by measuring with ffmpeg, with every license logged.
+- kuchi-audio-check: measuring the rendered mix: loudness, true peak, clipping, silence and whether each sound lands on its cue frame.
+
+Returns the skill's Markdown. Use it before writing video code (kuchi-remotion), before adding audio (kuchi-sound) and before delivering (kuchi-audio-check).`,
+    inputSchema:z.strictObject({
+      name:z.enum(SKILL_NAMES).describe(`Which skill: ${SKILL_NAMES.map(n => `'${n}'`).join(', ')}`),
+      file:z.string().max(100).default('SKILL.md').describe("Which file of the skill (default 'SKILL.md')")
+    }),
+    annotations:{...READ_ONLY, title:'Get a build skill'}
+  }, handler('kuchi_get_skill', (unused, args, note) => {
+    const files = skillFiles(args.name);
+    const chosen = files[args.file] !== undefined ? args.file : 'SKILL.md';
+    note({skill:args.name, file:chosen});
+    const others = Object.keys(files).filter(f => f !== chosen);
+    return text([files[chosen].trim(), ...(others.length ? [`More files in this skill: ${others.join(', ')}. Call again with file set to one.`] : [])].join('\n\n'));
+  }, async () => null));
 
   // ChatGPT's connector and deep-research modes look for exactly these two
   // tools: search(query) returns {results:[{id,title,url}]}, fetch(id) returns
   // one document. Both answer as JSON text.
-  server.registerTool('search', {
+  registerTool('search', {
     title:'Search Kuchi',
     description:'Search Kuchi launch-video references. Returns ids to pass to fetch. Same catalog as kuchi_search_videos.',
     inputSchema:z.strictObject({query:z.string().max(300).describe('Keywords, e.g. "pastel UI cursor demo"')}),
@@ -532,7 +593,7 @@ Returns one file's source per call (file=1 is the main file); a file longer than
     return text(JSON.stringify({results:page.videos.map(v => ({id:String(v.id), title:v.title, url:v.page_url}))}));
   }));
 
-  server.registerTool('fetch', {
+  registerTool('fetch', {
     title:'Fetch a Kuchi video',
     description:'Fetch one Kuchi reference by the id from search, with its notes, links and metadata.',
     inputSchema:z.strictObject({id:z.string().trim().min(1).max(500).describe('Video id from search')}),
@@ -579,7 +640,7 @@ Copy the reference's motion and taste, to the frame: timing, transitions, layout
   const resourceVideo = async id => {
     const archive = await load(cacheOptions);
     const v = findVideo(archive, decodeURIComponent(String(id)));
-    if (!v) throw notFound(id);
+    if (!v) throw notFound(null, id);
     return {archive, video:record(archive, v)};
   };
   server.registerResource('kuchi-video', new ResourceTemplate('kuchi://videos/{id}', {
@@ -614,7 +675,27 @@ Copy the reference's motion and taste, to the frame: timing, transitions, layout
   // The installable skill, for hosts that load skills from MCP servers.
   skills?.attach(server);
   if (posthog) titleFeedbackTool(server);
+  repairCalls(server, schemas);
   return server;
+}
+
+// Repairs each call's arguments against the tool's own schema before the SDK
+// validates them (repair.mjs), and tells the agent what was changed.
+const MAX_NOTES = 12;
+function repairCalls(server, schemas) {
+  const handlers = server.server?._requestHandlers;
+  const call = handlers?.get('tools/call');
+  if (!call) return;
+  handlers.set('tools/call', async (request, extra) => {
+    const schema = schemas.get(request?.params?.name);
+    if (!schema) return call(request, extra);
+    const {args, notes} = repairArguments(schema, request.params.arguments);
+    if (!notes.length) return call(request, extra);
+    const result = await call({...request, params:{...request.params, arguments:args}}, extra);
+    if (!Array.isArray(result?.content)) return result;
+    const shown = notes.slice(0, MAX_NOTES).join('; ') + (notes.length > MAX_NOTES ? `; and ${notes.length - MAX_NOTES} more` : '');
+    return {...result, content:[...result.content, {type:'text', text:`Kuchi adjusted this call's arguments to fit the tool's schema: ${shown}.`}]};
+  });
 }
 
 // Ids that start with what the user has typed (or whose slug does), newest first.

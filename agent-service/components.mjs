@@ -125,6 +125,45 @@ export function findComponent(index, reference) {
   return index.components.find(c => c.name === name) ?? null;
 }
 
+// Ready-made components that rebuild each kind of shot, best fit first. The
+// plan names these per shot, filtered to what the live registry holds, so an
+// agent starts from Kuchi's library instead of writing a shot from scratch.
+// A test keeps every name in the published registry.
+export const SHOT_COMPONENTS = {
+  title_card:['text-reveal', 'soft-blur-in', 'focus-blur-resolve', 'centered-word-build', 'full-bleed-type'],
+  kinetic_type:['word-flip', 'text-swap', 'punch-lines', 'kinetic-morph-text', 'zoom-words', 'word-stream'],
+  logo:['logo-assemble', 'logo-construct', 'logo-drift', 'logo-flicker', 'block-wordmark'],
+  ui_screen:['screenshot-tour', 'screen-recording', 'capture-reveal', 'cursor-track'],
+  ui_closeup:['click-type', 'button-press', 'cursor', 'ui-callout', 'menu-pick', 'toggle-on'],
+  device:['laptop-frame', 'phone-frame', 'phone-stack', 'device-morph', 'phone-scroll'],
+  chart:['animated-bar-chart', 'animated-line-chart', 'growth-line', 'rolling-number', 'chart-morph'],
+  character:['logo-drift', 'paper-sticker'],
+  product_render:['polaroid', 'orbit-gallery', 'card-fan'],
+  live_action:['reel-collage', 'grid-montage', 'reel'],
+  collage:['grid-montage', 'reel-collage', 'moodboard-reveal', 'card-fan', 'orbit-gallery'],
+  abstract:['orb-swarm', 'dot-bloom', 'border-beam', 'pulsing-border'],
+  end_card:['url-bar-cta', 'cut-lockup', 'gather-lockup', 'bloom-lockup'],
+  blank:[]
+};
+// Reference styles that point to more specific components for product-UI shots.
+export const STYLE_COMPONENTS = {
+  'Terminal':['terminal-simulator', 'terminal-session', 'claude-code'],
+  'Cursor demo':['cursor', 'click-type', 'cursor-track'],
+  'Charts':['animated-line-chart', 'animated-bar-chart'],
+  'Data graphics':['rolling-number', 'growth-line'],
+  'Device motion':['phone-frame', 'laptop-frame', 'device-morph']
+};
+const UI_SHOTS = new Set(['ui_screen', 'ui_closeup', 'device']);
+
+// Up to `count` component names for one shot. `available` is the set of names
+// in the live registry, or null when it couldn't be read (the list is then
+// used as is: the names are kept in step with the registry by a test).
+export function componentsForShot(kind, styles = [], available = null, count = 3) {
+  if (!kind) return [];
+  const styled = UI_SHOTS.has(kind) ? styles.flatMap(s => STYLE_COMPONENTS[s] ?? []) : [];
+  return [...new Set([...styled, ...(SHOT_COMPONENTS[kind] ?? [])])].filter(n => !available || available.has(n)).slice(0, count);
+}
+
 export const USAGE = [
   'Install with the command, or copy each file to its path, which is relative to the project root the shadcn aliases point at (src/ when imports use @/).',
   'Install the npm dependencies, and every registry dependency the same way: the command does both.',

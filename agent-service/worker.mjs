@@ -6,7 +6,7 @@ import { guardRequest } from './request-guard.mjs';
 import { IpRateLimiter, durableLimiter } from './limiter.mjs';
 import { createAnalytics, startSession, withSessionToken } from './analytics.mjs';
 
-import { SKILL, skillCatalog } from './skill.mjs';
+import { SKILL, SKILL_NAMES, skillFiles, skillCatalog } from './skill.mjs';
 
 // The entry module may only export handlers and Durable Object classes.
 export { IpRateLimiter };
@@ -73,6 +73,13 @@ function mirrorResponse(request, {body, type, etag}) {
 async function agentFile(request, path, options) {
   // SKILL changes only on deploy, so its own text stands in for a commit.
   if (path === '/agent/SKILL.md') return mirrorResponse(request, mirrored(path, hash(SKILL), () => ({body:SKILL, type:'text/markdown'})));
+  // The bundled build skills, for agents without MCP: /agent/skills/<name>/<file>.md
+  const bundled = path.match(/^\/agent\/skills\/([a-z0-9-]{1,40})\/([A-Za-z0-9_-]{1,60}\.md)$/);
+  if (bundled) {
+    const text = skillFiles(bundled[1])?.[bundled[2]];
+    if (text === undefined) return response({ error: 'Not found', skills: SKILL_NAMES }, 'application/json', 404);
+    return mirrorResponse(request, mirrored(path, hash(text), () => ({body:text, type:'text/markdown'})));
+  }
   const breakdownId = path.match(/^\/agent\/breakdowns\/(\d{1,6})\.json$/)?.[1];
   if (!breakdownId && !['/agent/manifest.json', '/agent/catalog.json', '/agent/workflow.md'].includes(path)) return response({ error: 'Not found' }, 'application/json', 404);
   try {

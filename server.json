@@ -3,7 +3,7 @@
   "name": "io.github.KalarisLabs/kuchi",
   "title": "Kuchi",
   "description": "Pick a real launch video as a template, get its frame-by-frame breakdown and plan your own remake.",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "websiteUrl": "https://kuchi.kalarislabs.com/",
   "repository": {
     "url": "https://github.com/KalarisLabs/kuchi",

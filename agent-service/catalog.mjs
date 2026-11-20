@@ -24,6 +24,8 @@ export const RETRY_MS = 10 * 1000;
 const PINNED_SECONDS = 30 * 24 * 60 * 60;
 // Isolates in one location share the answer to "which commit is main at?".
 const REVISION_SECONDS = 30;
+// The last commit read successfully, kept as a fallback for a week.
+const LAST_GOOD_SECONDS = 7 * 24 * 60 * 60;
 
 export async function readBounded(response, limit) {
   if (!response.ok) throw new Error('Published source unavailable');
@@ -85,11 +87,33 @@ async function mainRevision(fetcher, options, cache) {
   const hit = await cacheGet(cache, key);
   const shared = hit && (await hit.text().catch(() => '')).trim();
   if (REVISION.test(shared ?? '')) return shared;
-  const refs = await readBounded(await fetcher(`https://github.com/${REPO}.git/info/refs?service=git-upload-pack`, options()), 128 * 1024);
-  const revision = refs.match(/([0-9a-f]{40}) refs\/heads\/main(?:\0|\n)/)?.[1];
-  if (!revision) throw new Error('Published main revision unavailable');
-  await cachePut(cache, key, revision, {seconds:REVISION_SECONDS, type:'text/plain'});
-  return revision;
+  const lastGood = cacheKey('github', REPO, 'main', 'last-good');
+  // Two ways to ask GitHub, then the last commit this location read successfully,
+  // whose files the location cache still holds. A cold isolate during a GitHub
+  // outage serves that commit instead of failing.
+  const sources = [
+    async () => (await readBounded(await fetcher(`https://github.com/${REPO}.git/info/refs?service=git-upload-pack`, options()), 128 * 1024))
+      .match(/([0-9a-f]{40}) refs\/heads\/main(?:\0|\n)/)?.[1],
+    async () => {
+      const o = options();
+      // This media type answers with the bare commit hash.
+      return (await readBounded(await fetcher(`https://api.github.com/repos/${REPO}/commits/main`, {...o, headers:{...o.headers, Accept:'application/vnd.github.sha'}}), 4096)).trim();
+    }
+  ];
+  for (const source of sources) {
+    const revision = await source().catch(() => null);
+    if (!REVISION.test(revision ?? '')) continue;
+    await cachePut(cache, key, revision, {seconds:REVISION_SECONDS, type:'text/plain'});
+    await cachePut(cache, lastGood, revision, {seconds:LAST_GOOD_SECONDS, type:'text/plain'});
+    return revision;
+  }
+  const kept = await cacheGet(cache, lastGood);
+  const revision = kept && (await kept.text().catch(() => '')).trim();
+  if (REVISION.test(revision ?? '')) {
+    console.error(JSON.stringify({event:'main_revision_fallback', revision}));
+    return revision;
+  }
+  throw new Error('Published main revision unavailable');
 }
 
 // Wraps a loader with the policy above: fresh for a minute, then served while a
@@ -199,6 +223,20 @@ export function findVideo(archive, reference) {
   const ref = String(reference).trim().replace(/\?.*$/, '').replace(/\/video\/\d+\/?$/, '').replace(/\/$/, '');
   const page = ref.match(/#video-(\d+)(?!\d)/)?.[1];
   const status = ref.match(/status\/(\d+)/)?.[1];
-  return archive.videos.find(v => String(v.id) === (page ?? ref) || v.slug === ref || v.source === ref ||
+  const exact = archive.videos.find(v => String(v.id) === (page ?? ref) || v.slug === ref || v.source === ref ||
     (status && status === v.source.match(/status\/(\d+)/)?.[1]));
+  if (exact) return exact;
+  // The forms agents improvise: "video 34", "#34", "kuchi-34", "id=34", "/videos/34", "34.0", a slug in other case.
+  const lower = ref.toLowerCase();
+  const id = lower.match(/^\s*#?(\d{1,6})(?:\.0+)?\s*$/)?.[1] ?? lower.match(/(?:video|kuchi|id|ref|reference|template)s?[\s#:=/_-]*(\d{1,6})(?!\d)/)?.[1];
+  return archive.videos.find(v => String(v.id) === id || (v.slug && v.slug.toLowerCase() === lower)) ?? null;
+}
+
+// Videos to offer when a reference matches nothing: the best keyword matches
+// for what was sent, else the newest videos.
+export function closestVideos(archive, reference, count = 5) {
+  const words = String(reference ?? '').toLowerCase().replace(/https?:\/\/\S+/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
+  const hits = words ? search(archive, {query:words, limit:count}).videos : [];
+  if (hits.length) return hits;
+  return search(archive, {sort:'newest', limit:count}).videos;
 }

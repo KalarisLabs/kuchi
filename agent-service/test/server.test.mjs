@@ -37,14 +37,14 @@ async function connect(load = async () => archive, options) {
 const call = (client, name, args) => client.callTool({name, arguments:args});
 const data = result => result.structuredContent ?? JSON.parse(result.content[0].text);
 
-test('the server advertises twelve read-only tools, two prompts, a resource, an icon and instructions', async () => {
+test('the server advertises thirteen read-only tools, two prompts, a resource, an icon and instructions', async () => {
   const {client, close} = await connect();
   try {
     assert.match(client.getInstructions(), /inspiration templates/);
     assert.equal(client.getInstructions(), INSTRUCTIONS);
     assert.match(client.getServerVersion().icons[0].src, /^https:\/\/kuchi\.kalarislabs\.com\/.+\.png$/);
     const {tools} = await client.listTools();
-    assert.deepEqual(tools.map(t => t.name).sort(), ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_component', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_components', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'kuchi_suggest_templates', 'search']);
+    assert.deepEqual(tools.map(t => t.name).sort(), ['fetch', 'kuchi_check_remake', 'kuchi_get_breakdown', 'kuchi_get_component', 'kuchi_get_skill', 'kuchi_get_video', 'kuchi_get_workflow', 'kuchi_list_components', 'kuchi_list_filters', 'kuchi_plan_remake', 'kuchi_search_videos', 'kuchi_suggest_templates', 'search']);
     for (const t of tools) {
       // What the Claude and ChatGPT directories check on every tool.
       assert.ok(t.title && t.description && t.name.length <= 64, t.name);
@@ -78,7 +78,12 @@ test('the workflow tool returns the whole method or one step with the rules', as
     // The steps the server instructions name are the tools the workflow names.
     for (const tool of ['kuchi_search_videos', 'kuchi_get_breakdown', 'kuchi_plan_remake', 'kuchi_check_remake', 'shot_analysis', 'compare_frames'])
       assert.ok(workflow.includes(tool), `the workflow explains ${tool}`);
-    assert.equal((await call(client, 'kuchi_get_workflow', {step:'publish'})).isError, true);
+    // A step that doesn't exist is dropped and the whole workflow comes back, with a note saying so.
+    const unknown = await call(client, 'kuchi_get_workflow', {step:'publish'});
+    assert.equal(unknown.isError, undefined);
+    assert.equal(unknown.content[0].text, workflow);
+    assert.match(unknown.content.at(-1).text, /step: "publish" is not one of/);
+    assert.match((await call(client, 'kuchi_get_workflow', {step:'Build'})).content[0].text, /^## 4\. /);
   } finally { await close(); }
   // A workflow document without the expected headings is returned whole, never cut wrongly.
   assert.equal(workflowStep('# Kuchi workflow', 'build'), '# Kuchi workflow');
@@ -108,8 +113,15 @@ test('videos resolve by id, slug, Kuchi link and X URL; misses explain how to re
   try {
     for (const ref of ['2', 'demo-2', 'https://kuchi.kalarislabs.com/#video-2', 'https://x.com/demo/status/1002?s=20'])
       assert.equal(data(await call(client, 'kuchi_get_video', {reference:ref, response_format:'json'})).id, 2, ref);
+    // A miss is answered with the closest videos, never a failed call: registry health checks probe with words like "github".
     const miss = await call(client, 'kuchi_get_video', {reference:'999'});
-    assert.equal(miss.isError, true); assert.match(miss.content[0].text, /kuchi_suggest_templates or kuchi_search_videos/);
+    assert.equal(miss.isError, undefined); assert.match(miss.content[0].text, /No Kuchi video matches "999"[\s\S]+Closest videos:[\s\S]+- id \d+[\s\S]+kuchi_suggest_templates or kuchi_search_videos/);
+    const probe = await call(client, 'kuchi_get_video', {reference:'github'});
+    assert.equal(probe.isError, undefined); assert.match(probe.content[0].text, /Closest videos:/);
+    // Forms agents improvise, and argument names they guess.
+    for (const ref of ['video 2', '#2', 'kuchi-2', 'id=2', 'DEMO-2', '2.0'])
+      assert.equal(data(await call(client, 'kuchi_get_video', {reference:ref, response_format:'json'})).id, 2, ref);
+    assert.equal(data(await call(client, 'kuchi_get_video', {video_id:2, response_format:'json'})).id, 2);
     // The text a user copies from a video on the website resolves as it is.
     const pasted = 'Use this Kuchi video as the template for my launch video: https://kuchi.kalarislabs.com/#video-2\nRemake its motion and vibe for my product.';
     assert.equal(data(await call(client, 'kuchi_get_video', {reference:pasted, response_format:'json'})).id, 2);
@@ -142,7 +154,9 @@ test('plan_remake asks for the user\'s own assets until it is ready', async () =
     const markdown = await call(client, 'kuchi_plan_remake', {reference:'1', product_name:'Acme'});
     assert.match(markdown.content[0].text, /Not ready yet/);
     const bad = await call(client, 'kuchi_plan_remake', {reference:'1', product_name:'Acme', assets:[{kind:'sticker', description:'x'}]});
-    assert.equal(bad.isError, true);
+    // An asset of a kind Kuchi doesn't know is left out, and the note says so.
+    assert.equal(bad.isError, undefined);
+    assert.match(bad.content.at(-1).text, /assets\[0\]\.kind: "sticker" is not one of[^;]+, so it was left out/);
   } finally { await close(); }
 });
 
@@ -201,9 +215,9 @@ test('breakdowns give exact shots, storyboard links and reviewed labels, and can
     const fallback = await call(client, 'kuchi_get_breakdown', {reference:'1', storyboard:'detail'});
     assert.match(fallback.content[1].text, /could not be attached.*detail-1\.jpg/);
     const beyond = await call(client, 'kuchi_get_breakdown', {reference:'1', storyboard:'detail', detail_sheet:4});
-    assert.equal(beyond.isError, true); assert.match(beyond.content[0].text, /between 1 and 1/);
+    assert.equal(beyond.isError, undefined); assert.ok(beyond.content.some(c => /has 1 detail sheet, so this is detail sheet 1/.test(c.text ?? '')));
     const none = await call(client, 'kuchi_get_breakdown', {reference:'3'});
-    assert.equal(none.isError, true); assert.match(none.content[0].text, /no breakdown/);
+    assert.equal(none.isError, undefined); assert.match(none.content[0].text, /no breakdown/);
 
     const video = data(await call(client, 'kuchi_get_video', {reference:'1', response_format:'json'}));
     assert.deepEqual(video.breakdown, {shots:6, pace:'medium', theme:'light', average_shot_s:5, storyboard_url:'https://kuchi-media.kalarislabs.com/frames/01/overview.jpg', labelled:true});
@@ -249,7 +263,9 @@ test('an unreviewed video hands the shot analysis to the agent, and that analysi
     assert.equal(all.blueprint.precision, 'analysed');
     assert.doesNotMatch(all.next_steps.join(' '), /have no kind/);
     assert.match(all.next_steps.join(' '), /start_frame and end_frame/);
-    assert.equal((await call(client, 'kuchi_plan_remake', {...base, shot_analysis:[{shot:1, kind:'sticker'}]})).isError, true);
+    const sticker = await call(client, 'kuchi_plan_remake', {...base, shot_analysis:[{shot:1, kind:'sticker'}]});
+    assert.equal(sticker.isError, undefined);
+    assert.match(sticker.content.at(-1).text, /shot_analysis\[0\]\.kind: "sticker" is not one of/);
 
     // A long blueprint is paged, never thinned: every page keeps the full video's timing.
     const paged = data(await call(client, 'kuchi_plan_remake', {...base, shot_offset:2, shot_limit:2}));
@@ -353,7 +369,7 @@ test('analytics keeps tool schemas intact and never receives the user\'s product
   const {client, close} = await connect(undefined, {posthog, properties:{country:'IN'}});
   try {
     const {tools} = await client.listTools();
-    assert.equal(tools.length, 13);
+    assert.equal(tools.length, 14);
     const feedback = tools.find(t => t.name === FEEDBACK_TOOL);
     assert.ok(feedback, 'agents can report gaps and failures');
     // The one tool that writes says so, and has the title directories require.
@@ -379,9 +395,10 @@ test('analytics keeps tool schemas intact and never receives the user\'s product
     const [searched, planned, missed] = calls.map(e => e.properties);
     assert.deepEqual(searched.$mcp_parameters.request.params.arguments, {query:'pastel', pace:'medium'});
     assert.deepEqual([searched.kuchi_result_count, searched.kuchi_filters, searched.country], [0, 'pace', 'IN']);
-    assert.deepEqual(planned.$mcp_parameters.request.params.arguments, {reference:'1', target_seconds:20});
+    assert.deepEqual(planned.$mcp_parameters.request.params.arguments, {reference:'1', target_seconds:20, sound:'sfx'});
     assert.deepEqual([planned.kuchi_ready, planned.kuchi_asset_kinds, planned.kuchi_feature_count, planned.kuchi_plan, planned.kuchi_analysed_shots], [false, 'logo', 1, 'condensed', 1]);
-    assert.equal(missed.$mcp_is_error, true);
+    // A miss is answered with the closest videos, so it is not counted as an error.
+    assert.equal(missed.$mcp_is_error, false);
     // What the user is looking for is their own words about their product: only the choices made are kept.
     const suggested = calls[3].properties;
     assert.deepEqual(suggested.$mcp_parameters.request.params.arguments, {count:2, theme:'dark'});
@@ -401,8 +418,12 @@ test('a rejected call to a private tool leaks nothing, and a muted client is not
     posthog.capture = message => { events.push(message); };
     const {client, close} = await connect(undefined, {posthog, muted});
     try {
-      // An unknown argument fails validation before the tool runs.
-      const rejected = await call(client, 'kuchi_plan_remake', {reference:'1', product_name:'SecretCo', product_description:'Confidential payroll tool', surprise:'Hidden feature'});
+      // An unknown argument is dropped before the tool runs, and its value never reaches analytics.
+      const repaired = await call(client, 'kuchi_plan_remake', {reference:'1', product_name:'SecretCo', product_description:'Confidential payroll tool', surprise:'Hidden feature'});
+      assert.equal(repaired.isError, undefined);
+      assert.match(repaired.content.at(-1).text, /surprise: not an argument/);
+      // A call that can't be repaired (no reference at all) still fails validation, and leaks nothing either.
+      const rejected = await call(client, 'kuchi_plan_remake', {product_name:'SecretCo', product_description:'Confidential payroll tool'});
       assert.equal(rejected.isError, true);
       await call(client, 'kuchi_check_remake', {reference:'1', product_name:'SecretCo', shots:[{start_s:0, end_s:2, on_screen_text:['Confidential payroll tool']}]});
       await call(client, 'kuchi_search_videos', {query:'pastel'});
@@ -457,7 +478,8 @@ test('suggest_templates ranks by fit, says what differs, and offers both ways to
 
     const markdown = (await call(client, 'kuchi_suggest_templates', {styles:['kinetic type'], count:1})).content[0].text;
     assert.match(markdown, /## 1\. Pastel cursor demo \(id 2\)[\s\S]+Fits: Kinetic type style[\s\S]+\*\*Recommended:\*\* choice 1[\s\S]+## Ask the user\nIs this the template/);
-    assert.equal((await call(client, 'kuchi_suggest_templates', {count:7})).isError, true);
+    const capped = await call(client, 'kuchi_suggest_templates', {count:7});
+    assert.equal(capped.isError, undefined); assert.match(capped.content.at(-1).text, /count: 7 lowered to 6/);
   } finally { await close(); }
 });
 

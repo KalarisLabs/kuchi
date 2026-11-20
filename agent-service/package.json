@@ -1,12 +1,13 @@
 {
   "name": "kuchi-mcp-server",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "test": "node --test test/*.test.mjs",
+    "build:skills": "node scripts/build-skills.mjs",
     "verify:live": "node scripts/verify-live.mjs"
   },
   "dependencies": {

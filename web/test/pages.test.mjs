@@ -156,7 +156,10 @@ test('accessibility features of the old page survive', () => {
   assert.match(index, /<html lang="en">/);
 });
 
-for (const [file, title, heading] of [['privacy.html', 'Privacy — Kuchi', 'Kuchi privacy'], ['terms.html', 'Terms — Kuchi', 'Kuchi terms'], ['support.html', 'Support — Kuchi', 'Kuchi support']]) {
+// Privacy and terms were rewritten in web/ on purpose (2026-11-20: in-depth policy, DPDP Act,
+// GDPR and US state law sections, analytics switch) and no longer follow ../site; their
+// guarantees are checked in test/legal.test.mjs instead. Support still follows the reference.
+for (const [file, title, heading] of [['support.html', 'Support — Kuchi', 'Kuchi support']]) {
   test(`${file} keeps the reference page's text`, async () => {
     const built = await read(dist, file);
     assert.ok(built.includes(`<title>${title}</title>`));

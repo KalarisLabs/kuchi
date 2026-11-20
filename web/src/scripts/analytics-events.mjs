@@ -26,3 +26,19 @@ export function eventProperties(name, input = {}) {
     return [[key,value]];
   }));
 }
+
+// The visitor's analytics switch (/analytics-preferences). Kept here, with no side
+// effects, so that page can read and write it without starting analytics itself.
+// Written by /analytics-preferences only: 'off' turns website analytics off in this browser.
+export const PREFERENCE_KEY = 'kuchi-analytics';
+
+// 'off' or 'on'. Storage that is missing or throws (private mode, blocked site data)
+// cannot hold an 'off', so it reads as the default, 'on'.
+export function readPreference(storage) {
+  try { return storage?.getItem(PREFERENCE_KEY) === 'off' ? 'off' : 'on'; } catch { return 'on'; }
+}
+
+// Analytics runs only when the browser sends neither signal and the visitor has not switched it off.
+export function analyticsAllowed(privacy, preference = 'on') {
+  return !privacy?.globalPrivacyControl && privacy?.doNotTrack !== '1' && preference !== 'off';
+}

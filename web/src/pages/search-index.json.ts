@@ -6,6 +6,7 @@ import { components, categoryLabels, posterUrl } from '../lib/components-catalog
 import { videoPath } from '../lib/video-links.js';
 import { harnesses, harnessPath } from '../lib/harnesses';
 import { posts, postPath } from '../lib/blog';
+import { useCaseSearchEntries } from '../lib/use-cases';
 
 export const prerender = true;
 
@@ -33,6 +34,7 @@ const pages: SearchEntry[] = [
   { k: 'page', t: 'Product launch video skill', s: 'Install the skill that makes a launch video end to end', h: '/skills/product-launch-video', w: 'skill install npx skills claude code codex agent skill launch promo teaser' },
   { k: 'page', t: 'Agent skills', s: 'Every Kuchi skill: launch video, Remotion, sound, audio check', h: '/skills', w: 'skills install skill.md remotion sound audio' },
   { k: 'page', t: 'Blog', s: 'Guides to launch videos with AI agents', h: '/blog', w: 'articles guides posts how to' },
+  ...useCaseSearchEntries(),
   ...posts.map((p): SearchEntry => ({ k: 'page', t: p.heading, s: p.summary, h: postPath(p), w: `blog ${p.keywords.join(' ')}` })),
   { k: 'page', t: 'FAQ', s: 'How Kuchi works', h: '/#faq', w: 'questions help' },
   { k: 'page', t: 'Support', s: 'Get help', h: '/support', w: 'contact help email' },

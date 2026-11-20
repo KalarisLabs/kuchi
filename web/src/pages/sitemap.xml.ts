@@ -7,6 +7,7 @@ import { newestFirst } from '../lib/catalog';
 import { videoPath } from '../lib/video-links.js';
 import { harnesses, harnessPath } from '../lib/harnesses';
 import { posts, postPath } from '../lib/blog';
+import { useCases, useCasePath, USE_CASES_UPDATED } from '../lib/use-cases';
 
 export const prerender = true;
 
@@ -38,6 +39,8 @@ const ENTRIES: Entry[] = [
   })),
   { path: '/agents', lastmod: latest },
   ...harnesses.map((h) => ({ path: harnessPath(h), lastmod: latest })),
+  { path: '/use-cases', lastmod: USE_CASES_UPDATED },
+  ...useCases.map((u) => ({ path: useCasePath(u), lastmod: USE_CASES_UPDATED })),
   { path: '/skills', lastmod: '2026-11-20' },
   { path: '/skills/product-launch-video', lastmod: '2026-11-20' },
   { path: '/blog', lastmod: posts.map((p) => p.updated).sort().at(-1) },

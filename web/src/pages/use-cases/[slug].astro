@@ -12,6 +12,7 @@ import SiteFooter from '../../components/SiteFooter.astro';
 import Toast from '../../components/Toast.astro';
 import VideoCard from '../../components/VideoCard.astro';
 import AuthorByline from '../../components/AuthorByline.astro';
+import SkillInstall from '../../components/SkillInstall.astro';
 import { AUTHOR, authorLd } from '../../lib/authors';
 import { SITE_URL, videoPath } from '../../lib/video-links.js';
 import { posterUrl } from '../../lib/components-catalog';
@@ -164,6 +165,8 @@ const copyIcon = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" st
           <h2 id="skills-title">The skills that do the build</h2>
           {SKILLS_COPY.map((p) => <p set:html={inline(p)} />)}
         </section>
+
+        <SkillInstall id="skill" compact />
       </div>
 
       <aside class="ag-side" aria-label="Setup prompt">

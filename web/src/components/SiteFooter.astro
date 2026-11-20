@@ -18,6 +18,7 @@
 import wordmarkWhite from '../assets/kalaris-wordmark-white.png';
 import HeroBackground from './HeroBackground.jsx';
 import AskAI from './AskAI.astro';
+import { useCases, useCasePath } from '../lib/use-cases';
 
 interface Props {
   /** True on the gallery page, where the section anchors are on the same page. */
@@ -39,6 +40,10 @@ const columns: { title: string; links: FooterLink[] }[] = [
     { label: 'Connect your agent', href: at('#connect') },
     { label: 'FAQ', href: at('#faq') },
     { label: 'About the data', href: '/videos#method' },
+  ] },
+  { title: 'Use cases', links: [
+    { label: 'All use cases', href: '/use-cases' },
+    ...useCases.map((u) => ({ label: u.label, href: useCasePath(u) })),
   ] },
   { title: 'Legal', links: [
     { label: 'Privacy', href: '/privacy' },
@@ -119,7 +124,7 @@ const columns: { title: string; links: FooterLink[] }[] = [
     background: radial-gradient(60% 55% at 50% 100%, rgba(77,124,255,.45), rgba(30,63,216,.22) 45%, transparent 75%);
   }
   .footer-top {
-    display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 48px;
+    display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.75fr); gap: 48px;
     max-width: 1180px; margin: 0 auto; padding: clamp(88px, 11vw, 136px) 34px 0;
   }
   .footer-brand { display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
@@ -127,8 +132,7 @@ const columns: { title: string; links: FooterLink[] }[] = [
   .footer-sub { max-width: 36ch; margin-top: 16px; color: var(--f-muted); font-size: 15px; line-height: 1.55; }
   .footer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
 
-  .footer-nav { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1.3fr); gap: 24px; align-content: start; padding-top: 6px; }
-  .footer-col a { white-space: nowrap; }
+  .footer-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; align-content: start; padding-top: 6px; }
   .footer-col h3 { margin-bottom: 14px; color: var(--f-muted); font-size: 12px; font-weight: 500; letter-spacing: .02em; }
   .footer-col ul { margin: 0; padding: 0; list-style: none; }
   .footer-col li + li { margin-top: 2px; }
@@ -176,6 +180,9 @@ const columns: { title: string; links: FooterLink[] }[] = [
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
 
+  @media (max-width: 1080px) {
+    .footer-top { grid-template-columns: 1fr; }
+  }
   @media (max-width: 860px) {
     .footer-top { grid-template-columns: 1fr; gap: 44px; padding-left: 20px; padding-right: 20px; }
     .footer-base { padding-left: 20px; padding-right: 20px; }
@@ -183,7 +190,6 @@ const columns: { title: string; links: FooterLink[] }[] = [
   }
   @media (max-width: 520px) {
     .footer-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 32px; }
-    .footer-col:last-child { grid-column: 1 / -1; }
     .site-footer::before { height: 25px; border-radius: 0 0 24px 24px; }
   }
 </style>

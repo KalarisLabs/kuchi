@@ -45,6 +45,8 @@ const ENTRIES: Entry[] = [
   { path: '/support' },
   { path: '/privacy' },
   { path: '/terms' },
+  { path: '/legal' },
+  { path: '/analytics-preferences' },
 ];
 
 export const GET: APIRoute = ({ site }) => {

@@ -12,7 +12,7 @@ const PAGE = 'public, max-age=120, stale-while-revalidate=604800';
 const DATA = 'public, max-age=600, stale-while-revalidate=86400';
 
 const RULES = [
-  [['/', '/videos', '/videos/*', '/components', '/components/*', '/agents', '/agents/*', '/blog', '/blog/*', '/skills', '/skills/*', '/privacy', '/terms', '/support'], PAGE],
+  [['/', '/videos', '/videos/*', '/components', '/components/*', '/agents', '/agents/*', '/blog', '/blog/*', '/skills', '/skills/*', '/privacy', '/terms', '/legal', '/analytics-preferences', '/support'], PAGE],
   [['/r/*', '/search-index.json', '/videos.json', '/llms.txt', '/sitemap.xml', '/robots.txt'], DATA],
 ];
 

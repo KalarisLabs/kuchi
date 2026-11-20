@@ -38,6 +38,8 @@ const pages: SearchEntry[] = [
   { k: 'page', t: 'Support', s: 'Get help', h: '/support', w: 'contact help email' },
   { k: 'page', t: 'Privacy', s: 'What Kuchi collects', h: '/privacy', w: 'data analytics' },
   { k: 'page', t: 'Terms', s: 'Terms of use', h: '/terms', w: 'legal license' },
+  { k: 'page', t: 'Legal notice', s: 'Operator, contact and video removal requests', h: '/legal', w: 'imprint takedown removal trademark contact' },
+  { k: 'page', t: 'Analytics preferences', s: 'Turn website analytics off or on', h: '/analytics-preferences', w: 'privacy opt out tracking do not track gpc' },
 ];
 
 const agents: SearchEntry[] = harnesses.map((h) => ({
